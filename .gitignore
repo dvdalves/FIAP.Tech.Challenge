@@ -366,3 +366,10 @@ FodyWeavers.xsd
 # Ignore project files created by JetBrains IDEs (Rider, etc.)
 .idea/
 .idea/*
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Agents
+**/Agents.md
