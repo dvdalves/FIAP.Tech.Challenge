@@ -1,0 +1,48 @@
+services:
+  database:
+    image: postgres:18-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_password
+      POSTGRES_DB: oficina
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "PGPASSWORD=postgres_password pg_isready -U postgres -d oficina",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    networks:
+      - oficina-network
+
+  api:
+    image: fiap_tech_challenge_api:latest
+    build:
+      context: .
+      dockerfile: src/FIAP.Tech.Challenge.API/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - DbProvider=PostgreSQL
+      - ConnectionStrings__DefaultConnection=Host=database;Port=5432;Database=oficina;Username=postgres;Password=postgres_password
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - oficina-network
+
+volumes:
+  postgres_data:
+
+networks:
+  oficina-network:
+    driver: bridge
