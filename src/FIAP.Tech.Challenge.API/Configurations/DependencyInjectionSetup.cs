@@ -18,9 +18,16 @@ public static class DependencyInjectionSetup
 {
     public static IServiceCollection AddDependencyInjection(this IServiceCollection services, IConfiguration configuration)
     {
-        // Banco de dados (PostgreSQL)
-        var connectionString = configuration.GetConnectionString("DefaultConnection");
-        var dbProvider = configuration["DbProvider"] ?? "PostgreSQL";
+        // Banco de dados (usando SQLite ou PostgreSQL detectado automaticamente ou via configuração)
+        var connectionString = configuration.GetConnectionString("DefaultConnection") ?? "Data Source=oficina.db";
+        var dbProvider = configuration["DbProvider"];
+
+        if (string.IsNullOrEmpty(dbProvider))
+        {
+            dbProvider = connectionString.Contains("Host=") || connectionString.Contains("Server=")
+                ? "PostgreSQL"
+                : "Sqlite";
+        }
 
         services.AddDbContext<OficinaDbContext>(options =>
         {
