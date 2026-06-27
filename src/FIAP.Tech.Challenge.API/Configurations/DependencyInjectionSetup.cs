@@ -18,7 +18,7 @@ public static class DependencyInjectionSetup
 {
     public static IServiceCollection AddDependencyInjection(this IServiceCollection services, IConfiguration configuration)
     {
-        // Banco de dados (usando SQLite ou PostgreSQL detectado automaticamente ou via configuração)
+        // Banco de dados (usando SQLite, PostgreSQL ou InMemory detectado automaticamente ou via configuração)
         var connectionString = configuration.GetConnectionString("DefaultConnection") ?? "Data Source=oficina.db";
         var dbProvider = configuration["DbProvider"];
 
@@ -34,6 +34,10 @@ public static class DependencyInjectionSetup
             if (dbProvider.Equals("PostgreSQL", StringComparison.OrdinalIgnoreCase))
             {
                 options.UseNpgsql(connectionString);
+            }
+            else if (dbProvider.Equals("InMemory", StringComparison.OrdinalIgnoreCase))
+            {
+                options.UseInMemoryDatabase(connectionString);
             }
             else
             {

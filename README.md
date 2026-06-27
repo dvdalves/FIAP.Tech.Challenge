@@ -197,10 +197,22 @@ A suíte de testes cobre os domínios críticos do sistema, com foco nas seguint
 3. **Consistência de Estoque**: Dedução correta de saldo de estoque apenas quando a OS é aprovada para execução.
 4. **Validação de Inputs**: Checagem de formato de placa de veículos e estruturas de CPF/CNPJ.
 
-Em construção
+Para rodar a suíte de testes (que automaticamente inicializa um banco de dados SQLite em memória para total isolamento e performance), execute o comando a partir do diretório raiz:
+
+```bash
+dotnet test
+```
+
+Isso executará os **29 testes unitários** de domínio e os **7 testes integrados** de ponta a ponta (verificando fluxos completos de criação de clientes, frotas de veículos, abertura de OS, cálculo automático de orçamento no diagnóstico e baixa transacional de estoque).
 
 ---
 
 ## 8. Relatório de Análise de Vulnerabilidades
 
-Em construção
+Como parte das exigências de segurança de código estático (SAST) e alinhamento com mitigação de riscos do OWASP Top 10, a solução foi blindada nos seguintes pilares:
+
+* **Remediação de Segurança de Dependências (Alerta NU1903)**: Corrigida a vulnerabilidade crítica de truncamento numérico (CVE-2025-6965 / GHSA-2m69-gcr7-jv3q) associada ao motor SQLite antigo (`SQLitePCLRaw.lib.e_sqlite3` v2.1.11). Adicionamos referências explícitas ao bundle seguro `SQLitePCLRaw.bundle_e_sqlite3` v3.0.3 em todos os projetos e suítes de teste, eliminando todos os alertas de dependências vulneráveis do compilador NuGet.
+* **Mitigação de IDOR (Insecure Direct Object Reference)**: Todas as APIs públicas e administrativas utilizam identificadores globais aleatórios do tipo `Guid` (UUID) em vez de chaves primárias sequenciais inteiras, inviabilizando varreduras automatizadas e acessos cruzados não autorizados.
+* **Prevenção a SQL Injection**: Todas as queries e persistências utilizam o Entity Framework Core (ORM) parametrizando as operações automaticamente tanto no PostgreSQL quanto no SQLite local.
+* **Proteção contra Broken Object Level Authorization (BOLA)**: Implementada validação de escopo na abertura de OS (`AbrirOrdemServicoUseCase`) para garantir que o veículo pertence de fato ao cliente que está abrindo a OS, impedindo fraude de vínculo de frotas.
+* **Segurança de APIs**: Proteção de rotas administrativas sob token criptográfico JWT Bearer com chaves simétricas de assinatura de 256 bits.

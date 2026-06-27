@@ -1,6 +1,159 @@
-@FIAP.Tech.Challenge_HostAddress = http://localhost:5054
+@FIAP.Tech.Challenge_HostAddress = http://localhost:8080
+# Nota: Se estiver executando localmente fora do Docker, ajuste o endereço da porta (ex: http://localhost:5054)
 
-GET {{FIAP.Tech.Challenge_HostAddress}}/weatherforecast/
+# ==============================================================================
+# 🔐 FLUXO DE AUTENTICAÇÃO (TESTE DO MVP)
+# ==============================================================================
+
+### Gerar Token JWT de Teste (Admin)
+# @name gerarTokenAdmin
+POST {{FIAP.Tech.Challenge_HostAddress}}/api/public/auth/token?usuario=admin&perfil=Admin
 Accept: application/json
 
-###
+### Definir a variável do Token JWT a partir da resposta do endpoint de auth
+@tokenAdmin = {{gerarTokenAdmin.response.body.token}}
+
+
+# ==============================================================================
+# 👤 GESTÃO DE CLIENTES E VEÍCULOS (ADMINISTRATIVO - REQUER AUTENTICAÇÃO)
+# ==============================================================================
+
+### Cadastrar Cliente (Rodrigo Silva)
+# @name criarCliente
+POST {{FIAP.Tech.Challenge_HostAddress}}/api/admin/clientes
+Authorization: Bearer {{tokenAdmin}}
+Content-Type: application/json
+
+{
+  "nome": "Rodrigo Silva",
+  "cpf": "12345678909",
+  "email": "rodrigo.silva@email.com",
+  "telefone": "11988887777"
+}
+
+### Obter o ID do cliente criado
+@clienteId = {{criarCliente.response.body.id}}
+
+### Listar Todos os Clientes
+GET {{FIAP.Tech.Challenge_HostAddress}}/api/admin/clientes
+Authorization: Bearer {{tokenAdmin}}
+Accept: application/json
+
+### Consultar Cliente por ID
+GET {{FIAP.Tech.Challenge_HostAddress}}/api/admin/clientes/{{clienteId}}
+Authorization: Bearer {{tokenAdmin}}
+Accept: application/json
+
+### Vincular Veículo ao Cliente
+# @name criarVeiculo
+POST {{FIAP.Tech.Challenge_HostAddress}}/api/admin/clientes/{{clienteId}}/veiculos
+Authorization: Bearer {{tokenAdmin}}
+Content-Type: application/json
+
+{
+  "placa": "XYZ-9876",
+  "marca": "Honda",
+  "modelo": "Civic",
+  "ano": 2020
+}
+
+### Obter o ID do veículo criado
+@veiculoId = {{criarVeiculo.response.body.id}}
+
+
+# ==============================================================================
+# ⚙️ GESTÃO DE ORDENS DE SERVIÇO (ADMINISTRATIVO - REQUER AUTENTICAÇÃO)
+# ==============================================================================
+
+### Abrir Ordem de Serviço (Status: Recebida)
+# @name abrirOS
+POST {{FIAP.Tech.Challenge_HostAddress}}/api/admin/ordens-servico
+Authorization: Bearer {{tokenAdmin}}
+Content-Type: application/json
+
+{
+  "clienteId": "{{clienteId}}",
+  "veiculoId": "{{veiculoId}}",
+  "descricaoProblema": "Revisão geral de 40.000km e pastilha fazendo barulho."
+}
+
+### Obter o ID da OS criada
+@osId = {{abrirOS.response.body.id}}
+
+### Listar Insumos / Peças do Estoque para obter IDs (Pré-cadastrado "Pastilha de Freio" tem ID 22222222-2222-2222-2222-222222222222)
+GET {{FIAP.Tech.Challenge_HostAddress}}/api/admin/pecas
+Authorization: Bearer {{tokenAdmin}}
+Accept: application/json
+
+### Mecânico realiza diagnóstico e lança itens (Calcula orçamento e altera status para AguardandoAprovacao)
+# @name lancarItens
+POST {{FIAP.Tech.Challenge_HostAddress}}/api/admin/ordens-servico/{{osId}}/itens
+Authorization: Bearer {{tokenAdmin}}
+Content-Type: application/json
+
+{
+  "pecas": [
+    {
+      "pecaId": "22222222-2222-2222-2222-222222222222",
+      "quantidade": 2
+    }
+  ],
+  "servicos": [
+    {
+      "descricao": "Substituição de pastilhas de freio dianteiras",
+      "valorMaoDeObra": 90.00
+    }
+  ]
+}
+
+### Transicionar Status Manualmente (Ex: EmDiagnostico)
+PUT {{FIAP.Tech.Challenge_HostAddress}}/api/admin/ordens-servico/{{osId}}/status
+Authorization: Bearer {{tokenAdmin}}
+Content-Type: application/json
+
+{
+  "novoStatus": 2
+}
+
+
+# ==============================================================================
+# 📦 GESTÃO DE ESTOQUE (ADMINISTRATIVO - REQUER AUTENTICAÇÃO)
+# ==============================================================================
+
+### Cadastrar Nova Peça no Catálogo
+# @name cadastrarPeca
+POST {{FIAP.Tech.Challenge_HostAddress}}/api/admin/pecas
+Authorization: Bearer {{tokenAdmin}}
+Content-Type: application/json
+
+{
+  "nome": "Amortecedor Dianteiro",
+  "preco": 320.00,
+  "quantidadeEstoque": 10
+}
+
+### Obter ID da peça cadastrada
+@novaPecaId = {{cadastrarPeca.response.body.id}}
+
+### Ajustar Estoque de Peça no Catálogo
+PUT {{FIAP.Tech.Challenge_HostAddress}}/api/admin/pecas/{{novaPecaId}}/estoque?quantidade=15
+Authorization: Bearer {{tokenAdmin}}
+Accept: application/json
+
+
+# ==============================================================================
+# 👤 ACOMPANHAMENTO E APROVAÇÃO (FLUXO DO CLIENTE - PÚBLICO)
+# ==============================================================================
+
+### Cliente Acompanha Status da Manutenção (Público)
+GET {{FIAP.Tech.Challenge_HostAddress}}/api/public/ordens-servico/{{osId}}
+Accept: application/json
+
+### Cliente Aprova o Orçamento (Muda status para EmExecucao e deduz do estoque)
+POST {{FIAP.Tech.Challenge_HostAddress}}/api/public/ordens-servico/{{osId}}/aprovar
+Accept: application/json
+
+### Cliente Rejeita o Orçamento (Muda status para Cancelada)
+# Nota: Para testar, execute o fluxo acima abrindo uma nova OS e chame a rejeição
+POST {{FIAP.Tech.Challenge_HostAddress}}/api/public/ordens-servico/{{osId}}/rejeitar
+Accept: application/json
