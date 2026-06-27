@@ -6,18 +6,17 @@ using FIAP.Tech.Challenge.Domain;
 using FIAP.Tech.Challenge.Domain.Aggregates.ClienteAggregate;
 using FIAP.Tech.Challenge.Domain.Aggregates.OrdemServicoAggregate;
 using FIAP.Tech.Challenge.Domain.Aggregates.VeiculoAggregate;
+using FIAP.Tech.Challenge.Domain.Aggregates.PecaAggregate;
 
 namespace FIAP.Tech.Challenge.Infrastructure.Data.Context;
 
-public class OficinaDbContext : DbContext, IUnitOfWork
+public class OficinaDbContext(DbContextOptions<OficinaDbContext> options) : DbContext(options), IUnitOfWork
 {
     public DbSet<Cliente> Clientes => Set<Cliente>();
     public DbSet<Veiculo> Veiculos => Set<Veiculo>();
     public DbSet<OrdemServico> OrdensServico => Set<OrdemServico>();
-
-    public OficinaDbContext(DbContextOptions<OficinaDbContext> options) : base(options)
-    {
-    }
+    public DbSet<Peca> Pecas => Set<Peca>();
+    public DbSet<ItemOrdemServico> ItensOrdemServico => Set<ItemOrdemServico>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -17,9 +17,9 @@ O desenvolvimento foi guiado pelos princípios de **Domain-Driven Design (DDD)**
 * [3. Decisões Técnicas Principais](#3-decisões-técnicas-principais)
 * [4. Linguagem Ubíqua](#4-linguagem-ubíqua)
 * [5. Documentação DDD & Diagramas](#5-documentação-ddd--diagramas)
-<!-- * [6. APIs e Funcionalidades do MVP](#6-apis-e-funcionalidades-do-mvp)
+* [6. APIs e Funcionalidades do MVP](#6-apis-e-funcionalidades-do-mvp)
 * [7. Cobertura de Testes](#7-cobertura-de-testes)
-* [8. Relatório de Análise de Vulnerabilidades](#8-relatório-de-análise-de-vulnerabilidades) -->
+* [8. Relatório de Análise de Vulnerabilidades](#8-relatório-de-análise-de-vulnerabilidades)
 
 ---
 
@@ -67,7 +67,7 @@ dotnet test
 
 O sistema foi estruturado seguindo os princípios de **Clean Architecture**, dividindo a aplicação em camadas isoladas para garantir desacoplamento, testabilidade e agnosticismo de infraestrutura:
 
-```
+```text
 FIAP.Tech.Challenge
 ├── src/
 │   ├── FIAP.Tech.Challenge.API                 # Ponto de entrada REST, Filtros Globais, Setup JWT/Swagger
@@ -104,6 +104,12 @@ Desenvolvemos uma mecânica de registro de dados flexível no [DependencyInjecti
 ### 🔒 Segurança de Acesso e APIs
 
 * **Autenticação JWT Bearer**: Os endpoints sensíveis de administração (cadastro de peças, CRUDs de clientes e gerenciamento de faturamento) são protegidos por tokens JWT assinados digitalmente.
+  * **Emissão no MVP**: Para fins de teste e validação do MVP do produto, disponibilizamos o endpoint público `POST /api/public/auth/token` para geração rápida de tokens temporários com perfis customizados (ex: `Admin`).
+  * **Algoritmo e Chave de Assinatura**: O token é assinado localmente com chave simétrica usando o segredo de validação acadêmica `SuperSecretSecurityKeyOficinaMecanica2026!` via algoritmo `HMAC-SHA256`.
+  * **Validação**: A API valida a integridade do token por meio do middleware oficial do ASP.NET Core `Microsoft.AspNetCore.Authentication.JwtBearer` (configurado em `JwtSetup.cs`).
+  * **Rotas Protegidas**: Todas as rotas administrativas sob o prefixo `/api/admin/*` exigem o cabeçalho HTTP `Authorization: Bearer <seu_token>`.
+  * **Roles e Perfis**: O middleware extrai as Claims de perfil (ex: `Admin`) mapeando as permissões de acesso de forma granular através do atributo `[Authorize]`.
+  * **Evolução de Arquitetura**: O plano de evolução da infraestrutura de segurança (IdP/Keycloak), desacoplamento com mensageria e escalabilidade de banco de dados está detalhado em: [docs/Fase 1/arquitetura_futura.md](file:///Users/david/Projects/FIAP.Tech.Challenge/docs/Fase%201/arquitetura_futura.md).
 * **Prevenção contra IDOR (Insecure Direct Object Reference)**: O sistema não expõe chaves primárias sequenciais do banco de dados (ex: `id = 1, 2, 3...`) nas URLs expostas publicamente. Em vez disso, utilizamos identificadores globais do tipo **`Guid` (UUID)** de forma nativa para todas as referências públicas das entidades de domínio.
 
 ---
@@ -150,41 +156,51 @@ A linha do tempo do ciclo de vida das ordens de serviço modelada horizontalment
 
 ---
 
-<!-- ## 6. APIs e Funcionalidades do MVP
+## 6. APIs e Funcionalidades do MVP
 
-O Swagger fornece a documentação de todos os endpoints mapeados no back-end. A API do MVP expõe os seguintes fluxos operacionais:
+O Swagger fornece a documentação de todos os endpoints mapeados no back-end. A API expõe os seguintes fluxos operacionais:
 
-### 👤 Fluxo do Cliente (Público)
+### 👤 Fluxo do Cliente (Público - `api/public/`)
 
-* **Consulta de OS**: Permite ao cliente verificar o status de sua manutenção informando o Guid da OS e a placa do veículo (`GET /api/ordens-servico/consulta`).
-* **Aprovação de Orçamento**: Permite ao cliente interagir diretamente com a proposta enviada, aprovando ou reprovando o orçamento (`POST /api/ordens-servico/{id}/aprovacao`).
+* **Consulta de OS** (`GET /api/public/ordens-servico/{id}`): Consulta o status de sua manutenção em tempo real.
+* **Aprovação de Orçamento** (`POST /api/public/ordens-servico/{id}/aprovar`): Cliente autoriza o orçamento, alterando o status para `EmExecucao` e deduzindo automaticamente as quantidades de peças utilizadas do estoque.
+* **Rejeição de Orçamento** (`POST /api/public/ordens-servico/{id}/rejeitar`): Cliente recusa o orçamento, cancelando a OS (Status transiciona para `Cancelada`).
+* **Autenticação de Teste** (`POST /api/public/auth/token`): Emissão de token JWT para testar as rotas administrativas protegidas.
 
-### ⚙️ Fluxo Administrativo (Autenticado via JWT Bearer)
+### ⚙️ Fluxo Administrativo (Autenticado via JWT Bearer - `api/admin/`)
 
-* **Autenticação**: Emissão de token JWT para usuários administrativos autorizados (`POST /api/auth/login`).
-* **Abertura de OS**: Criação da Ordem de Serviço inicial pelo atendente (`POST /api/ordens-servico`).
-* **Diagnóstico e Orçamento**: Lançamento das peças e serviços executados pelo mecânico (`PUT /api/ordens-servico/{id}/diagnostico`).
-* **Atualização de Status**: Modificação manual ou de segurança dos status de execução, conclusão de reparos e entrega física (`PUT /api/ordens-servico/{id}/status`).
-* **CRUDs Bases**: Gestão administrativa de Clientes, Veículos, Catálogo de Peças (Estoque) e Catálogo de Serviços.
+* **Gestão de Clientes**:
+  * `POST /api/admin/clientes` (Cadastra novo cliente).
+  * `GET /api/admin/clientes` (Lista todos os clientes).
+  * `GET /api/admin/clientes/{id}` (Consulta cliente por ID).
+* **Gestão de Veículos**:
+  * `POST /api/admin/clientes/{id}/veiculos` (Vicula um veículo à frota do cliente).
+* **Gestão de Ordens de Serviço**:
+  * `POST /api/admin/ordens-servico` (Abre nova OS inicial - Status: `Recebida`).
+  * `PUT /api/admin/ordens-servico/{id}/status` (Transiciona status da OS manualmente).
+  * `POST /api/admin/ordens-servico/{id}/itens` (Mecânico insere peças e serviços ao diagnóstico da OS, recalculando o orçamento total automaticamente e enviando para `AguardandoAprovacao`).
+* **Gestão de Peças / Catálogo**:
+  * `GET /api/admin/pecas` (Lista catálogo e quantidades em estoque).
+  * `POST /api/admin/pecas` (Adiciona novas peças ao catálogo).
+  * `HttpPut /api/admin/pecas/{id}/estoque` (Atualiza a quantidade de saldo em estoque da peça).
 
 ---
 
 ## 7. Cobertura de Testes
 
-Os testes automatizados foram criados utilizando **xUnit**, **NSubstitute** (para isolamento e criação de mocks rápidos de repositórios e serviços de infraestrutura) e **FluentAssertions** (para asserções fluidas em português e inglês).
+Os testes automatizados foram criados utilizando **xUnit**, **NSubstitute** (para isolamento e criação de mocks de repositórios e serviços) e **FluentAssertions** (para asserções fluidas).
 
-A suíte de testes cobre mais de **80%** dos domínios críticos do sistema, com foco nas seguintes validações:
+A suíte de testes cobre os domínios críticos do sistema, com foco nas seguintes validações:
 
-1. **Regras de Negócio de Ordem de Serviço**: Transição correta de status (ex: uma OS só pode ir para "Em execução" após aprovada; bloqueio de alteração de orçamentos se a OS já foi encerrada).
-2. **Cálculos Matemáticos**: Somatório automático dos preços de peças do estoque somados ao custo das mãos de obra no momento em que o orçamento é fechado pelo mecânico.
-3. **Validação de Inputs**: Checagem rigorosa de formato de placas e estruturas de identificadores nacionais.
+1. **Regras de Negócio de Ordem de Serviço**: Transição correta de status (ex: uma OS só pode ir para `EmExecucao` após aprovada; bloqueio de alteração de orçamentos se a OS já foi encerrada).
+2. **Cálculos Matemáticos**: Somatório automático dos preços de peças do estoque somados ao custo das mãos de obra no momento em que o diagnóstico é fechado pelo mecânico.
+3. **Consistência de Estoque**: Dedução correta de saldo de estoque apenas quando a OS é aprovada para execução.
+4. **Validação de Inputs**: Checagem de formato de placa de veículos e estruturas de CPF/CNPJ.
+
+Em construção
 
 ---
 
 ## 8. Relatório de Análise de Vulnerabilidades
 
-Como parte das exigências de segurança e qualidade do Tech Challenge da FIAP, a solução foi submetida a análises de segurança estática (**SAST**). O relatório completo contendo o diagnóstico de segurança da aplicação está contido no arquivo oficial de entrega:
-
-* **Documento de Entrega PDF**: [docs/Fase 1/15SOAT - Fase 1 - Tech Challenge.pdf](file:///Users/david/Projects/FIAP.Tech.Challenge/docs/Fase%201/15SOAT%20-%20Fase%201%20-%20Tech%20Challenge.pdf)
-
-Nesse relatório, detalham-se os scans efetuados nas dependências e os padrões aplicados para mitigar riscos de OWASP Top 10 (como injeção de SQL, quebras de autenticação e falhas de controle de acesso indireto/IDOR). -->
+Em construção

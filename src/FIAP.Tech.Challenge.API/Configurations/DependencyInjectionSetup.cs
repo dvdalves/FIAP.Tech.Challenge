@@ -48,10 +48,18 @@ public static class DependencyInjectionSetup
         services.AddScoped<IClienteRepository, ClienteRepository>();
         services.AddScoped<IVeiculoRepository, VeiculoRepository>();
         services.AddScoped<IOrdemServicoRepository, OrdemServicoRepository>();
+        services.AddScoped<FIAP.Tech.Challenge.Domain.Aggregates.PecaAggregate.IPecaRepository, PecaRepository>();
 
         // Casos de Uso
         services.AddScoped<CriarOrdemServicoUseCase>();
         services.AddScoped<AtualizarStatusOSUseCase>();
+        services.AddScoped<FIAP.Tech.Challenge.Application.UseCases.Clientes.CriarClienteUseCase>();
+        services.AddScoped<FIAP.Tech.Challenge.Application.UseCases.Clientes.CriarVeiculoUseCase>();
+        services.AddScoped<AbrirOrdemServicoUseCase>();
+        services.AddScoped<LancarItensOSUseCase>();
+        services.AddScoped<AprovarOrcamentoUseCase>();
+        services.AddScoped<RejeitarOrcamentoUseCase>();
+        services.AddScoped<FIAP.Tech.Challenge.Application.UseCases.Pecas.AjustarEstoquePecaUseCase>();
 
         // Serviços de Infraestrutura
         services.AddSingleton<TokenService>();

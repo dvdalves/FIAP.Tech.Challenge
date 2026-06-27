@@ -1,3 +1,4 @@
+using System.Linq;
 using FIAP.Tech.Challenge.Application.DTOs.Responses;
 using FIAP.Tech.Challenge.Domain.Aggregates.OrdemServicoAggregate;
 
@@ -18,7 +19,16 @@ public static class PerfilMapping
             ValorTotal = os.ValorTotal,
             Status = os.Status.ToString(),
             DataCriacao = os.DataCriacao,
-            DataFinalizacao = os.DataFinalizacao
+            DataFinalizacao = os.DataFinalizacao,
+            Itens = os.Itens?.Select(i => new ItemOrdemServicoResponse
+            {
+                Id = i.Id,
+                PecaId = i.PecaId,
+                Descricao = i.Descricao,
+                Quantidade = i.Quantidade,
+                ValorUnitario = i.ValorUnitario,
+                ValorMaoDeObra = i.ValorMaoDeObra
+            }).ToList() ?? new()
         };
     }
 }

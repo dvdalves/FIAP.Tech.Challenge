@@ -75,4 +75,58 @@ public class OrdemServicoAggregateTests
         os.Status.Should().Be(StatusOrdemServico.Finalizada);
         os.DataFinalizacao.Should().NotBeNull();
     }
+
+    [Theory]
+    [InlineData(StatusOrdemServico.Recebida)]
+    [InlineData(StatusOrdemServico.EmDiagnostico)]
+    public void CancelarOrdemServico_NosStatusIniciais_DeveTransitarParaCancelada(StatusOrdemServico statusInicial)
+    {
+        // Arrange
+        var os = new OrdemServico(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "Troca de amortecedores");
+        if (statusInicial == StatusOrdemServico.EmDiagnostico)
+        {
+            os.AtualizarStatus(StatusOrdemServico.EmDiagnostico);
+        }
+
+        // Act
+        os.AtualizarStatus(StatusOrdemServico.Cancelada);
+
+        // Assert
+        os.Status.Should().Be(StatusOrdemServico.Cancelada);
+        os.DataFinalizacao.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void CancelarOrdemServico_NoStatusAguardandoAprovacao_DeveTransitarParaCancelada()
+    {
+        // Arrange
+        var os = new OrdemServico(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "Troca de amortecedores");
+        os.AtualizarStatus(StatusOrdemServico.EmDiagnostico);
+        os.DefinirOrcamento(100.00m);
+        os.AtualizarStatus(StatusOrdemServico.AguardandoAprovacao);
+
+        // Act
+        os.AtualizarStatus(StatusOrdemServico.Cancelada);
+
+        // Assert
+        os.Status.Should().Be(StatusOrdemServico.Cancelada);
+        os.DataFinalizacao.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void CancelarOrdemServico_NoStatusEmExecucao_DeveLancarDominioException()
+    {
+        // Arrange
+        var os = new OrdemServico(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "Troca de amortecedores");
+        os.AtualizarStatus(StatusOrdemServico.EmDiagnostico);
+        os.DefinirOrcamento(100.00m);
+        os.AtualizarStatus(StatusOrdemServico.AguardandoAprovacao);
+        os.AtualizarStatus(StatusOrdemServico.EmExecucao);
+
+        // Act
+        var act = () => os.AtualizarStatus(StatusOrdemServico.Cancelada);
+
+        // Assert
+        act.Should().Throw<DominioException>().WithMessage("*Transição de status inválida*");
+    }
 }

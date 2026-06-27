@@ -9,24 +9,19 @@ using FIAP.Tech.Challenge.Domain.Exceptions;
 
 namespace FIAP.Tech.Challenge.Application.UseCases.OrdensServico;
 
-public class AtualizarStatusRequest
+public class RejeitarOrcamentoUseCase(IOrdemServicoRepository ordemServicoRepository, IUnitOfWork unitOfWork)
 {
-    public StatusOrdemServico NovoStatus { get; set; }
-}
-
-public class AtualizarStatusOSUseCase(
-    IOrdemServicoRepository ordemServicoRepository,
-    IUnitOfWork unitOfWork)
-{
-    public async Task<OrdemServicoResponse> ExecutarAsync(Guid id, StatusOrdemServico novoStatus, CancellationToken cancellationToken = default)
+    public async Task<OrdemServicoResponse> ExecutarAsync(Guid osId, CancellationToken cancellationToken = default)
     {
-        var os = await ordemServicoRepository.ObterPorIdAsync(id, cancellationToken);
+        // 1. Carregar a Ordem de Serviço
+        var os = await ordemServicoRepository.ObterPorIdAsync(osId, cancellationToken);
         if (os == null)
             throw new DominioException("Ordem de serviço não encontrada.");
 
-        // Executa a transição de status validando as regras do domínio
-        os.AtualizarStatus(novoStatus);
+        // 2. Transicionar status para Cancelada (rejeitado)
+        os.AtualizarStatus(StatusOrdemServico.Cancelada);
 
+        // 3. Persistir
         await ordemServicoRepository.AtualizarAsync(os, cancellationToken);
         await unitOfWork.CommitAsync(cancellationToken);
 

@@ -13,25 +13,12 @@ using FIAP.Tech.Challenge.Domain.ValueObjects;
 
 namespace FIAP.Tech.Challenge.Application.UseCases.OrdensServico;
 
-public class CriarOrdemServicoUseCase
+public class CriarOrdemServicoUseCase(
+    IClienteRepository clienteRepository,
+    IVeiculoRepository veiculoRepository,
+    IOrdemServicoRepository ordemServicoRepository,
+    IUnitOfWork unitOfWork)
 {
-    private readonly IClienteRepository _clienteRepository;
-    private readonly IVeiculoRepository _veiculoRepository;
-    private readonly IOrdemServicoRepository _ordemServicoRepository;
-    private readonly IUnitOfWork _unitOfWork;
-
-    public CriarOrdemServicoUseCase(
-        IClienteRepository clienteRepository,
-        IVeiculoRepository veiculoRepository,
-        IOrdemServicoRepository ordemServicoRepository,
-        IUnitOfWork unitOfWork)
-    {
-        _clienteRepository = clienteRepository;
-        _veiculoRepository = veiculoRepository;
-        _ordemServicoRepository = ordemServicoRepository;
-        _unitOfWork = unitOfWork;
-    }
-
     public async Task<OrdemServicoResponse> ExecutarAsync(CriarOrdemServicoRequest request, CancellationToken cancellationToken = default)
     {
         // 1. Validar e Criar Objetos de Valor
@@ -39,7 +26,7 @@ public class CriarOrdemServicoUseCase
         var placa = new Placa(request.VeiculoPlaca);
 
         // 2. Obter ou Criar Cliente
-        var cliente = await _clienteRepository.ObterPorCpfAsync(cpf, cancellationToken);
+        var cliente = await clienteRepository.ObterPorCpfAsync(cpf, cancellationToken);
         if (cliente == null)
         {
             cliente = new Cliente(
@@ -49,11 +36,11 @@ public class CriarOrdemServicoUseCase
                 request.ClienteEmail, 
                 request.ClienteTelefone
             );
-            await _clienteRepository.AdicionarAsync(cliente, cancellationToken);
+            await clienteRepository.AdicionarAsync(cliente, cancellationToken);
         }
 
         // 3. Obter ou Criar Veículo
-        var veiculo = await _veiculoRepository.ObterPorPlacaAsync(placa, cancellationToken);
+        var veiculo = await veiculoRepository.ObterPorPlacaAsync(placa, cancellationToken);
         if (veiculo == null)
         {
             veiculo = new Veiculo(
@@ -64,7 +51,7 @@ public class CriarOrdemServicoUseCase
                 request.VeiculoAno, 
                 cliente.Id
             );
-            await _veiculoRepository.AdicionarAsync(veiculo, cancellationToken);
+            await veiculoRepository.AdicionarAsync(veiculo, cancellationToken);
         }
         else if (veiculo.ClienteId != cliente.Id)
         {
@@ -79,10 +66,10 @@ public class CriarOrdemServicoUseCase
             request.DescricaoProblema
         );
 
-        await _ordemServicoRepository.AdicionarAsync(ordemServico, cancellationToken);
+        await ordemServicoRepository.AdicionarAsync(ordemServico, cancellationToken);
 
         // 5. Commit
-        await _unitOfWork.CommitAsync(cancellationToken);
+        await unitOfWork.CommitAsync(cancellationToken);
 
         return ordemServico.ParaResponse();
     }

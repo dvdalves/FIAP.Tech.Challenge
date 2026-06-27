@@ -46,5 +46,15 @@ public class OrdemServicoConfiguration : IEntityTypeConfiguration<OrdemServico>
             .WithMany()
             .HasForeignKey(o => o.VeiculoId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Relacionamento um para muitos com os itens do orçamento
+        builder.HasMany(o => o.Itens)
+            .WithOne()
+            .HasForeignKey(i => i.OrdemServicoId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Habilitar acesso ao backing field _itens
+        builder.Metadata.FindNavigation(nameof(OrdemServico.Itens))
+            ?.SetPropertyAccessMode(PropertyAccessMode.Field);
     }
 }

@@ -10,38 +10,31 @@ using FIAP.Tech.Challenge.Infrastructure.Data.Context;
 
 namespace FIAP.Tech.Challenge.Infrastructure.Repositories;
 
-public class VeiculoRepository : IVeiculoRepository
+public class VeiculoRepository(OficinaDbContext context) : IVeiculoRepository
 {
-    private readonly OficinaDbContext _context;
-
-    public VeiculoRepository(OficinaDbContext context)
-    {
-        _context = context;
-    }
-
     public async Task<Veiculo?> ObterPorIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await _context.Veiculos.FirstOrDefaultAsync(v => v.Id == id, cancellationToken);
+        return await context.Veiculos.FirstOrDefaultAsync(v => v.Id == id, cancellationToken);
     }
 
     public async Task<Veiculo?> ObterPorPlacaAsync(Placa placa, CancellationToken cancellationToken = default)
     {
-        return await _context.Veiculos.FirstOrDefaultAsync(v => v.Placa == placa, cancellationToken);
+        return await context.Veiculos.FirstOrDefaultAsync(v => v.Placa == placa, cancellationToken);
     }
 
     public async Task<IEnumerable<Veiculo>> ObterPorClienteIdAsync(Guid clienteId, CancellationToken cancellationToken = default)
     {
-        return await _context.Veiculos.Where(v => v.ClienteId == clienteId).ToListAsync(cancellationToken);
+        return await context.Veiculos.Where(v => v.ClienteId == clienteId).ToListAsync(cancellationToken);
     }
 
     public async Task AdicionarAsync(Veiculo veiculo, CancellationToken cancellationToken = default)
     {
-        await _context.Veiculos.AddAsync(veiculo, cancellationToken);
+        await context.Veiculos.AddAsync(veiculo, cancellationToken);
     }
 
     public Task AtualizarAsync(Veiculo veiculo, CancellationToken cancellationToken = default)
     {
-        _context.Veiculos.Update(veiculo);
+        context.Veiculos.Update(veiculo);
         return Task.CompletedTask;
     }
 }

@@ -9,20 +9,13 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace FIAP.Tech.Challenge.IntegrationTests.API.Controllers.Admin;
 
-public class ClientesControllerTests : IClassFixture<CustomWebApplicationFactory>
+public class ClientesControllerTests(CustomWebApplicationFactory factory) : IClassFixture<CustomWebApplicationFactory>
 {
-    private readonly CustomWebApplicationFactory _factory;
-
-    public ClientesControllerTests(CustomWebApplicationFactory factory)
-    {
-        _factory = factory;
-    }
-
     [Fact]
     public async Task ObterTodos_SemToken_DeveRetornar401Unauthorized()
     {
         // Arrange
-        var client = _factory.CreateClient();
+        var client = factory.CreateClient();
 
         // Act
         var response = await client.GetAsync("/api/admin/Clientes");
@@ -35,10 +28,10 @@ public class ClientesControllerTests : IClassFixture<CustomWebApplicationFactory
     public async Task ObterTodos_ComTokenValido_DeveRetornar200Ok()
     {
         // Arrange
-        var client = _factory.CreateClient();
+        var client = factory.CreateClient();
 
         // Geramos um token de teste usando o TokenService
-        using (var scope = _factory.Services.CreateScope())
+        using (var scope = factory.Services.CreateScope())
         {
             var tokenService = scope.ServiceProvider.GetRequiredService<TokenService>();
             var token = tokenService.GerarToken("teste_admin", "Admin");

@@ -1,12 +1,15 @@
 # Tech Challenge - Fase 1
 
 ## Tech Challenge
+
 Tech Challenge é o projeto da fase que englobará os conhecimentos obtidos em todas as disciplinas da fase. Esta é uma atividade que, em princípio, deve ser desenvolvida em grupo. Importante atentar-se ao prazo de entrega, pois trata-se de uma atividade obrigatória, uma vez que vale 90% da nota desta fase.
 
 ## Desafio
+
 Uma oficina mecânica de médio porte, especializada em manutenção de veículos, tem enfrentado desafios para expandir seus serviços com qualidade e eficiência.
 
 Atualmente, o processo de atendimento, diagnóstico, execução de serviços e entrega dos veículos é feito de forma desorganizada, utilizando anotações manuais e planilhas, o que gera alguns problemas, como:
+
 * Erros na priorização dos atendimentos;
 * Falhas no controle de peças e insumos;
 * Dificuldade em acompanhar o status dos serviços;
@@ -16,13 +19,15 @@ Atualmente, o processo de atendimento, diagnóstico, execução de serviços e e
 Diante disso, a oficina decidiu investir em um **Sistema Integrado de Atendimento e Execução de Serviços**, que permitirá aos clientes acompanhar em tempo real o andamento do serviço, autorizar reparos adicionais via aplicativo e garantir uma gestão interna eficiente e segura.
 
 ## Proposta
+
 Desenvolver a primeira versão (**MVP**) do back-end do sistema da oficina, com foco em gestão de ordens de serviço, clientes e peças, aplicando **Domain Driven Design (DDD)** e garantindo boas práticas de **Qualidade de Software** e **Segurança**.
 
 ## Funcionalidades Obrigatórias
 
 ### Fluxos principais
 
-#### Criação da Ordem de Serviço (OS):
+#### Criação da Ordem de Serviço (OS)
+
 * Identificação do cliente por CPF/CNPJ;
 * Cadastro de veículo (placa, marca, modelo, ano);
 * Inclusão dos serviços solicitados (exemplo: troca de óleo, alinhamento);
@@ -30,7 +35,8 @@ Desenvolver a primeira versão (**MVP**) do back-end do sistema da oficina, com 
 * Orçamento gerado automaticamente com base nos serviços e peças;
 * Envio do orçamento ao cliente para aprovação.
 
-#### Acompanhamento da OS:
+#### Acompanhamento da OS
+
 * **Status da OS:**
   * Recebida;
   * Em diagnóstico;
@@ -41,7 +47,8 @@ Desenvolver a primeira versão (**MVP**) do back-end do sistema da oficina, com 
 * Alteração automática dos status conforme ações no sistema;
 * Permitir consulta por parte do cliente via API para acompanhar o progresso.
 
-#### Gestão administrativa:
+#### Gestão administrativa
+
 * CRUD de clientes;
 * CRUD de veículos;
 * CRUD de serviços;
@@ -49,12 +56,14 @@ Desenvolver a primeira versão (**MVP**) do back-end do sistema da oficina, com 
 * Listagem e detalhamento de ordens de serviço;
 * Monitoramento do tempo médio de execução dos serviços.
 
-#### Segurança e qualidade:
+#### Segurança e qualidade
+
 * Implementação de autenticação JWT para APIs administrativas;
 * Validação dos dados sensíveis (CPF/CNPJ, placa de veículo);
 * Testes unitários e de integração para os principais fluxos.
 
 ## Requisitos Técnicos
+
 * Back-end monolítico.
 * Como será um MVP, é possível criar um Monolito utilizando a arquitetura em camadas.
 * A escolha do banco de dados é livre, mas é necessário justificar a preferência pelo banco utilizado.
@@ -66,6 +75,7 @@ Desenvolver a primeira versão (**MVP**) do back-end do sistema da oficina, com 
 * Organização em repositório privado com acesso ao usuário `soat-architecture`.
 
 ## Entregáveis da Fase 1
+
 * **Vídeo de até 15 minutos** demonstrando todos os pontos (pode ser em grupo ou individual);
 * **Documentação DDD** (Miro ou equivalente), com:
   * Event Storming completo dos fluxos:

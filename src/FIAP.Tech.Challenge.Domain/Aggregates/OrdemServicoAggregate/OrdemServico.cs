@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using FIAP.Tech.Challenge.Domain.Exceptions;
 
 namespace FIAP.Tech.Challenge.Domain.Aggregates.OrdemServicoAggregate;
@@ -13,6 +14,9 @@ public class OrdemServico
     public StatusOrdemServico Status { get; private set; }
     public DateTime DataCriacao { get; private set; }
     public DateTime? DataFinalizacao { get; private set; }
+
+    private readonly List<ItemOrdemServico> _itens = new();
+    public IReadOnlyCollection<ItemOrdemServico> Itens => _itens.AsReadOnly();
 
     // EF Core constructor
     private OrdemServico() { }
@@ -47,14 +51,66 @@ public class OrdemServico
         ValorTotal = valor;
     }
 
+    public void AdicionarItem(Guid? pecaId, string descricao, int quantidade, decimal valorUnitario, decimal valorMaoDeObra)
+    {
+        if (Status != StatusOrdemServico.Recebida && Status != StatusOrdemServico.EmDiagnostico)
+            throw new DominioException("Itens só podem ser adicionados nos status iniciais (Recebida ou Em Diagnóstico).");
+
+        if (quantidade <= 0)
+            throw new DominioException("A quantidade do item deve ser maior que zero.");
+        if (valorUnitario < 0)
+            throw new DominioException("O valor unitário não pode ser negativo.");
+        if (valorMaoDeObra < 0)
+            throw new DominioException("O valor de mão de obra não pode ser negativo.");
+
+        var item = new ItemOrdemServico(Guid.NewGuid(), Id, pecaId, descricao, quantidade, valorUnitario, valorMaoDeObra);
+        _itens.Add(item);
+
+        // Recalcular o valor total automaticamente
+        RecalcularValorTotal();
+    }
+
+    public void FinalizarDiagnostico()
+    {
+        if (Status != StatusOrdemServico.Recebida && Status != StatusOrdemServico.EmDiagnostico)
+            throw new DominioException("O diagnóstico só pode ser finalizado nos status iniciais (Recebida ou Em Diagnóstico).");
+        if (_itens.Count == 0 && ValorTotal <= 0)
+            throw new DominioException("A ordem de serviço deve conter pelo menos um item ou orçamento para finalizar o diagnóstico.");
+
+        // Se o valor total for zero mas tiver itens, recalcula (garantia)
+        if (_itens.Count > 0)
+        {
+            RecalcularValorTotal();
+        }
+
+        if (ValorTotal <= 0)
+            throw new DominioException("O valor total do orçamento deve ser maior que zero.");
+
+        // Transiciona status para Aguardando Aprovação
+        AtualizarStatus(StatusOrdemServico.AguardandoAprovacao);
+    }
+
+    private void RecalcularValorTotal()
+    {
+        decimal total = 0;
+        foreach (var item in _itens)
+        {
+            total += (item.ValorUnitario * item.Quantidade) + item.ValorMaoDeObra;
+        }
+        ValorTotal = total;
+    }
+
     public void AtualizarStatus(StatusOrdemServico novoStatus)
     {
         // Validação de transições permitidas
         bool transicaoValida = (Status, novoStatus) switch
         {
             (StatusOrdemServico.Recebida, StatusOrdemServico.EmDiagnostico) => true,
+            (StatusOrdemServico.Recebida, StatusOrdemServico.Cancelada) => true,
             (StatusOrdemServico.EmDiagnostico, StatusOrdemServico.AguardandoAprovacao) => ValorTotal > 0, // requer orçamento definido
+            (StatusOrdemServico.EmDiagnostico, StatusOrdemServico.Cancelada) => true,
             (StatusOrdemServico.AguardandoAprovacao, StatusOrdemServico.EmExecucao) => true,
+            (StatusOrdemServico.AguardandoAprovacao, StatusOrdemServico.Cancelada) => true,
             (StatusOrdemServico.EmExecucao, StatusOrdemServico.Finalizada) => true,
             (StatusOrdemServico.Finalizada, StatusOrdemServico.Entregue) => true,
             _ => false
@@ -70,7 +126,7 @@ public class OrdemServico
 
         Status = novoStatus;
 
-        if (Status == StatusOrdemServico.Finalizada || Status == StatusOrdemServico.Entregue)
+        if (Status == StatusOrdemServico.Finalizada || Status == StatusOrdemServico.Entregue || Status == StatusOrdemServico.Cancelada)
         {
             DataFinalizacao = DateTime.UtcNow;
         }

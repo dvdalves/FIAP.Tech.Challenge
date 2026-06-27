@@ -6,7 +6,7 @@ namespace FIAP.Tech.Challenge.Domain.ValueObjects;
 
 public record Cnpj
 {
-    public string Valor { get; }
+    private string Valor { get; }
 
     public Cnpj(string valor)
     {
@@ -28,18 +28,18 @@ public record Cnpj
         int[] multiplicador1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
         int[] multiplicador2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
 
-        string tempCnpj = cnpj[..12];
-        int soma = 0;
+        var tempCnpj = cnpj[..12];
+        var soma = 0;
 
         for (int i = 0; i < 12; i++)
             soma += int.Parse(tempCnpj[i].ToString()) * multiplicador1[i];
 
-        int resto = soma % 11;
-        int digito1 = resto < 2 ? 0 : 11 - resto;
+        var resto = soma % 11;
+        var digito1 = resto < 2 ? 0 : 11 - resto;
 
         tempCnpj += digito1;
         soma = 0;
-        for (int i = 0; i < 13; i++)
+        for (var i = 0; i < 13; i++)
             soma += int.Parse(tempCnpj[i].ToString()) * multiplicador2[i];
 
         resto = soma % 11;
