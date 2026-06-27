@@ -1,23 +1,55 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using FIAP.Tech.Challenge.API.Configurations;
+using FIAP.Tech.Challenge.API.Filters;
+using FIAP.Tech.Challenge.Infrastructure.Data.Context;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// 1. Configurar injeção de dependências e Banco de Dados (EF Core + SQLite)
+builder.Services.AddDependencyInjection(builder.Configuration);
 
-builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+// 2. Configurar autenticação JWT Bearer
+builder.Services.AddJwtAuthentication();
+
+// 3. Configurar Controllers com Filtro de Exceção Global do Domínio
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<FiltroExcecaoGlobal>();
+});
+
+// 4. Configurar Swagger com esquema funcional de autenticação JWT Bearer
+builder.Services.AddSwaggerConfiguration();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+// 5. Garantir a criação automática do banco SQLite para o MVP rodar imediatamente
+using (var scope = app.Services.CreateScope())
 {
-    app.MapOpenApi();
+    var context = scope.ServiceProvider.GetRequiredService<OficinaDbContext>();
+    context.Database.EnsureCreated();
 }
 
-app.UseHttpsRedirection();
+// 6. Configurar pipeline do HTTP request
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwaggerConfiguration();
+}
 
+app.UseRouting();
+
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
+app.MapGet("/", context =>
+{
+    context.Response.Redirect("/swagger");
+    return System.Threading.Tasks.Task.CompletedTask;
+});
+
 app.Run();
+
+public partial class Program { }
