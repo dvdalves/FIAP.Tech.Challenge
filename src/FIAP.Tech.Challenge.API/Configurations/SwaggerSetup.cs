@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 
 namespace FIAP.Tech.Challenge.API.Configurations;
 
@@ -27,18 +27,11 @@ public static class SwaggerSetup
                 Scheme = "Bearer"
             });
 
-            c.AddSecurityRequirement(new OpenApiSecurityRequirement
+            c.AddSecurityRequirement(doc => new OpenApiSecurityRequirement
             {
                 {
-                    new OpenApiSecurityScheme
-                    {
-                        Reference = new OpenApiReference
-                        {
-                            Type = ReferenceType.SecurityScheme,
-                            Id = "Bearer"
-                        }
-                    },
-                    System.Array.Empty<string>()
+                    new OpenApiSecuritySchemeReference("Bearer"),
+                    new System.Collections.Generic.List<string>()
                 }
             });
         });
