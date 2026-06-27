@@ -8,23 +8,6 @@ using FIAP.Tech.Challenge.Domain.Exceptions;
 
 namespace FIAP.Tech.Challenge.Application.UseCases.Clientes;
 
-public class CriarClienteRequest
-{
-    public string Nome { get; set; } = string.Empty;
-    public string Cpf { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
-    public string Telefone { get; set; } = string.Empty;
-}
-
-public class ClienteResponse
-{
-    public Guid Id { get; set; }
-    public string Nome { get; set; } = string.Empty;
-    public string Cpf { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
-    public string Telefone { get; set; } = string.Empty;
-}
-
 public class CriarClienteUseCase(IClienteRepository clienteRepository, IUnitOfWork unitOfWork)
 {
     public async Task<ClienteResponse> ExecutarAsync(CriarClienteRequest request, CancellationToken cancellationToken = default)

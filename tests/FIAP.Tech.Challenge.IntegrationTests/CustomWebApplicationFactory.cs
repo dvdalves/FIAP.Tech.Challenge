@@ -1,5 +1,6 @@
 using System.Data.Common;
 using System.Linq;
+using FIAP.Tech.Challenge.API;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;

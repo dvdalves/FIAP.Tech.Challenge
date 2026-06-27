@@ -1,6 +1,3 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using FIAP.Tech.Challenge.API.Configurations;
 using FIAP.Tech.Challenge.API.Filters;
 using FIAP.Tech.Challenge.Infrastructure.Data.Context;
@@ -52,4 +49,7 @@ app.MapGet("/", context =>
 
 app.Run();
 
-public partial class Program { }
+namespace FIAP.Tech.Challenge.API
+{
+    public partial class Program { }
+}

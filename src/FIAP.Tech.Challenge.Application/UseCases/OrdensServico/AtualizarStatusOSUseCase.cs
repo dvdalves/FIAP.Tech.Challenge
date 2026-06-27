@@ -9,11 +9,6 @@ using FIAP.Tech.Challenge.Domain.Exceptions;
 
 namespace FIAP.Tech.Challenge.Application.UseCases.OrdensServico;
 
-public class AtualizarStatusRequest
-{
-    public StatusOrdemServico NovoStatus { get; set; }
-}
-
 public class AtualizarStatusOSUseCase(
     IOrdemServicoRepository ordemServicoRepository,
     IUnitOfWork unitOfWork)

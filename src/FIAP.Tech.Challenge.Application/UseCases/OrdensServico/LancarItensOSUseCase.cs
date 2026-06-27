@@ -11,24 +11,6 @@ using FIAP.Tech.Challenge.Domain.Exceptions;
 
 namespace FIAP.Tech.Challenge.Application.UseCases.OrdensServico;
 
-public class PecaItemRequest
-{
-    public Guid PecaId { get; set; }
-    public int Quantidade { get; set; }
-}
-
-public class ServicoItemRequest
-{
-    public string Descricao { get; set; } = string.Empty;
-    public decimal ValorMaoDeObra { get; set; }
-}
-
-public class LancarItensOSRequest
-{
-    public List<PecaItemRequest> Pecas { get; set; } = new();
-    public List<ServicoItemRequest> Servicos { get; set; } = new();
-}
-
 public class LancarItensOSUseCase(
     IOrdemServicoRepository ordemServicoRepository,
     IPecaRepository pecaRepository,

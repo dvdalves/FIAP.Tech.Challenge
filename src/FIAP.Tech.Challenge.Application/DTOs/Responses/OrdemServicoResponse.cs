@@ -15,13 +15,3 @@ public class OrdemServicoResponse
     public DateTime? DataFinalizacao { get; set; }
     public List<ItemOrdemServicoResponse> Itens { get; set; } = new();
 }
-
-public class ItemOrdemServicoResponse
-{
-    public Guid Id { get; set; }
-    public Guid? PecaId { get; set; }
-    public string Descricao { get; set; } = string.Empty;
-    public int Quantidade { get; set; }
-    public decimal ValorUnitario { get; set; }
-    public decimal ValorMaoDeObra { get; set; }
-}
