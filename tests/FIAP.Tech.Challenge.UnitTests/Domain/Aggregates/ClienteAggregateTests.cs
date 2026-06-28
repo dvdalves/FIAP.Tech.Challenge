@@ -1,9 +1,8 @@
-using System;
-using Xunit;
-using FluentAssertions;
 using FIAP.Tech.Challenge.Domain.Aggregates.ClienteAggregate;
-using FIAP.Tech.Challenge.Domain.ValueObjects;
 using FIAP.Tech.Challenge.Domain.Exceptions;
+using FIAP.Tech.Challenge.Domain.ValueObjects;
+using FluentAssertions;
+using Xunit;
 
 namespace FIAP.Tech.Challenge.UnitTests.Domain.Aggregates;
 

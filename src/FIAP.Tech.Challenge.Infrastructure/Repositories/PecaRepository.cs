@@ -1,10 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using FIAP.Tech.Challenge.Domain.Aggregates.PecaAggregate;
 using FIAP.Tech.Challenge.Infrastructure.Data.Context;
+using Microsoft.EntityFrameworkCore;
 
 namespace FIAP.Tech.Challenge.Infrastructure.Repositories;
 
@@ -28,10 +24,7 @@ public class PecaRepository(OficinaDbContext context) : IPecaRepository
     public Task AtualizarAsync(Peca peca, CancellationToken cancellationToken = default)
     {
         var entry = context.Entry(peca);
-        if (entry.State == EntityState.Detached)
-        {
-            context.Pecas.Update(peca);
-        }
+        if (entry.State == EntityState.Detached) context.Pecas.Update(peca);
         return Task.CompletedTask;
     }
 }

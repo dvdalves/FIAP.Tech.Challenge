@@ -1,51 +1,44 @@
-using FluentValidation;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+using System.Diagnostics.CodeAnalysis;
+using FIAP.Tech.Challenge.Application.UseCases.Clientes;
 using FIAP.Tech.Challenge.Application.UseCases.OrdensServico;
+using FIAP.Tech.Challenge.Application.UseCases.Pecas;
 using FIAP.Tech.Challenge.Application.Validators;
 using FIAP.Tech.Challenge.Domain;
 using FIAP.Tech.Challenge.Domain.Aggregates.ClienteAggregate;
 using FIAP.Tech.Challenge.Domain.Aggregates.OrdemServicoAggregate;
+using FIAP.Tech.Challenge.Domain.Aggregates.PecaAggregate;
 using FIAP.Tech.Challenge.Domain.Aggregates.VeiculoAggregate;
 using FIAP.Tech.Challenge.Infrastructure.Data.Context;
 using FIAP.Tech.Challenge.Infrastructure.Repositories;
 using FIAP.Tech.Challenge.Infrastructure.Services;
-
-using System.Diagnostics.CodeAnalysis;
+using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 
 namespace FIAP.Tech.Challenge.API.Configurations;
 
 [ExcludeFromCodeCoverage]
 public static class DependencyInjectionSetup
 {
-    public static IServiceCollection AddDependencyInjection(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddDependencyInjection(this IServiceCollection services,
+        IConfiguration configuration)
     {
         // Banco de dados (usando SQLite, PostgreSQL ou InMemory detectado automaticamente ou via configuração)
         var connectionString = configuration.GetConnectionString("DefaultConnection") ?? "Data Source=oficina.db";
         var dbProvider = configuration["DbProvider"];
 
         if (string.IsNullOrEmpty(dbProvider))
-        {
             dbProvider = connectionString.Contains("Host=") || connectionString.Contains("Server=")
                 ? "PostgreSQL"
                 : "Sqlite";
-        }
 
         services.AddDbContext<OficinaDbContext>(options =>
         {
             if (dbProvider.Equals("PostgreSQL", StringComparison.OrdinalIgnoreCase))
-            {
                 options.UseNpgsql(connectionString);
-            }
             else if (dbProvider.Equals("InMemory", StringComparison.OrdinalIgnoreCase))
-            {
                 options.UseInMemoryDatabase(connectionString);
-            }
             else
-            {
                 options.UseSqlite(connectionString);
-            }
         });
 
         // Unit of Work
@@ -55,18 +48,18 @@ public static class DependencyInjectionSetup
         services.AddScoped<IClienteRepository, ClienteRepository>();
         services.AddScoped<IVeiculoRepository, VeiculoRepository>();
         services.AddScoped<IOrdemServicoRepository, OrdemServicoRepository>();
-        services.AddScoped<FIAP.Tech.Challenge.Domain.Aggregates.PecaAggregate.IPecaRepository, PecaRepository>();
+        services.AddScoped<IPecaRepository, PecaRepository>();
 
         // Casos de Uso
         services.AddScoped<CriarOrdemServicoUseCase>();
         services.AddScoped<AtualizarStatusOSUseCase>();
-        services.AddScoped<FIAP.Tech.Challenge.Application.UseCases.Clientes.CriarClienteUseCase>();
-        services.AddScoped<FIAP.Tech.Challenge.Application.UseCases.Clientes.CriarVeiculoUseCase>();
+        services.AddScoped<CriarClienteUseCase>();
+        services.AddScoped<CriarVeiculoUseCase>();
         services.AddScoped<AbrirOrdemServicoUseCase>();
         services.AddScoped<LancarItensOSUseCase>();
         services.AddScoped<AprovarOrcamentoUseCase>();
         services.AddScoped<RejeitarOrcamentoUseCase>();
-        services.AddScoped<FIAP.Tech.Challenge.Application.UseCases.Pecas.AjustarEstoquePecaUseCase>();
+        services.AddScoped<AjustarEstoquePecaUseCase>();
 
         // Serviços de Infraestrutura
         services.AddSingleton<TokenService>();

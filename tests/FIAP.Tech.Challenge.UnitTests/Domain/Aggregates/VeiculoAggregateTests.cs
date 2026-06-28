@@ -1,16 +1,15 @@
-using System;
-using Xunit;
-using FluentAssertions;
 using FIAP.Tech.Challenge.Domain.Aggregates.VeiculoAggregate;
-using FIAP.Tech.Challenge.Domain.ValueObjects;
 using FIAP.Tech.Challenge.Domain.Exceptions;
+using FIAP.Tech.Challenge.Domain.ValueObjects;
+using FluentAssertions;
+using Xunit;
 
 namespace FIAP.Tech.Challenge.UnitTests.Domain.Aggregates;
 
 public class VeiculoAggregateTests
 {
-    private readonly Placa _placaValida = new("AAA-1234");
     private readonly Guid _clienteIdValido = Guid.NewGuid();
+    private readonly Placa _placaValida = new("AAA-1234");
     private readonly Guid _veiculoIdValido = Guid.NewGuid();
 
     [Fact]
@@ -36,7 +35,7 @@ public class VeiculoAggregateTests
 
         // Assert
         act.Should().Throw<DominioException>()
-           .WithMessage("Id do veículo inválido.");
+            .WithMessage("Id do veículo inválido.");
     }
 
     [Fact]
@@ -47,7 +46,7 @@ public class VeiculoAggregateTests
 
         // Assert
         act.Should().Throw<DominioException>()
-           .WithMessage("Id do cliente associado ao veículo é obrigatório.");
+            .WithMessage("Id do cliente associado ao veículo é obrigatório.");
     }
 
     [Fact]
@@ -61,7 +60,7 @@ public class VeiculoAggregateTests
 
         // Assert
         act.Should().Throw<DominioException>()
-           .WithMessage("Placa do veículo é obrigatória.");
+            .WithMessage("Placa do veículo é obrigatória.");
     }
 
     [Theory]
@@ -78,7 +77,7 @@ public class VeiculoAggregateTests
 
         // Assert
         act.Should().Throw<DominioException>()
-           .WithMessage("Marca do veículo é obrigatória.");
+            .WithMessage("Marca do veículo é obrigatória.");
     }
 
     [Theory]
@@ -95,7 +94,7 @@ public class VeiculoAggregateTests
 
         // Assert
         act.Should().Throw<DominioException>()
-           .WithMessage("Modelo do veículo é obrigatório.");
+            .WithMessage("Modelo do veículo é obrigatório.");
     }
 
     [Theory]
@@ -111,7 +110,7 @@ public class VeiculoAggregateTests
 
         // Assert
         act.Should().Throw<DominioException>()
-           .WithMessage("Ano do veículo deve estar entre 1886 e *");
+            .WithMessage("Ano do veículo deve estar entre 1886 e *");
     }
 
     [Fact]

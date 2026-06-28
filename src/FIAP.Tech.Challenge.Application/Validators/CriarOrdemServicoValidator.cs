@@ -1,5 +1,5 @@
-using FluentValidation;
 using FIAP.Tech.Challenge.Application.DTOs.Requests;
+using FluentValidation;
 
 namespace FIAP.Tech.Challenge.Application.Validators;
 

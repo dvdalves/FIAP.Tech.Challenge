@@ -1,10 +1,7 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using FIAP.Tech.Challenge.Application.UseCases.Clientes;
 using FIAP.Tech.Challenge.Domain.Aggregates.ClienteAggregate;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace FIAP.Tech.Challenge.API.Controllers.Admin;
 
@@ -42,7 +39,8 @@ public class ClientesController(
     }
 
     [HttpPost("{id:guid}/veiculos")]
-    public async Task<IActionResult> CriarVeiculo(Guid id, [FromBody] CriarVeiculoRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> CriarVeiculo(Guid id, [FromBody] CriarVeiculoRequest request,
+        CancellationToken cancellationToken)
     {
         var response = await criarVeiculoUseCase.ExecutarAsync(id, request, cancellationToken);
         return Ok(response);

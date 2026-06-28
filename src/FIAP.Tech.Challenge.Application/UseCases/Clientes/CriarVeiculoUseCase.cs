@@ -1,11 +1,8 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using FIAP.Tech.Challenge.Domain;
 using FIAP.Tech.Challenge.Domain.Aggregates.ClienteAggregate;
 using FIAP.Tech.Challenge.Domain.Aggregates.VeiculoAggregate;
-using FIAP.Tech.Challenge.Domain.ValueObjects;
 using FIAP.Tech.Challenge.Domain.Exceptions;
+using FIAP.Tech.Challenge.Domain.ValueObjects;
 
 namespace FIAP.Tech.Challenge.Application.UseCases.Clientes;
 
@@ -14,7 +11,8 @@ public class CriarVeiculoUseCase(
     IClienteRepository clienteRepository,
     IUnitOfWork unitOfWork)
 {
-    public async Task<VeiculoResponse> ExecutarAsync(Guid clienteId, CriarVeiculoRequest request, CancellationToken cancellationToken = default)
+    public async Task<VeiculoResponse> ExecutarAsync(Guid clienteId, CriarVeiculoRequest request,
+        CancellationToken cancellationToken = default)
     {
         // 1. Validar se o cliente associado existe
         var cliente = await clienteRepository.ObterPorIdAsync(clienteId, cancellationToken);
@@ -29,7 +27,7 @@ public class CriarVeiculoUseCase(
         {
             if (existente.ClienteId == clienteId)
                 throw new DominioException("Este veículo já está cadastrado para este cliente.");
-            
+
             throw new DominioException("Este veículo já está cadastrado para outro cliente.");
         }
 

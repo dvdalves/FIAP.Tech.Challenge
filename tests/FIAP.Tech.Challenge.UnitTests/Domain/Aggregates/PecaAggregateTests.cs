@@ -1,8 +1,7 @@
-using System;
-using Xunit;
-using FluentAssertions;
 using FIAP.Tech.Challenge.Domain.Aggregates.PecaAggregate;
 using FIAP.Tech.Challenge.Domain.Exceptions;
+using FluentAssertions;
+using Xunit;
 
 namespace FIAP.Tech.Challenge.UnitTests.Domain.Aggregates;
 
@@ -31,7 +30,7 @@ public class PecaAggregateTests
 
         // Assert
         act.Should().Throw<DominioException>()
-           .WithMessage("Id da peça inválido.");
+            .WithMessage("Id da peça inválido.");
     }
 
     [Theory]
@@ -45,7 +44,7 @@ public class PecaAggregateTests
 
         // Assert
         act.Should().Throw<DominioException>()
-           .WithMessage("O nome da peça é obrigatório.");
+            .WithMessage("O nome da peça é obrigatório.");
     }
 
     [Theory]
@@ -58,7 +57,7 @@ public class PecaAggregateTests
 
         // Assert
         act.Should().Throw<DominioException>()
-           .WithMessage("O preço da peça deve ser maior que zero.");
+            .WithMessage("O preço da peça deve ser maior que zero.");
     }
 
     [Fact]
@@ -69,7 +68,7 @@ public class PecaAggregateTests
 
         // Assert
         act.Should().Throw<DominioException>()
-           .WithMessage("A quantidade em estoque não pode ser negativa.");
+            .WithMessage("A quantidade em estoque não pode ser negativa.");
     }
 
     [Fact]
@@ -83,7 +82,7 @@ public class PecaAggregateTests
 
         // Assert
         act.Should().Throw<DominioException>()
-           .WithMessage("A quantidade em estoque não pode ser negativa.");
+            .WithMessage("A quantidade em estoque não pode ser negativa.");
     }
 
     [Fact]
@@ -112,7 +111,7 @@ public class PecaAggregateTests
 
         // Assert
         act.Should().Throw<DominioException>()
-           .WithMessage("A quantidade a deduzir deve ser maior que zero.");
+            .WithMessage("A quantidade a deduzir deve ser maior que zero.");
     }
 
     [Fact]
@@ -126,7 +125,7 @@ public class PecaAggregateTests
 
         // Assert
         act.Should().Throw<DominioException>()
-           .WithMessage("*Estoque insuficiente*");
+            .WithMessage("*Estoque insuficiente*");
     }
 
     [Fact]

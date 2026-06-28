@@ -1,4 +1,3 @@
-using System;
 using FIAP.Tech.Challenge.Domain.Exceptions;
 using FIAP.Tech.Challenge.Domain.ValueObjects;
 
@@ -6,15 +5,10 @@ namespace FIAP.Tech.Challenge.Domain.Aggregates.VeiculoAggregate;
 
 public class Veiculo
 {
-    public Guid Id { get; private set; }
-    public Placa Placa { get; private set; } = null!;
-    public string Marca { get; private set; } = string.Empty;
-    public string Modelo { get; private set; } = string.Empty;
-    public int Ano { get; private set; }
-    public Guid ClienteId { get; private set; }
-
     // EF Core constructor
-    private Veiculo() { }
+    private Veiculo()
+    {
+    }
 
     public Veiculo(Guid id, Placa placa, string marca, string modelo, int ano, Guid clienteId)
     {
@@ -22,7 +16,7 @@ public class Veiculo
             throw new DominioException("Id do veículo inválido.");
         if (clienteId == Guid.Empty)
             throw new DominioException("Id do cliente associado ao veículo é obrigatório.");
-        
+
         AlterarPlaca(placa);
         AlterarMarca(marca);
         AlterarModelo(modelo);
@@ -31,6 +25,13 @@ public class Veiculo
         Id = id;
         ClienteId = clienteId;
     }
+
+    public Guid Id { get; private set; }
+    public Placa Placa { get; private set; } = null!;
+    public string Marca { get; private set; } = string.Empty;
+    public string Modelo { get; private set; } = string.Empty;
+    public int Ano { get; private set; }
+    public Guid ClienteId { get; private set; }
 
     public void AlterarPlaca(Placa placa)
     {
@@ -53,7 +54,7 @@ public class Veiculo
 
     public void AlterarAno(int ano)
     {
-        int anoAtual = DateTime.Now.Year;
+        var anoAtual = DateTime.Now.Year;
         if (ano < 1886 || ano > anoAtual + 2)
             throw new DominioException($"Ano do veículo deve estar entre 1886 e {anoAtual + 2}.");
         Ano = ano;

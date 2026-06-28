@@ -1,6 +1,3 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using FIAP.Tech.Challenge.Application.DTOs.Responses;
 using FIAP.Tech.Challenge.Application.Mappings;
 using FIAP.Tech.Challenge.Domain;
@@ -17,7 +14,8 @@ public class AbrirOrdemServicoUseCase(
     IOrdemServicoRepository ordemServicoRepository,
     IUnitOfWork unitOfWork)
 {
-    public async Task<OrdemServicoResponse> ExecutarAsync(AbrirOrdemServicoRequest request, CancellationToken cancellationToken = default)
+    public async Task<OrdemServicoResponse> ExecutarAsync(AbrirOrdemServicoRequest request,
+        CancellationToken cancellationToken = default)
     {
         // 1. Validar se o cliente existe
         var cliente = await clienteRepository.ObterPorIdAsync(request.ClienteId, cancellationToken);

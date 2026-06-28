@@ -1,8 +1,6 @@
 using System.Net;
-using System.Threading.Tasks;
-using Xunit;
 using FluentAssertions;
-using Newtonsoft.Json;
+using Xunit;
 
 namespace FIAP.Tech.Challenge.IntegrationTests.API.Controllers.Public;
 

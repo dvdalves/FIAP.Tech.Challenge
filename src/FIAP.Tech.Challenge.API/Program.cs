@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using FIAP.Tech.Challenge.API.Configurations;
 using FIAP.Tech.Challenge.API.Filters;
 using FIAP.Tech.Challenge.Infrastructure.Data.Context;
@@ -11,10 +12,7 @@ builder.Services.AddDependencyInjection(builder.Configuration);
 builder.Services.AddJwtAuthentication();
 
 // 3. Configurar Controllers com Filtro de Exceção Global do Domínio
-builder.Services.AddControllers(options =>
-{
-    options.Filters.Add<FiltroExcecaoGlobal>();
-});
+builder.Services.AddControllers(options => { options.Filters.Add<FiltroExcecaoGlobal>(); });
 
 // 4. Configurar Swagger com esquema funcional de autenticação JWT Bearer
 builder.Services.AddSwaggerConfiguration();
@@ -29,10 +27,7 @@ using (var scope = app.Services.CreateScope())
 }
 
 // 6. Configurar pipeline do HTTP request
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwaggerConfiguration();
-}
+if (app.Environment.IsDevelopment()) app.UseSwaggerConfiguration();
 
 app.UseRouting();
 
@@ -44,13 +39,15 @@ app.MapControllers();
 app.MapGet("/", context =>
 {
     context.Response.Redirect("/swagger");
-    return System.Threading.Tasks.Task.CompletedTask;
+    return Task.CompletedTask;
 });
 
 app.Run();
 
 namespace FIAP.Tech.Challenge.API
 {
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    public partial class Program { }
+    [ExcludeFromCodeCoverage]
+    public class Program
+    {
+    }
 }

@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using FIAP.Tech.Challenge.Domain.Aggregates.VeiculoAggregate;
 using FIAP.Tech.Challenge.Domain.ValueObjects;
 using FIAP.Tech.Challenge.Infrastructure.Data.Context;
+using Microsoft.EntityFrameworkCore;
 
 namespace FIAP.Tech.Challenge.Infrastructure.Repositories;
 
@@ -22,7 +17,8 @@ public class VeiculoRepository(OficinaDbContext context) : IVeiculoRepository
         return await context.Veiculos.FirstOrDefaultAsync(v => v.Placa == placa, cancellationToken);
     }
 
-    public async Task<IEnumerable<Veiculo>> ObterPorClienteIdAsync(Guid clienteId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Veiculo>> ObterPorClienteIdAsync(Guid clienteId,
+        CancellationToken cancellationToken = default)
     {
         return await context.Veiculos.Where(v => v.ClienteId == clienteId).ToListAsync(cancellationToken);
     }

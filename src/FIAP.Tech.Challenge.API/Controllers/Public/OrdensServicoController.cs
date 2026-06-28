@@ -1,10 +1,7 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
 using FIAP.Tech.Challenge.Application.Mappings;
 using FIAP.Tech.Challenge.Application.UseCases.OrdensServico;
 using FIAP.Tech.Challenge.Domain.Aggregates.OrdemServicoAggregate;
+using Microsoft.AspNetCore.Mvc;
 
 namespace FIAP.Tech.Challenge.API.Controllers.Public;
 

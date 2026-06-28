@@ -1,9 +1,8 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System.Diagnostics.CodeAnalysis;
 using FIAP.Tech.Challenge.Domain.Aggregates.OrdemServicoAggregate;
 using FIAP.Tech.Challenge.Domain.Aggregates.PecaAggregate;
-
-using System.Diagnostics.CodeAnalysis;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace FIAP.Tech.Challenge.Infrastructure.Data.Mappings;
 

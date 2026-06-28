@@ -1,16 +1,14 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using FIAP.Tech.Challenge.Domain;
 using FIAP.Tech.Challenge.Domain.Aggregates.ClienteAggregate;
-using FIAP.Tech.Challenge.Domain.ValueObjects;
 using FIAP.Tech.Challenge.Domain.Exceptions;
+using FIAP.Tech.Challenge.Domain.ValueObjects;
 
 namespace FIAP.Tech.Challenge.Application.UseCases.Clientes;
 
 public class CriarClienteUseCase(IClienteRepository clienteRepository, IUnitOfWork unitOfWork)
 {
-    public async Task<ClienteResponse> ExecutarAsync(CriarClienteRequest request, CancellationToken cancellationToken = default)
+    public async Task<ClienteResponse> ExecutarAsync(CriarClienteRequest request,
+        CancellationToken cancellationToken = default)
     {
         var cpf = new Cpf(request.Cpf);
 

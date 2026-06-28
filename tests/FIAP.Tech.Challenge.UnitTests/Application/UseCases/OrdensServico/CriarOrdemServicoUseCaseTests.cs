@@ -1,9 +1,3 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Xunit;
-using FluentAssertions;
-using NSubstitute;
 using FIAP.Tech.Challenge.Application.DTOs.Requests;
 using FIAP.Tech.Challenge.Application.UseCases.OrdensServico;
 using FIAP.Tech.Challenge.Domain;
@@ -11,16 +5,19 @@ using FIAP.Tech.Challenge.Domain.Aggregates.ClienteAggregate;
 using FIAP.Tech.Challenge.Domain.Aggregates.OrdemServicoAggregate;
 using FIAP.Tech.Challenge.Domain.Aggregates.VeiculoAggregate;
 using FIAP.Tech.Challenge.Domain.ValueObjects;
+using FluentAssertions;
+using NSubstitute;
+using Xunit;
 
 namespace FIAP.Tech.Challenge.UnitTests.Application.UseCases.OrdensServico;
 
 public class CriarOrdemServicoUseCaseTests
 {
     private readonly IClienteRepository _clienteRepositoryMock;
-    private readonly IVeiculoRepository _veiculoRepositoryMock;
     private readonly IOrdemServicoRepository _ordemServicoRepositoryMock;
     private readonly IUnitOfWork _unitOfWorkMock;
     private readonly CriarOrdemServicoUseCase _useCase;
+    private readonly IVeiculoRepository _veiculoRepositoryMock;
 
     public CriarOrdemServicoUseCaseTests()
     {
@@ -72,7 +69,8 @@ public class CriarOrdemServicoUseCaseTests
         // Verificar chamadas aos mocks
         await _clienteRepositoryMock.Received(1).AdicionarAsync(Arg.Any<Cliente>(), Arg.Any<CancellationToken>());
         await _veiculoRepositoryMock.Received(1).AdicionarAsync(Arg.Any<Veiculo>(), Arg.Any<CancellationToken>());
-        await _ordemServicoRepositoryMock.Received(1).AdicionarAsync(Arg.Any<OrdemServico>(), Arg.Any<CancellationToken>());
+        await _ordemServicoRepositoryMock.Received(1)
+            .AdicionarAsync(Arg.Any<OrdemServico>(), Arg.Any<CancellationToken>());
         await _unitOfWorkMock.Received(1).CommitAsync(Arg.Any<CancellationToken>());
     }
 
@@ -80,8 +78,10 @@ public class CriarOrdemServicoUseCaseTests
     public async Task ExecutarAsync_ComClienteEVeiculoExistentes_DeveApenasCriarOrdemServico()
     {
         // Arrange
-        var clienteExistente = new Cliente(Guid.NewGuid(), "Carlos", new Cpf("12345678909"), "carlos@email.com", "11988887777");
-        var veiculoExistente = new Veiculo(Guid.NewGuid(), new Placa("ABC1234"), "Ford", "Ka", 2018, clienteExistente.Id);
+        var clienteExistente = new Cliente(Guid.NewGuid(), "Carlos", new Cpf("12345678909"), "carlos@email.com",
+            "11988887777");
+        var veiculoExistente =
+            new Veiculo(Guid.NewGuid(), new Placa("ABC1234"), "Ford", "Ka", 2018, clienteExistente.Id);
 
         var request = new CriarOrdemServicoRequest
         {
@@ -108,6 +108,7 @@ public class CriarOrdemServicoUseCaseTests
         await _veiculoRepositoryMock.DidNotReceive().AdicionarAsync(Arg.Any<Veiculo>(), Arg.Any<CancellationToken>());
 
         // Mas deve criar OS
-        await _ordemServicoRepositoryMock.Received(1).AdicionarAsync(Arg.Any<OrdemServico>(), Arg.Any<CancellationToken>());
+        await _ordemServicoRepositoryMock.Received(1)
+            .AdicionarAsync(Arg.Any<OrdemServico>(), Arg.Any<CancellationToken>());
     }
 }

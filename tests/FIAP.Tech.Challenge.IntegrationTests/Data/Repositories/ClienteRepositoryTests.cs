@@ -1,15 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Xunit;
-using FluentAssertions;
-using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore;
 using FIAP.Tech.Challenge.Domain.Aggregates.ClienteAggregate;
 using FIAP.Tech.Challenge.Domain.ValueObjects;
 using FIAP.Tech.Challenge.Infrastructure.Data.Context;
 using FIAP.Tech.Challenge.Infrastructure.Repositories;
+using FluentAssertions;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
+using Xunit;
 
 namespace FIAP.Tech.Challenge.IntegrationTests.Data.Repositories;
 
@@ -34,11 +30,19 @@ public class ClienteRepositoryTests : IDisposable
         _repository = new ClienteRepository(_context);
     }
 
+    public void Dispose()
+    {
+        _context.Dispose();
+        _connection.Dispose();
+        GC.SuppressFinalize(this);
+    }
+
     [Fact]
     public async Task AdicionarEObterPorIdAsync_DeveSalvarERecuperarCliente()
     {
         // Arrange
-        var cliente = new Cliente(Guid.NewGuid(), "José Silva", new Cpf("12345678909"), "jose@email.com", "11977776666");
+        var cliente = new Cliente(Guid.NewGuid(), "José Silva", new Cpf("12345678909"), "jose@email.com",
+            "11977776666");
 
         // Act
         await _repository.AdicionarAsync(cliente);
@@ -79,8 +83,10 @@ public class ClienteRepositoryTests : IDisposable
     public async Task ObterTodosAsync_DeveRetornarTodosOsClientes()
     {
         // Arrange
-        var cliente1 = new Cliente(Guid.NewGuid(), "José Silva", new Cpf("12345678909"), "jose@email.com", "11977776666");
-        var cliente2 = new Cliente(Guid.NewGuid(), "Maria Santos", new Cpf("98765432100"), "maria@email.com", "11988887777");
+        var cliente1 = new Cliente(Guid.NewGuid(), "José Silva", new Cpf("12345678909"), "jose@email.com",
+            "11977776666");
+        var cliente2 = new Cliente(Guid.NewGuid(), "Maria Santos", new Cpf("98765432100"), "maria@email.com",
+            "11988887777");
 
         await _repository.AdicionarAsync(cliente1);
         await _repository.AdicionarAsync(cliente2);
@@ -99,7 +105,8 @@ public class ClienteRepositoryTests : IDisposable
     public async Task AtualizarAsync_DeveModificarCliente()
     {
         // Arrange
-        var cliente = new Cliente(Guid.NewGuid(), "José Silva", new Cpf("12345678909"), "jose@email.com", "11977776666");
+        var cliente = new Cliente(Guid.NewGuid(), "José Silva", new Cpf("12345678909"), "jose@email.com",
+            "11977776666");
         await _repository.AdicionarAsync(cliente);
         await _context.SaveChangesAsync();
 
@@ -116,12 +123,5 @@ public class ClienteRepositoryTests : IDisposable
         // Assert
         recuperado.Should().NotBeNull();
         recuperado!.Email.Should().Be("novo@email.com");
-    }
-
-    public void Dispose()
-    {
-        _context.Dispose();
-        _connection.Dispose();
-        GC.SuppressFinalize(this);
     }
 }

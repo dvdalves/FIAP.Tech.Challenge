@@ -1,4 +1,3 @@
-using System.Linq;
 using FIAP.Tech.Challenge.Application.DTOs.Responses;
 using FIAP.Tech.Challenge.Domain.Aggregates.OrdemServicoAggregate;
 
@@ -28,7 +27,7 @@ public static class PerfilMapping
                 Quantidade = i.Quantidade,
                 ValorUnitario = i.ValorUnitario,
                 ValorMaoDeObra = i.ValorMaoDeObra
-            }).ToList() ?? new()
+            }).ToList() ?? new List<ItemOrdemServicoResponse>()
         };
     }
 }

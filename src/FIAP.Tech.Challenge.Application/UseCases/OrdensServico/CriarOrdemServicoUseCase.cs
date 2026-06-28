@@ -1,6 +1,3 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using FIAP.Tech.Challenge.Application.DTOs.Requests;
 using FIAP.Tech.Challenge.Application.DTOs.Responses;
 using FIAP.Tech.Challenge.Application.Mappings;
@@ -19,7 +16,8 @@ public class CriarOrdemServicoUseCase(
     IOrdemServicoRepository ordemServicoRepository,
     IUnitOfWork unitOfWork)
 {
-    public async Task<OrdemServicoResponse> ExecutarAsync(CriarOrdemServicoRequest request, CancellationToken cancellationToken = default)
+    public async Task<OrdemServicoResponse> ExecutarAsync(CriarOrdemServicoRequest request,
+        CancellationToken cancellationToken = default)
     {
         // 1. Validar e Criar Objetos de Valor
         var cpf = new Cpf(request.ClienteCpf);
@@ -30,10 +28,10 @@ public class CriarOrdemServicoUseCase(
         if (cliente == null)
         {
             cliente = new Cliente(
-                Guid.NewGuid(), 
-                request.ClienteNome, 
-                cpf, 
-                request.ClienteEmail, 
+                Guid.NewGuid(),
+                request.ClienteNome,
+                cpf,
+                request.ClienteEmail,
                 request.ClienteTelefone
             );
             await clienteRepository.AdicionarAsync(cliente, cancellationToken);
@@ -44,11 +42,11 @@ public class CriarOrdemServicoUseCase(
         if (veiculo == null)
         {
             veiculo = new Veiculo(
-                Guid.NewGuid(), 
-                placa, 
-                request.VeiculoMarca, 
-                request.VeiculoModelo, 
-                request.VeiculoAno, 
+                Guid.NewGuid(),
+                placa,
+                request.VeiculoMarca,
+                request.VeiculoModelo,
+                request.VeiculoAno,
                 cliente.Id
             );
             await veiculoRepository.AdicionarAsync(veiculo, cancellationToken);
@@ -60,9 +58,9 @@ public class CriarOrdemServicoUseCase(
 
         // 4. Criar Ordem de Serviço
         var ordemServico = new OrdemServico(
-            Guid.NewGuid(), 
-            cliente.Id, 
-            veiculo.Id, 
+            Guid.NewGuid(),
+            cliente.Id,
+            veiculo.Id,
             request.DescricaoProblema
         );
 

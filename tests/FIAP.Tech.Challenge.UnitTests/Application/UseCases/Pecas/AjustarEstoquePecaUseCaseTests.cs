@@ -1,13 +1,10 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Xunit;
-using FluentAssertions;
-using NSubstitute;
 using FIAP.Tech.Challenge.Application.UseCases.Pecas;
 using FIAP.Tech.Challenge.Domain;
 using FIAP.Tech.Challenge.Domain.Aggregates.PecaAggregate;
 using FIAP.Tech.Challenge.Domain.Exceptions;
+using FluentAssertions;
+using NSubstitute;
+using Xunit;
 
 namespace FIAP.Tech.Challenge.UnitTests.Application.UseCases.Pecas;
 

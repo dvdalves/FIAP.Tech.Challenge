@@ -1,7 +1,7 @@
-using Xunit;
-using FluentAssertions;
-using FIAP.Tech.Challenge.Application.Validators;
 using FIAP.Tech.Challenge.Application.DTOs.Requests;
+using FIAP.Tech.Challenge.Application.Validators;
+using FluentAssertions;
+using Xunit;
 
 namespace FIAP.Tech.Challenge.UnitTests.Application.Validators;
 

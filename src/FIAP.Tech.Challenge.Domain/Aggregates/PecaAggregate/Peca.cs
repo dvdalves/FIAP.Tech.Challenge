@@ -1,17 +1,13 @@
-using System;
 using FIAP.Tech.Challenge.Domain.Exceptions;
 
 namespace FIAP.Tech.Challenge.Domain.Aggregates.PecaAggregate;
 
 public class Peca
 {
-    public Guid Id { get; private set; }
-    public string Nome { get; private set; } = string.Empty;
-    public decimal Preco { get; private set; }
-    public int QuantidadeEstoque { get; private set; }
-
     // EF Core constructor
-    private Peca() { }
+    private Peca()
+    {
+    }
 
     public Peca(Guid id, string nome, decimal preco, int quantidadeEstoque)
     {
@@ -30,11 +26,16 @@ public class Peca
         QuantidadeEstoque = quantidadeEstoque;
     }
 
+    public Guid Id { get; private set; }
+    public string Nome { get; } = string.Empty;
+    public decimal Preco { get; private set; }
+    public int QuantidadeEstoque { get; private set; }
+
     public void AjustarEstoque(int novaQuantidade)
     {
         if (novaQuantidade < 0)
             throw new DominioException("A quantidade em estoque não pode ser negativa.");
-        
+
         QuantidadeEstoque = novaQuantidade;
     }
 
@@ -43,7 +44,8 @@ public class Peca
         if (quantidade <= 0)
             throw new DominioException("A quantidade a deduzir deve ser maior que zero.");
         if (QuantidadeEstoque < quantidade)
-            throw new DominioException($"Estoque insuficiente para a peça '{Nome}'. Disponível: {QuantidadeEstoque}, Solicitado: {quantidade}.");
+            throw new DominioException(
+                $"Estoque insuficiente para a peça '{Nome}'. Disponível: {QuantidadeEstoque}, Solicitado: {quantidade}.");
 
         QuantidadeEstoque -= quantidade;
     }

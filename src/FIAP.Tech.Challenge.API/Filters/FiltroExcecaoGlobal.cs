@@ -1,7 +1,6 @@
-using Microsoft.AspNetCore.Http;
+using FIAP.Tech.Challenge.Domain.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using FIAP.Tech.Challenge.Domain.Exceptions;
 
 namespace FIAP.Tech.Challenge.API.Filters;
 
@@ -20,7 +19,8 @@ public class FiltroExcecaoGlobal : IExceptionFilter
         else
         {
             // Erro genérico para exceções não tratadas
-            context.Result = new ObjectResult(new { erro = "Ocorreu um erro interno no servidor.", detalhe = context.Exception.Message })
+            context.Result = new ObjectResult(new
+                { erro = "Ocorreu um erro interno no servidor.", detalhe = context.Exception.Message })
             {
                 StatusCode = StatusCodes.Status500InternalServerError
             };

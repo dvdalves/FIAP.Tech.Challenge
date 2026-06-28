@@ -1,14 +1,11 @@
-using System;
 using System.Net;
-using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Threading.Tasks;
-using Xunit;
-using FluentAssertions;
 using FIAP.Tech.Challenge.Application.DTOs.Requests;
 using FIAP.Tech.Challenge.Infrastructure.Services;
+using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
+using Xunit;
 
 namespace FIAP.Tech.Challenge.IntegrationTests.API.Controllers.Admin;
 

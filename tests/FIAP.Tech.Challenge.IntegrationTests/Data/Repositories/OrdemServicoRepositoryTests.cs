@@ -1,15 +1,13 @@
-using System;
-using System.Threading.Tasks;
-using Xunit;
-using FluentAssertions;
-using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore;
 using FIAP.Tech.Challenge.Domain.Aggregates.ClienteAggregate;
 using FIAP.Tech.Challenge.Domain.Aggregates.OrdemServicoAggregate;
 using FIAP.Tech.Challenge.Domain.Aggregates.VeiculoAggregate;
 using FIAP.Tech.Challenge.Domain.ValueObjects;
 using FIAP.Tech.Challenge.Infrastructure.Data.Context;
 using FIAP.Tech.Challenge.Infrastructure.Repositories;
+using FluentAssertions;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
+using Xunit;
 
 namespace FIAP.Tech.Challenge.IntegrationTests.Data.Repositories;
 
@@ -34,11 +32,19 @@ public class OrdemServicoRepositoryTests : IDisposable
         _repository = new OrdemServicoRepository(_context);
     }
 
+    public void Dispose()
+    {
+        _context.Dispose();
+        _connection.Dispose();
+        GC.SuppressFinalize(this);
+    }
+
     [Fact]
     public async Task AdicionarEObterPorIdAsync_DeveSalvarERecuperarOrdemServico()
     {
         // Arrange
-        var cliente = new Cliente(Guid.NewGuid(), "José Silva", new Cpf("12345678909"), "jose@email.com", "11977776666");
+        var cliente = new Cliente(Guid.NewGuid(), "José Silva", new Cpf("12345678909"), "jose@email.com",
+            "11977776666");
         var veiculo = new Veiculo(Guid.NewGuid(), new Placa("ABC1234"), "Honda", "Civic", 2020, cliente.Id);
         var os = new OrdemServico(Guid.NewGuid(), cliente.Id, veiculo.Id, "Alinhamento e balanceamento");
 
@@ -61,12 +67,5 @@ public class OrdemServicoRepositoryTests : IDisposable
         osRecuperada!.Id.Should().Be(os.Id);
         osRecuperada.DescricaoProblema.Should().Be("Alinhamento e balanceamento");
         osRecuperada.Status.Should().Be(StatusOrdemServico.Recebida);
-    }
-
-    public void Dispose()
-    {
-        _context.Dispose();
-        _connection.Dispose();
-        GC.SuppressFinalize(this);
     }
 }

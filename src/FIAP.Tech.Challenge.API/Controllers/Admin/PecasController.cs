@@ -1,13 +1,9 @@
-using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using FIAP.Tech.Challenge.Application.DTOs.Requests;
 using FIAP.Tech.Challenge.Application.DTOs.Responses;
 using FIAP.Tech.Challenge.Application.UseCases.Pecas;
 using FIAP.Tech.Challenge.Domain.Aggregates.PecaAggregate;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace FIAP.Tech.Challenge.API.Controllers.Admin;
 
@@ -34,7 +30,8 @@ public class PecasController(
     }
 
     [HttpPost]
-    public async Task<IActionResult> AdicionarPeca([FromBody] AdicionarPecaRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> AdicionarPeca([FromBody] AdicionarPecaRequest request,
+        CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(request.Nome) || request.Preco <= 0)
             return BadRequest(new { erro = "Nome inválido ou preço menor/igual a zero." });
@@ -57,7 +54,8 @@ public class PecasController(
     }
 
     [HttpPut("{id:guid}/estoque")]
-    public async Task<IActionResult> AjustarEstoque(Guid id, [FromQuery] int quantidade, CancellationToken cancellationToken)
+    public async Task<IActionResult> AjustarEstoque(Guid id, [FromQuery] int quantidade,
+        CancellationToken cancellationToken)
     {
         await ajustarEstoquePecaUseCase.ExecutarAsync(id, quantidade, cancellationToken);
         return Ok(new { mensagem = "Estoque atualizado com sucesso." });

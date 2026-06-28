@@ -1,16 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Xunit;
-using FluentAssertions;
-using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore;
 using FIAP.Tech.Challenge.Domain.Aggregates.ClienteAggregate;
 using FIAP.Tech.Challenge.Domain.Aggregates.VeiculoAggregate;
 using FIAP.Tech.Challenge.Domain.ValueObjects;
 using FIAP.Tech.Challenge.Infrastructure.Data.Context;
 using FIAP.Tech.Challenge.Infrastructure.Repositories;
+using FluentAssertions;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
+using Xunit;
 
 namespace FIAP.Tech.Challenge.IntegrationTests.Data.Repositories;
 
@@ -35,11 +31,19 @@ public class VeiculoRepositoryTests : IDisposable
         _repository = new VeiculoRepository(_context);
     }
 
+    public void Dispose()
+    {
+        _context.Dispose();
+        _connection.Dispose();
+        GC.SuppressFinalize(this);
+    }
+
     [Fact]
     public async Task AdicionarEObterPorIdAsync_DeveSalvarERecuperarVeiculo()
     {
         // Arrange
-        var cliente = new Cliente(Guid.NewGuid(), "José Silva", new Cpf("12345678909"), "jose@email.com", "11977776666");
+        var cliente = new Cliente(Guid.NewGuid(), "José Silva", new Cpf("12345678909"), "jose@email.com",
+            "11977776666");
         var veiculo = new Veiculo(Guid.NewGuid(), new Placa("ABC1234"), "Honda", "Civic", 2020, cliente.Id);
 
         await _context.Clientes.AddAsync(cliente);
@@ -66,7 +70,8 @@ public class VeiculoRepositoryTests : IDisposable
     {
         // Arrange
         var placa = new Placa("ABC1234");
-        var cliente = new Cliente(Guid.NewGuid(), "José Silva", new Cpf("12345678909"), "jose@email.com", "11977776666");
+        var cliente = new Cliente(Guid.NewGuid(), "José Silva", new Cpf("12345678909"), "jose@email.com",
+            "11977776666");
         var veiculo = new Veiculo(Guid.NewGuid(), placa, "Honda", "Civic", 2020, cliente.Id);
 
         await _context.Clientes.AddAsync(cliente);
@@ -87,7 +92,8 @@ public class VeiculoRepositoryTests : IDisposable
     public async Task ObterPorClienteIdAsync_DeveRetornarVeiculosDoCliente()
     {
         // Arrange
-        var cliente = new Cliente(Guid.NewGuid(), "José Silva", new Cpf("12345678909"), "jose@email.com", "11977776666");
+        var cliente = new Cliente(Guid.NewGuid(), "José Silva", new Cpf("12345678909"), "jose@email.com",
+            "11977776666");
         var veiculo1 = new Veiculo(Guid.NewGuid(), new Placa("ABC1234"), "Honda", "Civic", 2020, cliente.Id);
         var veiculo2 = new Veiculo(Guid.NewGuid(), new Placa("XYZ9876"), "Toyota", "Corolla", 2022, cliente.Id);
 
@@ -109,7 +115,8 @@ public class VeiculoRepositoryTests : IDisposable
     public async Task AtualizarAsync_DeveModificarVeiculo()
     {
         // Arrange
-        var cliente = new Cliente(Guid.NewGuid(), "José Silva", new Cpf("12345678909"), "jose@email.com", "11977776666");
+        var cliente = new Cliente(Guid.NewGuid(), "José Silva", new Cpf("12345678909"), "jose@email.com",
+            "11977776666");
         var veiculo = new Veiculo(Guid.NewGuid(), new Placa("ABC1234"), "Honda", "Civic", 2020, cliente.Id);
 
         await _context.Clientes.AddAsync(cliente);
@@ -129,12 +136,5 @@ public class VeiculoRepositoryTests : IDisposable
         // Assert
         recuperado.Should().NotBeNull();
         recuperado!.Modelo.Should().Be("City");
-    }
-
-    public void Dispose()
-    {
-        _context.Dispose();
-        _connection.Dispose();
-        GC.SuppressFinalize(this);
     }
 }

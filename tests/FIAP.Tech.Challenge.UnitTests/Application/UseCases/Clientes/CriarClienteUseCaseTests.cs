@@ -1,14 +1,11 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Xunit;
-using FluentAssertions;
-using NSubstitute;
 using FIAP.Tech.Challenge.Application.UseCases.Clientes;
 using FIAP.Tech.Challenge.Domain;
 using FIAP.Tech.Challenge.Domain.Aggregates.ClienteAggregate;
-using FIAP.Tech.Challenge.Domain.ValueObjects;
 using FIAP.Tech.Challenge.Domain.Exceptions;
+using FIAP.Tech.Challenge.Domain.ValueObjects;
+using FluentAssertions;
+using NSubstitute;
+using Xunit;
 
 namespace FIAP.Tech.Challenge.UnitTests.Application.UseCases.Clientes;
 
@@ -37,7 +34,8 @@ public class CriarClienteUseCaseTests
             Telefone = "11999999999"
         };
 
-        var clienteExistente = new Cliente(Guid.NewGuid(), "Outro Nome", new Cpf("12345678909"), "outro@email.com", "11988888888");
+        var clienteExistente = new Cliente(Guid.NewGuid(), "Outro Nome", new Cpf("12345678909"), "outro@email.com",
+            "11988888888");
 
         _clienteRepositoryMock.ObterPorCpfAsync(Arg.Any<Cpf>(), Arg.Any<CancellationToken>())
             .Returns(clienteExistente);

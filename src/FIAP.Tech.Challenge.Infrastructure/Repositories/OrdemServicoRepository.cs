@@ -1,10 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using FIAP.Tech.Challenge.Domain.Aggregates.OrdemServicoAggregate;
 using FIAP.Tech.Challenge.Infrastructure.Data.Context;
+using Microsoft.EntityFrameworkCore;
 
 namespace FIAP.Tech.Challenge.Infrastructure.Repositories;
 
@@ -32,10 +28,7 @@ public class OrdemServicoRepository(OficinaDbContext context) : IOrdemServicoRep
     public async Task AtualizarAsync(OrdemServico ordemServico, CancellationToken cancellationToken = default)
     {
         var entry = context.Entry(ordemServico);
-        if (entry.State == EntityState.Detached)
-        {
-            context.OrdensServico.Update(ordemServico);
-        }
+        if (entry.State == EntityState.Detached) context.OrdensServico.Update(ordemServico);
 
         foreach (var item in ordemServico.Itens)
         {
@@ -43,10 +36,7 @@ public class OrdemServicoRepository(OficinaDbContext context) : IOrdemServicoRep
             if (itemEntry.State == EntityState.Modified || itemEntry.State == EntityState.Detached)
             {
                 var exists = await context.ItensOrdemServico.AnyAsync(i => i.Id == item.Id, cancellationToken);
-                if (!exists)
-                {
-                    itemEntry.State = EntityState.Added;
-                }
+                if (!exists) itemEntry.State = EntityState.Added;
             }
         }
     }

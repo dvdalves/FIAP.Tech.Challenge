@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace FIAP.Tech.Challenge.Domain.Aggregates.PecaAggregate;
 
 public interface IPecaRepository

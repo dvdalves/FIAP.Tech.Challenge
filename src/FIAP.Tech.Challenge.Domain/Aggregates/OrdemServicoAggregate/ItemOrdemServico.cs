@@ -1,22 +1,16 @@
-using System;
 using FIAP.Tech.Challenge.Domain.Exceptions;
 
 namespace FIAP.Tech.Challenge.Domain.Aggregates.OrdemServicoAggregate;
 
 public class ItemOrdemServico
 {
-    public Guid Id { get; private set; }
-    public Guid OrdemServicoId { get; private set; }
-    public Guid? PecaId { get; private set; }
-    public string Descricao { get; private set; } = string.Empty;
-    public int Quantidade { get; private set; }
-    public decimal ValorUnitario { get; private set; }
-    public decimal ValorMaoDeObra { get; private set; }
-
     // EF Core constructor
-    private ItemOrdemServico() { }
+    private ItemOrdemServico()
+    {
+    }
 
-    public ItemOrdemServico(Guid id, Guid ordemServicoId, Guid? pecaId, string descricao, int quantidade, decimal valorUnitario, decimal valorMaoDeObra)
+    public ItemOrdemServico(Guid id, Guid ordemServicoId, Guid? pecaId, string descricao, int quantidade,
+        decimal valorUnitario, decimal valorMaoDeObra)
     {
         if (id == Guid.Empty)
             throw new DominioException("Id do item inválido.");
@@ -39,4 +33,12 @@ public class ItemOrdemServico
         ValorUnitario = valorUnitario;
         ValorMaoDeObra = valorMaoDeObra;
     }
+
+    public Guid Id { get; private set; }
+    public Guid OrdemServicoId { get; private set; }
+    public Guid? PecaId { get; private set; }
+    public string Descricao { get; private set; } = string.Empty;
+    public int Quantidade { get; private set; }
+    public decimal ValorUnitario { get; private set; }
+    public decimal ValorMaoDeObra { get; private set; }
 }

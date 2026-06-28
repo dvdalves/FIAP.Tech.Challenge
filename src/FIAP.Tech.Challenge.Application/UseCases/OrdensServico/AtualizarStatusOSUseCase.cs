@@ -1,6 +1,3 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using FIAP.Tech.Challenge.Application.DTOs.Responses;
 using FIAP.Tech.Challenge.Application.Mappings;
 using FIAP.Tech.Challenge.Domain;
@@ -13,7 +10,8 @@ public class AtualizarStatusOSUseCase(
     IOrdemServicoRepository ordemServicoRepository,
     IUnitOfWork unitOfWork)
 {
-    public async Task<OrdemServicoResponse> ExecutarAsync(Guid id, StatusOrdemServico novoStatus, CancellationToken cancellationToken = default)
+    public async Task<OrdemServicoResponse> ExecutarAsync(Guid id, StatusOrdemServico novoStatus,
+        CancellationToken cancellationToken = default)
     {
         var os = await ordemServicoRepository.ObterPorIdAsync(id, cancellationToken);
         if (os == null)

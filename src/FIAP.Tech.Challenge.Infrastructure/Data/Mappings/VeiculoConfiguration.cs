@@ -1,9 +1,9 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System.Diagnostics.CodeAnalysis;
+using FIAP.Tech.Challenge.Domain.Aggregates.ClienteAggregate;
 using FIAP.Tech.Challenge.Domain.Aggregates.VeiculoAggregate;
 using FIAP.Tech.Challenge.Domain.ValueObjects;
-
-using System.Diagnostics.CodeAnalysis;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace FIAP.Tech.Challenge.Infrastructure.Data.Mappings;
 
@@ -37,7 +37,7 @@ public class VeiculoConfiguration : IEntityTypeConfiguration<Veiculo>
             .IsRequired();
 
         // Relacionamento com Cliente
-        builder.HasOne<FIAP.Tech.Challenge.Domain.Aggregates.ClienteAggregate.Cliente>()
+        builder.HasOne<Cliente>()
             .WithMany()
             .HasForeignKey(v => v.ClienteId)
             .OnDelete(DeleteBehavior.Restrict);

@@ -1,5 +1,3 @@
-using System;
-
 using System.Diagnostics.CodeAnalysis;
 
 namespace FIAP.Tech.Challenge.Application.DTOs.Responses;

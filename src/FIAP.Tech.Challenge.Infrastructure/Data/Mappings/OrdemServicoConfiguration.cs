@@ -1,9 +1,9 @@
-using System;
+using System.Diagnostics.CodeAnalysis;
+using FIAP.Tech.Challenge.Domain.Aggregates.ClienteAggregate;
+using FIAP.Tech.Challenge.Domain.Aggregates.OrdemServicoAggregate;
+using FIAP.Tech.Challenge.Domain.Aggregates.VeiculoAggregate;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using FIAP.Tech.Challenge.Domain.Aggregates.OrdemServicoAggregate;
-
-using System.Diagnostics.CodeAnalysis;
 
 namespace FIAP.Tech.Challenge.Infrastructure.Data.Mappings;
 
@@ -40,12 +40,12 @@ public class OrdemServicoConfiguration : IEntityTypeConfiguration<OrdemServico>
             .IsRequired(false);
 
         // Relacionamentos
-        builder.HasOne<FIAP.Tech.Challenge.Domain.Aggregates.ClienteAggregate.Cliente>()
+        builder.HasOne<Cliente>()
             .WithMany()
             .HasForeignKey(o => o.ClienteId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne<FIAP.Tech.Challenge.Domain.Aggregates.VeiculoAggregate.Veiculo>()
+        builder.HasOne<Veiculo>()
             .WithMany()
             .HasForeignKey(o => o.VeiculoId)
             .OnDelete(DeleteBehavior.Restrict);

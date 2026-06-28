@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using FIAP.Tech.Challenge.Application.DTOs.Responses;
 using FIAP.Tech.Challenge.Application.Mappings;
 using FIAP.Tech.Challenge.Domain;
@@ -16,7 +12,8 @@ public class LancarItensOSUseCase(
     IPecaRepository pecaRepository,
     IUnitOfWork unitOfWork)
 {
-    public async Task<OrdemServicoResponse> ExecutarAsync(Guid osId, LancarItensOSRequest request, CancellationToken cancellationToken = default)
+    public async Task<OrdemServicoResponse> ExecutarAsync(Guid osId, LancarItensOSRequest request,
+        CancellationToken cancellationToken = default)
     {
         // 1. Carregar a Ordem de Serviço
         var os = await ordemServicoRepository.ObterPorIdAsync(osId, cancellationToken);
@@ -24,10 +21,7 @@ public class LancarItensOSUseCase(
             throw new DominioException("Ordem de serviço não encontrada.");
 
         // Se estiver em Recebida, move para EmDiagnostico
-        if (os.Status == StatusOrdemServico.Recebida)
-        {
-            os.AtualizarStatus(StatusOrdemServico.EmDiagnostico);
-        }
+        if (os.Status == StatusOrdemServico.Recebida) os.AtualizarStatus(StatusOrdemServico.EmDiagnostico);
 
         // 2. Adicionar as peças solicitadas
         foreach (var itemPeca in request.Pecas)
@@ -38,16 +32,15 @@ public class LancarItensOSUseCase(
 
             // Validar prévia de estoque antes de adicionar ao orçamento
             if (peca.QuantidadeEstoque < itemPeca.Quantidade)
-                throw new DominioException($"Estoque insuficiente para a peça '{peca.Nome}'. Disponível: {peca.QuantidadeEstoque}, Solicitado: {itemPeca.Quantidade}.");
+                throw new DominioException(
+                    $"Estoque insuficiente para a peça '{peca.Nome}'. Disponível: {peca.QuantidadeEstoque}, Solicitado: {itemPeca.Quantidade}.");
 
             os.AdicionarItem(peca.Id, peca.Nome, itemPeca.Quantidade, peca.Preco, 0);
         }
 
         // 3. Adicionar as mãos de obra (serviços)
         foreach (var itemServico in request.Servicos)
-        {
             os.AdicionarItem(null, itemServico.Descricao, 1, 0, itemServico.ValorMaoDeObra);
-        }
 
         // 4. Finalizar o diagnóstico (recalcula orçamento e transiciona para AguardandoAprovacao)
         os.FinalizarDiagnostico();

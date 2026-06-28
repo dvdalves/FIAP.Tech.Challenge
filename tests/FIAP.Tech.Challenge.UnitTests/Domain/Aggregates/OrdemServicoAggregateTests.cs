@@ -1,8 +1,7 @@
-using System;
-using Xunit;
-using FluentAssertions;
 using FIAP.Tech.Challenge.Domain.Aggregates.OrdemServicoAggregate;
 using FIAP.Tech.Challenge.Domain.Exceptions;
+using FluentAssertions;
+using Xunit;
 
 namespace FIAP.Tech.Challenge.UnitTests.Domain.Aggregates;
 
@@ -83,10 +82,7 @@ public class OrdemServicoAggregateTests
     {
         // Arrange
         var os = new OrdemServico(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "Troca de amortecedores");
-        if (statusInicial == StatusOrdemServico.EmDiagnostico)
-        {
-            os.AtualizarStatus(StatusOrdemServico.EmDiagnostico);
-        }
+        if (statusInicial == StatusOrdemServico.EmDiagnostico) os.AtualizarStatus(StatusOrdemServico.EmDiagnostico);
 
         // Act
         os.AtualizarStatus(StatusOrdemServico.Cancelada);

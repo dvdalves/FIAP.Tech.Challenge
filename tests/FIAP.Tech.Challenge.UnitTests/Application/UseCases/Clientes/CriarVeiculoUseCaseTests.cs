@@ -1,24 +1,21 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Xunit;
-using FluentAssertions;
-using NSubstitute;
 using FIAP.Tech.Challenge.Application.UseCases.Clientes;
 using FIAP.Tech.Challenge.Domain;
 using FIAP.Tech.Challenge.Domain.Aggregates.ClienteAggregate;
 using FIAP.Tech.Challenge.Domain.Aggregates.VeiculoAggregate;
-using FIAP.Tech.Challenge.Domain.ValueObjects;
 using FIAP.Tech.Challenge.Domain.Exceptions;
+using FIAP.Tech.Challenge.Domain.ValueObjects;
+using FluentAssertions;
+using NSubstitute;
+using Xunit;
 
 namespace FIAP.Tech.Challenge.UnitTests.Application.UseCases.Clientes;
 
 public class CriarVeiculoUseCaseTests
 {
-    private readonly IVeiculoRepository _veiculoRepositoryMock;
     private readonly IClienteRepository _clienteRepositoryMock;
     private readonly IUnitOfWork _unitOfWorkMock;
     private readonly CriarVeiculoUseCase _useCase;
+    private readonly IVeiculoRepository _veiculoRepositoryMock;
 
     public CriarVeiculoUseCaseTests()
     {

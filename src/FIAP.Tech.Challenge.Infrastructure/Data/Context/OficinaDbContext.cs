@@ -1,14 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using FIAP.Tech.Challenge.Domain;
 using FIAP.Tech.Challenge.Domain.Aggregates.ClienteAggregate;
 using FIAP.Tech.Challenge.Domain.Aggregates.OrdemServicoAggregate;
-using FIAP.Tech.Challenge.Domain.Aggregates.VeiculoAggregate;
 using FIAP.Tech.Challenge.Domain.Aggregates.PecaAggregate;
-
-using System.Diagnostics.CodeAnalysis;
+using FIAP.Tech.Challenge.Domain.Aggregates.VeiculoAggregate;
+using Microsoft.EntityFrameworkCore;
 
 namespace FIAP.Tech.Challenge.Infrastructure.Data.Context;
 
@@ -21,14 +18,14 @@ public class OficinaDbContext(DbContextOptions<OficinaDbContext> options) : DbCo
     public DbSet<Peca> Pecas => Set<Peca>();
     public DbSet<ItemOrdemServico> ItensOrdemServico => Set<ItemOrdemServico>();
 
+    public async Task<bool> CommitAsync(CancellationToken cancellationToken = default)
+    {
+        return await SaveChangesAsync(cancellationToken) > 0;
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
-    }
-
-    public async Task<bool> CommitAsync(CancellationToken cancellationToken = default)
-    {
-        return await SaveChangesAsync(cancellationToken) > 0;
     }
 }

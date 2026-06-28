@@ -1,10 +1,6 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
+using FIAP.Tech.Challenge.Application.UseCases.OrdensServico;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using FIAP.Tech.Challenge.Application.UseCases.OrdensServico;
-using FIAP.Tech.Challenge.Domain.Aggregates.OrdemServicoAggregate;
 
 namespace FIAP.Tech.Challenge.API.Controllers.Admin;
 
@@ -18,7 +14,8 @@ public class OrdensServicoController(
     : ControllerBase
 {
     [HttpPost]
-    public async Task<IActionResult> Abrir([FromBody] AbrirOrdemServicoRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> Abrir([FromBody] AbrirOrdemServicoRequest request,
+        CancellationToken cancellationToken)
     {
         var osResponse = await abrirOrdemServicoUseCase.ExecutarAsync(request, cancellationToken);
         return CreatedAtRoute(new { controller = "OrdensServico", id = osResponse.Id }, osResponse);
@@ -26,8 +23,8 @@ public class OrdensServicoController(
 
     [HttpPut("{id:guid}/status")]
     public async Task<IActionResult> AtualizarStatus(
-        Guid id, 
-        [FromBody] AtualizarStatusRequest request, 
+        Guid id,
+        [FromBody] AtualizarStatusRequest request,
         CancellationToken cancellationToken)
     {
         var osResponse = await atualizarStatusOsUseCase.ExecutarAsync(id, request.NovoStatus, cancellationToken);
@@ -36,8 +33,8 @@ public class OrdensServicoController(
 
     [HttpPost("{id:guid}/itens")]
     public async Task<IActionResult> LancarItens(
-        Guid id, 
-        [FromBody] LancarItensOSRequest request, 
+        Guid id,
+        [FromBody] LancarItensOSRequest request,
         CancellationToken cancellationToken)
     {
         var osResponse = await lancarItensOsUseCase.ExecutarAsync(id, request, cancellationToken);

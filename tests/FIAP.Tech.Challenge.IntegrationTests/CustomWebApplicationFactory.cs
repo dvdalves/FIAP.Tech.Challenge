@@ -1,5 +1,3 @@
-using System;
-using FIAP.Tech.Challenge.API;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 
@@ -11,7 +9,8 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     {
         // Define as variáveis de ambiente antes de inicializar o host do program minimal API
         Environment.SetEnvironmentVariable("DbProvider", "InMemory");
-        Environment.SetEnvironmentVariable("ConnectionStrings__DefaultConnection", $"InMemoryDbForTesting_{Guid.NewGuid()}");
+        Environment.SetEnvironmentVariable("ConnectionStrings__DefaultConnection",
+            $"InMemoryDbForTesting_{Guid.NewGuid()}");
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)

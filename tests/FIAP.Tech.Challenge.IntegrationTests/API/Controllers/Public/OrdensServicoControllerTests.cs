@@ -1,18 +1,13 @@
-using System;
-using System.Collections.Generic;
 using System.Net;
-using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
-using Xunit;
-using FluentAssertions;
 using FIAP.Tech.Challenge.Application.DTOs.Responses;
 using FIAP.Tech.Challenge.Application.UseCases.Clientes;
 using FIAP.Tech.Challenge.Application.UseCases.OrdensServico;
-using FIAP.Tech.Challenge.API.Controllers.Admin;
 using FIAP.Tech.Challenge.Domain.Aggregates.OrdemServicoAggregate;
+using FluentAssertions;
+using Xunit;
 
 namespace FIAP.Tech.Challenge.IntegrationTests.API.Controllers.Public;
 
@@ -46,10 +41,11 @@ public class OrdensServicoControllerTests(CustomWebApplicationFactory factory)
             Email = "rodrigo@email.com",
             Telefone = "11988884444"
         };
-        var clienteContent = new StringContent(JsonSerializer.Serialize(clienteRequest), Encoding.UTF8, "application/json");
+        var clienteContent =
+            new StringContent(JsonSerializer.Serialize(clienteRequest), Encoding.UTF8, "application/json");
         var clientPostResponse = await client.PostAsync("/api/admin/clientes", clienteContent);
         clientPostResponse.StatusCode.Should().Be(HttpStatusCode.Created);
-        
+
         var clienteResponse = JsonSerializer.Deserialize<ClienteResponse>(
             await clientPostResponse.Content.ReadAsStringAsync(), _jsonOptions);
         clienteResponse.Should().NotBeNull();
@@ -63,8 +59,10 @@ public class OrdensServicoControllerTests(CustomWebApplicationFactory factory)
             Modelo = "Civic",
             Ano = 2020
         };
-        var veiculoContent = new StringContent(JsonSerializer.Serialize(veiculoRequest), Encoding.UTF8, "application/json");
-        var veiculoPostResponse = await client.PostAsync($"/api/admin/clientes/{clienteResponse.Id}/veiculos", veiculoContent);
+        var veiculoContent =
+            new StringContent(JsonSerializer.Serialize(veiculoRequest), Encoding.UTF8, "application/json");
+        var veiculoPostResponse =
+            await client.PostAsync($"/api/admin/clientes/{clienteResponse.Id}/veiculos", veiculoContent);
         veiculoPostResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var veiculoResponse = JsonSerializer.Deserialize<VeiculoResponse>(
@@ -79,7 +77,8 @@ public class OrdensServicoControllerTests(CustomWebApplicationFactory factory)
             VeiculoId = veiculoResponse.Id,
             DescricaoProblema = "Revisão geral e pastilha desgastada"
         };
-        var abrirOSContent = new StringContent(JsonSerializer.Serialize(abrirOSRequest), Encoding.UTF8, "application/json");
+        var abrirOSContent =
+            new StringContent(JsonSerializer.Serialize(abrirOSRequest), Encoding.UTF8, "application/json");
         var osPostResponse = await client.PostAsync("/api/admin/ordens-servico", abrirOSContent);
         osPostResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
@@ -94,20 +93,23 @@ public class OrdensServicoControllerTests(CustomWebApplicationFactory factory)
         {
             Pecas = new List<PecaItemRequest>
             {
-                new PecaItemRequest { PecaId = Guid.Parse("22222222-2222-2222-2222-222222222222"), Quantidade = 2 }
+                new() { PecaId = Guid.Parse("22222222-2222-2222-2222-222222222222"), Quantidade = 2 }
             },
             Servicos = new List<ServicoItemRequest>
             {
-                new ServicoItemRequest { Descricao = "Substituição de pastilhas dianteiras", ValorMaoDeObra = 90.00m }
+                new() { Descricao = "Substituição de pastilhas dianteiras", ValorMaoDeObra = 90.00m }
             }
         };
-        var diagnosticoContent = new StringContent(JsonSerializer.Serialize(diagnosticoRequest), Encoding.UTF8, "application/json");
-        var itensPostResponse = await client.PostAsync($"/api/admin/ordens-servico/{osResponse.Id}/itens", diagnosticoContent);
+        var diagnosticoContent = new StringContent(JsonSerializer.Serialize(diagnosticoRequest), Encoding.UTF8,
+            "application/json");
+        var itensPostResponse =
+            await client.PostAsync($"/api/admin/ordens-servico/{osResponse.Id}/itens", diagnosticoContent);
         if (itensPostResponse.StatusCode != HttpStatusCode.OK)
         {
             var err = await itensPostResponse.Content.ReadAsStringAsync();
             throw new Exception($"LancarItens failed: {itensPostResponse.StatusCode} - {err}");
         }
+
         itensPostResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var osDiagnosticoResponse = JsonSerializer.Deserialize<OrdemServicoResponse>(
@@ -150,29 +152,45 @@ public class OrdensServicoControllerTests(CustomWebApplicationFactory factory)
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         // Criar Cliente
-        var clienteRequest = new CriarClienteRequest { Nome = "Maria Souza", Cpf = "11122233396", Email = "maria@email.com", Telefone = "11977776666" };
-        var clienteContent = new StringContent(JsonSerializer.Serialize(clienteRequest), Encoding.UTF8, "application/json");
+        var clienteRequest = new CriarClienteRequest
+            { Nome = "Maria Souza", Cpf = "11122233396", Email = "maria@email.com", Telefone = "11977776666" };
+        var clienteContent =
+            new StringContent(JsonSerializer.Serialize(clienteRequest), Encoding.UTF8, "application/json");
         var clientPostResponse = await client.PostAsync("/api/admin/clientes", clienteContent);
-        var clienteResponse = JsonSerializer.Deserialize<ClienteResponse>(await clientPostResponse.Content.ReadAsStringAsync(), _jsonOptions);
+        var clienteResponse =
+            JsonSerializer.Deserialize<ClienteResponse>(await clientPostResponse.Content.ReadAsStringAsync(),
+                _jsonOptions);
 
         // Criar Veículo
         var veiculoRequest = new CriarVeiculoRequest { Placa = "DEF-5678", Marca = "Ford", Modelo = "Ka", Ano = 2018 };
-        var veiculoContent = new StringContent(JsonSerializer.Serialize(veiculoRequest), Encoding.UTF8, "application/json");
-        var veiculoPostResponse = await client.PostAsync($"/api/admin/clientes/{clienteResponse!.Id}/veiculos", veiculoContent);
-        var veiculoResponse = JsonSerializer.Deserialize<VeiculoResponse>(await veiculoPostResponse.Content.ReadAsStringAsync(), _jsonOptions);
+        var veiculoContent =
+            new StringContent(JsonSerializer.Serialize(veiculoRequest), Encoding.UTF8, "application/json");
+        var veiculoPostResponse =
+            await client.PostAsync($"/api/admin/clientes/{clienteResponse!.Id}/veiculos", veiculoContent);
+        var veiculoResponse =
+            JsonSerializer.Deserialize<VeiculoResponse>(await veiculoPostResponse.Content.ReadAsStringAsync(),
+                _jsonOptions);
 
         // Abrir OS
-        var abrirOSRequest = new AbrirOrdemServicoRequest { ClienteId = clienteResponse.Id, VeiculoId = veiculoResponse!.Id, DescricaoProblema = "Vazamento de água" };
-        var abrirOSContent = new StringContent(JsonSerializer.Serialize(abrirOSRequest), Encoding.UTF8, "application/json");
+        var abrirOSRequest = new AbrirOrdemServicoRequest
+        {
+            ClienteId = clienteResponse.Id, VeiculoId = veiculoResponse!.Id, DescricaoProblema = "Vazamento de água"
+        };
+        var abrirOSContent =
+            new StringContent(JsonSerializer.Serialize(abrirOSRequest), Encoding.UTF8, "application/json");
         var osPostResponse = await client.PostAsync("/api/admin/ordens-servico", abrirOSContent);
-        var osResponse = JsonSerializer.Deserialize<OrdemServicoResponse>(await osPostResponse.Content.ReadAsStringAsync(), _jsonOptions);
+        var osResponse =
+            JsonSerializer.Deserialize<OrdemServicoResponse>(await osPostResponse.Content.ReadAsStringAsync(),
+                _jsonOptions);
 
         // Mecânico adiciona diagnóstico
         var diagnosticoRequest = new LancarItensOSRequest
         {
-            Servicos = new List<ServicoItemRequest> { new ServicoItemRequest { Descricao = "Substituição do reservatório", ValorMaoDeObra = 150.00m } }
+            Servicos = new List<ServicoItemRequest>
+                { new() { Descricao = "Substituição do reservatório", ValorMaoDeObra = 150.00m } }
         };
-        var diagnosticoContent = new StringContent(JsonSerializer.Serialize(diagnosticoRequest), Encoding.UTF8, "application/json");
+        var diagnosticoContent = new StringContent(JsonSerializer.Serialize(diagnosticoRequest), Encoding.UTF8,
+            "application/json");
         await client.PostAsync($"/api/admin/ordens-servico/{osResponse!.Id}/itens", diagnosticoContent);
 
         // Act: Cliente rejeita
@@ -195,27 +213,42 @@ public class OrdensServicoControllerTests(CustomWebApplicationFactory factory)
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         // Criar Cliente A
-        var clienteARequest = new CriarClienteRequest { Nome = "Cliente A", Cpf = "22233344405", Email = "clientea@email.com", Telefone = "11911111111" };
-        var clienteAContent = new StringContent(JsonSerializer.Serialize(clienteARequest), Encoding.UTF8, "application/json");
+        var clienteARequest = new CriarClienteRequest
+            { Nome = "Cliente A", Cpf = "22233344405", Email = "clientea@email.com", Telefone = "11911111111" };
+        var clienteAContent =
+            new StringContent(JsonSerializer.Serialize(clienteARequest), Encoding.UTF8, "application/json");
         var postClienteAResponse = await client.PostAsync("/api/admin/clientes", clienteAContent);
-        var clienteA = JsonSerializer.Deserialize<ClienteResponse>(await postClienteAResponse.Content.ReadAsStringAsync(), _jsonOptions);
+        var clienteA =
+            JsonSerializer.Deserialize<ClienteResponse>(await postClienteAResponse.Content.ReadAsStringAsync(),
+                _jsonOptions);
 
         // Criar Veiculo A para Cliente A
-        var veiculoARequest = new CriarVeiculoRequest { Placa = "AAA-1234", Marca = "Chevrolet", Modelo = "Onix", Ano = 2019 };
-        var veiculoAContent = new StringContent(JsonSerializer.Serialize(veiculoARequest), Encoding.UTF8, "application/json");
+        var veiculoARequest = new CriarVeiculoRequest
+            { Placa = "AAA-1234", Marca = "Chevrolet", Modelo = "Onix", Ano = 2019 };
+        var veiculoAContent =
+            new StringContent(JsonSerializer.Serialize(veiculoARequest), Encoding.UTF8, "application/json");
         await client.PostAsync($"/api/admin/clientes/{clienteA!.Id}/veiculos", veiculoAContent);
 
         // Criar Cliente B
-        var clienteBRequest = new CriarClienteRequest { Nome = "Cliente B", Cpf = "33344455508", Email = "clienteb@email.com", Telefone = "11922222222" };
-        var clienteBContent = new StringContent(JsonSerializer.Serialize(clienteBRequest), Encoding.UTF8, "application/json");
+        var clienteBRequest = new CriarClienteRequest
+            { Nome = "Cliente B", Cpf = "33344455508", Email = "clienteb@email.com", Telefone = "11922222222" };
+        var clienteBContent =
+            new StringContent(JsonSerializer.Serialize(clienteBRequest), Encoding.UTF8, "application/json");
         var postClienteBResponse = await client.PostAsync("/api/admin/clientes", clienteBContent);
-        var clienteB = JsonSerializer.Deserialize<ClienteResponse>(await postClienteBResponse.Content.ReadAsStringAsync(), _jsonOptions);
+        var clienteB =
+            JsonSerializer.Deserialize<ClienteResponse>(await postClienteBResponse.Content.ReadAsStringAsync(),
+                _jsonOptions);
 
         // Criar Veiculo B para Cliente B
-        var veiculoBRequest = new CriarVeiculoRequest { Placa = "BBB-5678", Marca = "Fiat", Modelo = "Uno", Ano = 2015 };
-        var veiculoBContent = new StringContent(JsonSerializer.Serialize(veiculoBRequest), Encoding.UTF8, "application/json");
-        var postVeiculoBResponse = await client.PostAsync($"/api/admin/clientes/{clienteB!.Id}/veiculos", veiculoBContent);
-        var veiculoB = JsonSerializer.Deserialize<VeiculoResponse>(await postVeiculoBResponse.Content.ReadAsStringAsync(), _jsonOptions);
+        var veiculoBRequest = new CriarVeiculoRequest
+            { Placa = "BBB-5678", Marca = "Fiat", Modelo = "Uno", Ano = 2015 };
+        var veiculoBContent =
+            new StringContent(JsonSerializer.Serialize(veiculoBRequest), Encoding.UTF8, "application/json");
+        var postVeiculoBResponse =
+            await client.PostAsync($"/api/admin/clientes/{clienteB!.Id}/veiculos", veiculoBContent);
+        var veiculoB =
+            JsonSerializer.Deserialize<VeiculoResponse>(await postVeiculoBResponse.Content.ReadAsStringAsync(),
+                _jsonOptions);
 
         // Act: Tenta abrir OS para Cliente A com Veiculo B
         var abrirOSRequest = new AbrirOrdemServicoRequest
@@ -224,7 +257,8 @@ public class OrdensServicoControllerTests(CustomWebApplicationFactory factory)
             VeiculoId = veiculoB!.Id,
             DescricaoProblema = "Problema com veiculo de terceiro"
         };
-        var abrirOSContent = new StringContent(JsonSerializer.Serialize(abrirOSRequest), Encoding.UTF8, "application/json");
+        var abrirOSContent =
+            new StringContent(JsonSerializer.Serialize(abrirOSRequest), Encoding.UTF8, "application/json");
         var response = await client.PostAsync("/api/admin/ordens-servico", abrirOSContent);
 
         // Assert
@@ -242,31 +276,45 @@ public class OrdensServicoControllerTests(CustomWebApplicationFactory factory)
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         // Criar Cliente
-        var clienteRequest = new CriarClienteRequest { Nome = "Maria Silva", Cpf = "44455566619", Email = "maria.silva@email.com", Telefone = "11977778888" };
-        var clienteContent = new StringContent(JsonSerializer.Serialize(clienteRequest), Encoding.UTF8, "application/json");
+        var clienteRequest = new CriarClienteRequest
+            { Nome = "Maria Silva", Cpf = "44455566619", Email = "maria.silva@email.com", Telefone = "11977778888" };
+        var clienteContent =
+            new StringContent(JsonSerializer.Serialize(clienteRequest), Encoding.UTF8, "application/json");
         var postClienteResponse = await client.PostAsync("/api/admin/clientes", clienteContent);
-        var cliente = JsonSerializer.Deserialize<ClienteResponse>(await postClienteResponse.Content.ReadAsStringAsync(), _jsonOptions);
+        var cliente =
+            JsonSerializer.Deserialize<ClienteResponse>(await postClienteResponse.Content.ReadAsStringAsync(),
+                _jsonOptions);
 
         // Criar Veiculo
-        var veiculoRequest = new CriarVeiculoRequest { Placa = "CCC-1234", Marca = "Chevrolet", Modelo = "Cruze", Ano = 2021 };
-        var veiculoContent = new StringContent(JsonSerializer.Serialize(veiculoRequest), Encoding.UTF8, "application/json");
+        var veiculoRequest = new CriarVeiculoRequest
+            { Placa = "CCC-1234", Marca = "Chevrolet", Modelo = "Cruze", Ano = 2021 };
+        var veiculoContent =
+            new StringContent(JsonSerializer.Serialize(veiculoRequest), Encoding.UTF8, "application/json");
         var postVeiculoResponse = await client.PostAsync($"/api/admin/clientes/{cliente!.Id}/veiculos", veiculoContent);
-        var veiculo = JsonSerializer.Deserialize<VeiculoResponse>(await postVeiculoResponse.Content.ReadAsStringAsync(), _jsonOptions);
+        var veiculo =
+            JsonSerializer.Deserialize<VeiculoResponse>(await postVeiculoResponse.Content.ReadAsStringAsync(),
+                _jsonOptions);
 
         // Abrir OS
-        var abrirOSRequest = new AbrirOrdemServicoRequest { ClienteId = cliente.Id, VeiculoId = veiculo!.Id, DescricaoProblema = "Troca de amortecedor" };
-        var abrirOSContent = new StringContent(JsonSerializer.Serialize(abrirOSRequest), Encoding.UTF8, "application/json");
+        var abrirOSRequest = new AbrirOrdemServicoRequest
+            { ClienteId = cliente.Id, VeiculoId = veiculo!.Id, DescricaoProblema = "Troca de amortecedor" };
+        var abrirOSContent =
+            new StringContent(JsonSerializer.Serialize(abrirOSRequest), Encoding.UTF8, "application/json");
         var postOSResponse = await client.PostAsync("/api/admin/ordens-servico", abrirOSContent);
-        var os = JsonSerializer.Deserialize<OrdemServicoResponse>(await postOSResponse.Content.ReadAsStringAsync(), _jsonOptions);
+        var os = JsonSerializer.Deserialize<OrdemServicoResponse>(await postOSResponse.Content.ReadAsStringAsync(),
+            _jsonOptions);
 
         // Act: Atualizar status para EmDiagnostico usando JSON request body
         var statusRequest = new { NovoStatus = (int)StatusOrdemServico.EmDiagnostico };
-        var statusContent = new StringContent(JsonSerializer.Serialize(statusRequest), Encoding.UTF8, "application/json");
+        var statusContent =
+            new StringContent(JsonSerializer.Serialize(statusRequest), Encoding.UTF8, "application/json");
         var putResponse = await client.PutAsync($"/api/admin/ordens-servico/{os!.Id}/status", statusContent);
-        
+
         // Assert
         putResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-        var osAtualizada = JsonSerializer.Deserialize<OrdemServicoResponse>(await putResponse.Content.ReadAsStringAsync(), _jsonOptions);
+        var osAtualizada =
+            JsonSerializer.Deserialize<OrdemServicoResponse>(await putResponse.Content.ReadAsStringAsync(),
+                _jsonOptions);
         osAtualizada.Should().NotBeNull();
         osAtualizada!.Status.Should().Be("EmDiagnostico");
     }

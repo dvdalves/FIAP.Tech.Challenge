@@ -1,14 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Xunit;
-using FluentAssertions;
-using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore;
 using FIAP.Tech.Challenge.Domain.Aggregates.PecaAggregate;
 using FIAP.Tech.Challenge.Infrastructure.Data.Context;
 using FIAP.Tech.Challenge.Infrastructure.Repositories;
+using FluentAssertions;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
+using Xunit;
 
 namespace FIAP.Tech.Challenge.IntegrationTests.Data.Repositories;
 
@@ -31,6 +27,13 @@ public class PecaRepositoryTests : IDisposable
         _context.Database.EnsureCreated();
 
         _repository = new PecaRepository(_context);
+    }
+
+    public void Dispose()
+    {
+        _context.Dispose();
+        _connection.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     [Fact]
@@ -96,12 +99,5 @@ public class PecaRepositoryTests : IDisposable
         // Assert
         recuperada.Should().NotBeNull();
         recuperada!.QuantidadeEstoque.Should().Be(30);
-    }
-
-    public void Dispose()
-    {
-        _context.Dispose();
-        _connection.Dispose();
-        GC.SuppressFinalize(this);
     }
 }

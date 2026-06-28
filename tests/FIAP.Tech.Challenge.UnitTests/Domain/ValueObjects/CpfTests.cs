@@ -1,7 +1,7 @@
-using Xunit;
-using FluentAssertions;
-using FIAP.Tech.Challenge.Domain.ValueObjects;
 using FIAP.Tech.Challenge.Domain.Exceptions;
+using FIAP.Tech.Challenge.Domain.ValueObjects;
+using FluentAssertions;
+using Xunit;
 
 namespace FIAP.Tech.Challenge.UnitTests.Domain.ValueObjects;
 
@@ -17,7 +17,7 @@ public class CpfTests
 
         // Assert
         act.Should().Throw<DominioException>()
-           .WithMessage("CPF não pode ser vazio.");
+            .WithMessage("CPF não pode ser vazio.");
     }
 
     [Theory]
@@ -30,7 +30,7 @@ public class CpfTests
 
         // Assert
         act.Should().Throw<DominioException>()
-           .WithMessage("*inválido*");
+            .WithMessage("*inválido*");
     }
 
     [Theory]

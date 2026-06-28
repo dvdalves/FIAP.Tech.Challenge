@@ -1,8 +1,5 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.OpenApi;
-
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.OpenApi;
 
 namespace FIAP.Tech.Challenge.API.Configurations;
 
@@ -13,9 +10,9 @@ public static class SwaggerSetup
     {
         services.AddSwaggerGen(c =>
         {
-            c.SwaggerDoc("v1", new OpenApiInfo 
-            { 
-                Title = "Oficina Mecânica API", 
+            c.SwaggerDoc("v1", new OpenApiInfo
+            {
+                Title = "Oficina Mecânica API",
                 Version = "v1",
                 Description = "API de gerenciamento e atendimento de ordens de serviço de uma oficina mecânica."
             });
@@ -35,7 +32,7 @@ public static class SwaggerSetup
             {
                 {
                     new OpenApiSecuritySchemeReference("Bearer", doc),
-                    new System.Collections.Generic.List<string>()
+                    new List<string>()
                 }
             });
         });
