@@ -46,16 +46,16 @@ public class VeiculoRepositoryTests : IDisposable
             "11977776666");
         var veiculo = new Veiculo(Guid.NewGuid(), new Placa("ABC1234"), "Honda", "Civic", 2020, cliente.Id);
 
-        await _context.Clientes.AddAsync(cliente);
-        await _context.SaveChangesAsync();
+        await _context.Clientes.AddAsync(cliente, TestContext.Current.CancellationToken);
+        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Act
-        await _repository.AdicionarAsync(veiculo);
-        await _context.SaveChangesAsync();
+        await _repository.AdicionarAsync(veiculo, TestContext.Current.CancellationToken);
+        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         _context.ChangeTracker.Clear();
 
-        var veiculoRecuperado = await _repository.ObterPorIdAsync(veiculo.Id);
+        var veiculoRecuperado = await _repository.ObterPorIdAsync(veiculo.Id, TestContext.Current.CancellationToken);
 
         // Assert
         veiculoRecuperado.Should().NotBeNull();
@@ -74,14 +74,14 @@ public class VeiculoRepositoryTests : IDisposable
             "11977776666");
         var veiculo = new Veiculo(Guid.NewGuid(), placa, "Honda", "Civic", 2020, cliente.Id);
 
-        await _context.Clientes.AddAsync(cliente);
-        await _repository.AdicionarAsync(veiculo);
-        await _context.SaveChangesAsync();
+        await _context.Clientes.AddAsync(cliente, TestContext.Current.CancellationToken);
+        await _repository.AdicionarAsync(veiculo, TestContext.Current.CancellationToken);
+        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         _context.ChangeTracker.Clear();
 
         // Act
-        var veiculoRecuperado = await _repository.ObterPorPlacaAsync(placa);
+        var veiculoRecuperado = await _repository.ObterPorPlacaAsync(placa, TestContext.Current.CancellationToken);
 
         // Assert
         veiculoRecuperado.Should().NotBeNull();
@@ -97,15 +97,15 @@ public class VeiculoRepositoryTests : IDisposable
         var veiculo1 = new Veiculo(Guid.NewGuid(), new Placa("ABC1234"), "Honda", "Civic", 2020, cliente.Id);
         var veiculo2 = new Veiculo(Guid.NewGuid(), new Placa("XYZ9876"), "Toyota", "Corolla", 2022, cliente.Id);
 
-        await _context.Clientes.AddAsync(cliente);
-        await _repository.AdicionarAsync(veiculo1);
-        await _repository.AdicionarAsync(veiculo2);
-        await _context.SaveChangesAsync();
+        await _context.Clientes.AddAsync(cliente, TestContext.Current.CancellationToken);
+        await _repository.AdicionarAsync(veiculo1, TestContext.Current.CancellationToken);
+        await _repository.AdicionarAsync(veiculo2, TestContext.Current.CancellationToken);
+        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         _context.ChangeTracker.Clear();
 
         // Act
-        var veiculos = await _repository.ObterPorClienteIdAsync(cliente.Id);
+        var veiculos = await _repository.ObterPorClienteIdAsync(cliente.Id, TestContext.Current.CancellationToken);
 
         // Assert
         veiculos.Should().HaveCount(2);
@@ -119,19 +119,19 @@ public class VeiculoRepositoryTests : IDisposable
             "11977776666");
         var veiculo = new Veiculo(Guid.NewGuid(), new Placa("ABC1234"), "Honda", "Civic", 2020, cliente.Id);
 
-        await _context.Clientes.AddAsync(cliente);
-        await _repository.AdicionarAsync(veiculo);
-        await _context.SaveChangesAsync();
+        await _context.Clientes.AddAsync(cliente, TestContext.Current.CancellationToken);
+        await _repository.AdicionarAsync(veiculo, TestContext.Current.CancellationToken);
+        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         _context.ChangeTracker.Clear();
 
         // Act
         veiculo.AlterarModelo("City");
-        await _repository.AtualizarAsync(veiculo);
-        await _context.SaveChangesAsync();
+        await _repository.AtualizarAsync(veiculo, TestContext.Current.CancellationToken);
+        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         _context.ChangeTracker.Clear();
-        var recuperado = await _repository.ObterPorIdAsync(veiculo.Id);
+        var recuperado = await _repository.ObterPorIdAsync(veiculo.Id, TestContext.Current.CancellationToken);
 
         // Assert
         recuperado.Should().NotBeNull();

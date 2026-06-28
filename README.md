@@ -42,7 +42,7 @@ docker compose up --build
 
 #### 🛡️ Inicialização Resiliente (Healthcheck)
 
-A orquestração do [docker-compose.yml](file:///Users/david/Projects/FIAP.Tech.Challenge/docker-compose.yml) possui um mecanismo de resiliência:
+A orquestração do [docker-compose.yml](docker-compose.yml) possui um mecanismo de resiliência:
 
 1. O banco de dados PostgreSQL 18 inicia primeiro.
 2. O container da API (`api`) aguarda a sinalização de que o banco está pronto para receber conexões.
@@ -99,7 +99,7 @@ Optou-se pelo **PostgreSQL 18** no ambiente de contêineres devido à sua robust
 
 ### 🔌 Flexibilidade nos Testes (SQLite Fallback)
 
-Para agilizar o desenvolvimento local, o arquivo [DependencyInjectionSetup.cs](file:///Users/david/Projects/FIAP.Tech.Challenge/src/FIAP.Tech.Challenge.API/Configurations/DependencyInjectionSetup.cs) possui uma lógica de seleção dinâmica de banco de dados:
+Para agilizar o desenvolvimento local, o arquivo [DependencyInjectionSetup.cs](src/FIAP.Tech.Challenge.API/Configurations/DependencyInjectionSetup.cs) possui uma lógica de seleção dinâmica de banco de dados:
 
 - Em execução padrão (Docker), a API conecta-se ao PostgreSQL.
 - Caso executado localmente sem uma string de conexão PostgreSQL configurada, o sistema efetua um **fallback automático e transparente para o SQLite in-memory**. Isto permite executar a suíte de testes integrados instantaneamente com `dotnet test` sem a necessidade de subir contêineres externos de banco de dados.
@@ -137,7 +137,7 @@ A dinâmica de negócios da oficina foi mapeada seguindo os padrões do DDD. Os 
 
 Ilustra o fluxo de atendimento da oficina, representando os passos que o cliente e a equipe realizam desde a entrada do veículo até a entrega.
 
-- **SVG Original**: [domain-storytelling.svg](file:///Users/david/Projects/FIAP.Tech.Challenge/docs/Fase%201/domain-storytelling.svg)
+- **SVG Original**: [domain-storytelling.svg](docs/Fase%201/domain-storytelling.svg)
 - **Imagem**:
   ![Domain Storytelling](docs/Fase%201/domain-storytelling.png)
 
@@ -145,7 +145,7 @@ Ilustra o fluxo de atendimento da oficina, representando os passos que o cliente
 
 Define a linha do tempo com Comandos, Agregados, Eventos de Domínio e Políticas aplicadas ao ciclo de vida das ordens de serviço.
 
-- **SVG Original**: [event-storming.svg](file:///Users/david/Projects/FIAP.Tech.Challenge/docs/Fase%201/event-storming.svg)
+- **SVG Original**: [event-storming.svg](docs/Fase%201/event-storming.svg)
 - **Imagem**:
   ![Event Storming](docs/Fase%201/event-storming.png)
 
@@ -204,6 +204,7 @@ O SonarQube pode ser levantado localmente para validação de cobertura:
 1. Suba o serviço: `docker compose up -d sonarqube`
 2. Acesse `http://localhost:9000` (credenciais: `admin`/`admin`), crie um projeto com a chave `FIAP.Tech.Challenge` e obtenha o token de acesso.
 3. Execute o script de análise na raiz:
+
    ```bash
    ./run-sonar.sh
    ```
@@ -220,7 +221,7 @@ Como parte dos requisitos de segurança do código estático (SAST) e análise d
 - **SAST (Static Application Security Testing)**: Compilação forçada em modo restrito de segurança utilizando as regras integradas dos _Roslyn Analyzers_ (`AnalysisLevel=latest-Security`), sem qualquer inconformidade de segurança detectada nos projetos principais de produção.
 
 A análise detalhada dos scans de segurança executados (SCA e SAST), contendo evidências dos comandos executados e conformidade das dependências com o GitHub Advisory Database, está documentada na íntegra em:
-**[Relatório de Vulnerabilidades - vulnerabilidade.md](file:///Users/david/Projects/FIAP.Tech.Challenge/docs/Fase%201/vulnerabilidade.md)**.
+**[Relatório de Vulnerabilidades - vulnerabilidade.md](docs/Fase%201/vulnerabilidade.md)**.
 
 ---
 
@@ -228,6 +229,6 @@ A análise detalhada dos scans de segurança executados (SCA e SAST), contendo e
 
 Para detalhes sobre como o sistema evoluirá do monolito clássico atual para uma arquitetura modular de alta disponibilidade com resiliência, mensageria, observabilidade completa e segurança avançada, consulte o documento completo:
 
-- **[Plano de Evolução Arquitetural - plano_evolucao_arquitetural.md](file:///Users/david/Projects/FIAP.Tech.Challenge/docs/Fase%201/plano_evolucao_arquitetural.md)**
+- **[Plano de Evolução Arquitetural - plano_evolucao_arquitetural.md](docs/Fase%201/plano_evolucao_arquitetural.md)**
 
 Este plano detalha as futuras integrações e melhorias estratégicas da solução, incluindo Keycloak (IDP), .NET Aspire, Redis, RabbitMQ, Blazor WebApp, além de testes dinâmicos focados no OWASP Top 10 e o bloqueio automático de pipelines de deploy do GitHub Actions diante de vulnerabilidades críticas.

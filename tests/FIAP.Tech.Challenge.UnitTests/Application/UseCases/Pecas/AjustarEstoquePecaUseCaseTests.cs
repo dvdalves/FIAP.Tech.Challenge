@@ -50,7 +50,7 @@ public class AjustarEstoquePecaUseCaseTests
             .Returns(peca);
 
         // Act
-        await _useCase.ExecutarAsync(pecaId, 15);
+        await _useCase.ExecutarAsync(pecaId, 15, TestContext.Current.CancellationToken);
 
         // Assert
         peca.QuantidadeEstoque.Should().Be(15);

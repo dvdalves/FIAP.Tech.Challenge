@@ -45,12 +45,12 @@ public class ClienteRepositoryTests : IDisposable
             "11977776666");
 
         // Act
-        await _repository.AdicionarAsync(cliente);
-        await _context.SaveChangesAsync();
+        await _repository.AdicionarAsync(cliente, TestContext.Current.CancellationToken);
+        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         _context.ChangeTracker.Clear();
 
-        var clienteRecuperado = await _repository.ObterPorIdAsync(cliente.Id);
+        var clienteRecuperado = await _repository.ObterPorIdAsync(cliente.Id, TestContext.Current.CancellationToken);
 
         // Assert
         clienteRecuperado.Should().NotBeNull();
@@ -66,13 +66,13 @@ public class ClienteRepositoryTests : IDisposable
         var cpf = new Cpf("12345678909");
         var cliente = new Cliente(Guid.NewGuid(), "José Silva", cpf, "jose@email.com", "11977776666");
 
-        await _repository.AdicionarAsync(cliente);
-        await _context.SaveChangesAsync();
+        await _repository.AdicionarAsync(cliente, TestContext.Current.CancellationToken);
+        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         _context.ChangeTracker.Clear();
 
         // Act
-        var clienteRecuperado = await _repository.ObterPorCpfAsync(cpf);
+        var clienteRecuperado = await _repository.ObterPorCpfAsync(cpf, TestContext.Current.CancellationToken);
 
         // Assert
         clienteRecuperado.Should().NotBeNull();
@@ -88,14 +88,14 @@ public class ClienteRepositoryTests : IDisposable
         var cliente2 = new Cliente(Guid.NewGuid(), "Maria Santos", new Cpf("98765432100"), "maria@email.com",
             "11988887777");
 
-        await _repository.AdicionarAsync(cliente1);
-        await _repository.AdicionarAsync(cliente2);
-        await _context.SaveChangesAsync();
+        await _repository.AdicionarAsync(cliente1, TestContext.Current.CancellationToken);
+        await _repository.AdicionarAsync(cliente2, TestContext.Current.CancellationToken);
+        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         _context.ChangeTracker.Clear();
 
         // Act
-        var todos = await _repository.ObterTodosAsync();
+        var todos = await _repository.ObterTodosAsync(TestContext.Current.CancellationToken);
 
         // Assert
         todos.Should().HaveCountGreaterThanOrEqualTo(2);
@@ -107,18 +107,18 @@ public class ClienteRepositoryTests : IDisposable
         // Arrange
         var cliente = new Cliente(Guid.NewGuid(), "José Silva", new Cpf("12345678909"), "jose@email.com",
             "11977776666");
-        await _repository.AdicionarAsync(cliente);
-        await _context.SaveChangesAsync();
+        await _repository.AdicionarAsync(cliente, TestContext.Current.CancellationToken);
+        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         _context.ChangeTracker.Clear();
 
         // Act
         cliente.AlterarEmail("novo@email.com");
-        await _repository.AtualizarAsync(cliente);
-        await _context.SaveChangesAsync();
+        await _repository.AtualizarAsync(cliente, TestContext.Current.CancellationToken);
+        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         _context.ChangeTracker.Clear();
-        var recuperado = await _repository.ObterPorIdAsync(cliente.Id);
+        var recuperado = await _repository.ObterPorIdAsync(cliente.Id, TestContext.Current.CancellationToken);
 
         // Assert
         recuperado.Should().NotBeNull();

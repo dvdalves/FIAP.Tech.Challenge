@@ -43,11 +43,11 @@ public class OrdensServicoControllerTests(CustomWebApplicationFactory factory)
         };
         var clienteContent =
             new StringContent(JsonSerializer.Serialize(clienteRequest), Encoding.UTF8, "application/json");
-        var clientPostResponse = await client.PostAsync("/api/admin/clientes", clienteContent);
+        var clientPostResponse = await client.PostAsync("/api/admin/clientes", clienteContent, TestContext.Current.CancellationToken);
         clientPostResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var clienteResponse = JsonSerializer.Deserialize<ClienteResponse>(
-            await clientPostResponse.Content.ReadAsStringAsync(), _jsonOptions);
+            await clientPostResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken), _jsonOptions);
         clienteResponse.Should().NotBeNull();
         clienteResponse!.Id.Should().NotBeEmpty();
 
@@ -62,11 +62,11 @@ public class OrdensServicoControllerTests(CustomWebApplicationFactory factory)
         var veiculoContent =
             new StringContent(JsonSerializer.Serialize(veiculoRequest), Encoding.UTF8, "application/json");
         var veiculoPostResponse =
-            await client.PostAsync($"/api/admin/clientes/{clienteResponse.Id}/veiculos", veiculoContent);
+            await client.PostAsync($"/api/admin/clientes/{clienteResponse.Id}/veiculos", veiculoContent, TestContext.Current.CancellationToken);
         veiculoPostResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var veiculoResponse = JsonSerializer.Deserialize<VeiculoResponse>(
-            await veiculoPostResponse.Content.ReadAsStringAsync(), _jsonOptions);
+            await veiculoPostResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken), _jsonOptions);
         veiculoResponse.Should().NotBeNull();
         veiculoResponse!.Id.Should().NotBeEmpty();
 
@@ -79,11 +79,11 @@ public class OrdensServicoControllerTests(CustomWebApplicationFactory factory)
         };
         var abrirOSContent =
             new StringContent(JsonSerializer.Serialize(abrirOSRequest), Encoding.UTF8, "application/json");
-        var osPostResponse = await client.PostAsync("/api/admin/ordens-servico", abrirOSContent);
+        var osPostResponse = await client.PostAsync("/api/admin/ordens-servico", abrirOSContent, TestContext.Current.CancellationToken);
         osPostResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var osResponse = JsonSerializer.Deserialize<OrdemServicoResponse>(
-            await osPostResponse.Content.ReadAsStringAsync(), _jsonOptions);
+            await osPostResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken), _jsonOptions);
         osResponse.Should().NotBeNull();
         osResponse!.Status.Should().Be("Recebida");
 
@@ -103,17 +103,17 @@ public class OrdensServicoControllerTests(CustomWebApplicationFactory factory)
         var diagnosticoContent = new StringContent(JsonSerializer.Serialize(diagnosticoRequest), Encoding.UTF8,
             "application/json");
         var itensPostResponse =
-            await client.PostAsync($"/api/admin/ordens-servico/{osResponse.Id}/itens", diagnosticoContent);
+            await client.PostAsync($"/api/admin/ordens-servico/{osResponse.Id}/itens", diagnosticoContent, TestContext.Current.CancellationToken);
         if (itensPostResponse.StatusCode != HttpStatusCode.OK)
         {
-            var err = await itensPostResponse.Content.ReadAsStringAsync();
+            var err = await itensPostResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
             throw new Exception($"LancarItens failed: {itensPostResponse.StatusCode} - {err}");
         }
 
         itensPostResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var osDiagnosticoResponse = JsonSerializer.Deserialize<OrdemServicoResponse>(
-            await itensPostResponse.Content.ReadAsStringAsync(), _jsonOptions);
+            await itensPostResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken), _jsonOptions);
         osDiagnosticoResponse.Should().NotBeNull();
         osDiagnosticoResponse!.Status.Should().Be("AguardandoAprovacao");
         // Orçamento calculado automaticamente: (180.00 * 2) + 90.00 = 450.00
@@ -122,21 +122,21 @@ public class OrdensServicoControllerTests(CustomWebApplicationFactory factory)
         // Step 5: Cliente aprova o orçamento (Status muda para EmExecucao e abate o estoque)
         // Removemos a autorização Bearer para simular o cliente acessando publicamente pelo App
         client.DefaultRequestHeaders.Authorization = null;
-        var aprovarResponse = await client.PostAsync($"/api/public/ordens-servico/{osResponse.Id}/aprovar", null);
+        var aprovarResponse = await client.PostAsync($"/api/public/ordens-servico/{osResponse.Id}/aprovar", null, TestContext.Current.CancellationToken);
         aprovarResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var osAprovadaResponse = JsonSerializer.Deserialize<OrdemServicoResponse>(
-            await aprovarResponse.Content.ReadAsStringAsync(), _jsonOptions);
+            await aprovarResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken), _jsonOptions);
         osAprovadaResponse.Should().NotBeNull();
         osAprovadaResponse!.Status.Should().Be("EmExecucao");
 
         // Step 6: Verificar se o estoque foi deduzido (de 8 para 6 pastilhas)
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        var pecasGetResponse = await client.GetAsync("/api/admin/pecas");
+        var pecasGetResponse = await client.GetAsync("/api/admin/pecas", TestContext.Current.CancellationToken);
         pecasGetResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var pecas = JsonSerializer.Deserialize<List<PecaResponse>>(
-            await pecasGetResponse.Content.ReadAsStringAsync(), _jsonOptions);
+            await pecasGetResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken), _jsonOptions);
         pecas.Should().NotBeNull();
         var pastilha = pecas!.Find(p => p.Id == Guid.Parse("22222222-2222-2222-2222-222222222222"));
         pastilha.Should().NotBeNull();
@@ -153,12 +153,12 @@ public class OrdensServicoControllerTests(CustomWebApplicationFactory factory)
 
         // Criar Cliente
         var clienteRequest = new CriarClienteRequest
-            { Nome = "Maria Souza", Cpf = "11122233396", Email = "maria@email.com", Telefone = "11977776666" };
+        { Nome = "Maria Souza", Cpf = "11122233396", Email = "maria@email.com", Telefone = "11977776666" };
         var clienteContent =
             new StringContent(JsonSerializer.Serialize(clienteRequest), Encoding.UTF8, "application/json");
-        var clientPostResponse = await client.PostAsync("/api/admin/clientes", clienteContent);
+        var clientPostResponse = await client.PostAsync("/api/admin/clientes", clienteContent, TestContext.Current.CancellationToken);
         var clienteResponse =
-            JsonSerializer.Deserialize<ClienteResponse>(await clientPostResponse.Content.ReadAsStringAsync(),
+            JsonSerializer.Deserialize<ClienteResponse>(await clientPostResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken),
                 _jsonOptions);
 
         // Criar Veículo
@@ -166,21 +166,23 @@ public class OrdensServicoControllerTests(CustomWebApplicationFactory factory)
         var veiculoContent =
             new StringContent(JsonSerializer.Serialize(veiculoRequest), Encoding.UTF8, "application/json");
         var veiculoPostResponse =
-            await client.PostAsync($"/api/admin/clientes/{clienteResponse!.Id}/veiculos", veiculoContent);
+            await client.PostAsync($"/api/admin/clientes/{clienteResponse!.Id}/veiculos", veiculoContent, TestContext.Current.CancellationToken);
         var veiculoResponse =
-            JsonSerializer.Deserialize<VeiculoResponse>(await veiculoPostResponse.Content.ReadAsStringAsync(),
+            JsonSerializer.Deserialize<VeiculoResponse>(await veiculoPostResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken),
                 _jsonOptions);
 
         // Abrir OS
         var abrirOSRequest = new AbrirOrdemServicoRequest
         {
-            ClienteId = clienteResponse.Id, VeiculoId = veiculoResponse!.Id, DescricaoProblema = "Vazamento de água"
+            ClienteId = clienteResponse.Id,
+            VeiculoId = veiculoResponse!.Id,
+            DescricaoProblema = "Vazamento de água"
         };
         var abrirOSContent =
             new StringContent(JsonSerializer.Serialize(abrirOSRequest), Encoding.UTF8, "application/json");
-        var osPostResponse = await client.PostAsync("/api/admin/ordens-servico", abrirOSContent);
+        var osPostResponse = await client.PostAsync("/api/admin/ordens-servico", abrirOSContent, TestContext.Current.CancellationToken);
         var osResponse =
-            JsonSerializer.Deserialize<OrdemServicoResponse>(await osPostResponse.Content.ReadAsStringAsync(),
+            JsonSerializer.Deserialize<OrdemServicoResponse>(await osPostResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken),
                 _jsonOptions);
 
         // Mecânico adiciona diagnóstico
@@ -191,15 +193,15 @@ public class OrdensServicoControllerTests(CustomWebApplicationFactory factory)
         };
         var diagnosticoContent = new StringContent(JsonSerializer.Serialize(diagnosticoRequest), Encoding.UTF8,
             "application/json");
-        await client.PostAsync($"/api/admin/ordens-servico/{osResponse!.Id}/itens", diagnosticoContent);
+        await client.PostAsync($"/api/admin/ordens-servico/{osResponse!.Id}/itens", diagnosticoContent, TestContext.Current.CancellationToken);
 
         // Act: Cliente rejeita
         client.DefaultRequestHeaders.Authorization = null;
-        var rejeitarResponse = await client.PostAsync($"/api/public/ordens-servico/{osResponse.Id}/rejeitar", null);
+        var rejeitarResponse = await client.PostAsync($"/api/public/ordens-servico/{osResponse.Id}/rejeitar", null, TestContext.Current.CancellationToken);
         rejeitarResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var osRejeitada = JsonSerializer.Deserialize<OrdemServicoResponse>(
-            await rejeitarResponse.Content.ReadAsStringAsync(), _jsonOptions);
+            await rejeitarResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken), _jsonOptions);
         osRejeitada.Should().NotBeNull();
         osRejeitada!.Status.Should().Be("Cancelada");
     }
@@ -214,40 +216,40 @@ public class OrdensServicoControllerTests(CustomWebApplicationFactory factory)
 
         // Criar Cliente A
         var clienteARequest = new CriarClienteRequest
-            { Nome = "Cliente A", Cpf = "22233344405", Email = "clientea@email.com", Telefone = "11911111111" };
+        { Nome = "Cliente A", Cpf = "22233344405", Email = "clientea@email.com", Telefone = "11911111111" };
         var clienteAContent =
             new StringContent(JsonSerializer.Serialize(clienteARequest), Encoding.UTF8, "application/json");
-        var postClienteAResponse = await client.PostAsync("/api/admin/clientes", clienteAContent);
+        var postClienteAResponse = await client.PostAsync("/api/admin/clientes", clienteAContent, TestContext.Current.CancellationToken);
         var clienteA =
-            JsonSerializer.Deserialize<ClienteResponse>(await postClienteAResponse.Content.ReadAsStringAsync(),
+            JsonSerializer.Deserialize<ClienteResponse>(await postClienteAResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken),
                 _jsonOptions);
 
         // Criar Veiculo A para Cliente A
         var veiculoARequest = new CriarVeiculoRequest
-            { Placa = "AAA-1234", Marca = "Chevrolet", Modelo = "Onix", Ano = 2019 };
+        { Placa = "AAA-1234", Marca = "Chevrolet", Modelo = "Onix", Ano = 2019 };
         var veiculoAContent =
             new StringContent(JsonSerializer.Serialize(veiculoARequest), Encoding.UTF8, "application/json");
-        await client.PostAsync($"/api/admin/clientes/{clienteA!.Id}/veiculos", veiculoAContent);
+        await client.PostAsync($"/api/admin/clientes/{clienteA!.Id}/veiculos", veiculoAContent, TestContext.Current.CancellationToken);
 
         // Criar Cliente B
         var clienteBRequest = new CriarClienteRequest
-            { Nome = "Cliente B", Cpf = "33344455508", Email = "clienteb@email.com", Telefone = "11922222222" };
+        { Nome = "Cliente B", Cpf = "33344455508", Email = "clienteb@email.com", Telefone = "11922222222" };
         var clienteBContent =
             new StringContent(JsonSerializer.Serialize(clienteBRequest), Encoding.UTF8, "application/json");
-        var postClienteBResponse = await client.PostAsync("/api/admin/clientes", clienteBContent);
+        var postClienteBResponse = await client.PostAsync("/api/admin/clientes", clienteBContent, TestContext.Current.CancellationToken);
         var clienteB =
-            JsonSerializer.Deserialize<ClienteResponse>(await postClienteBResponse.Content.ReadAsStringAsync(),
+            JsonSerializer.Deserialize<ClienteResponse>(await postClienteBResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken),
                 _jsonOptions);
 
         // Criar Veiculo B para Cliente B
         var veiculoBRequest = new CriarVeiculoRequest
-            { Placa = "BBB-5678", Marca = "Fiat", Modelo = "Uno", Ano = 2015 };
+        { Placa = "BBB-5678", Marca = "Fiat", Modelo = "Uno", Ano = 2015 };
         var veiculoBContent =
             new StringContent(JsonSerializer.Serialize(veiculoBRequest), Encoding.UTF8, "application/json");
         var postVeiculoBResponse =
-            await client.PostAsync($"/api/admin/clientes/{clienteB!.Id}/veiculos", veiculoBContent);
+            await client.PostAsync($"/api/admin/clientes/{clienteB!.Id}/veiculos", veiculoBContent, TestContext.Current.CancellationToken);
         var veiculoB =
-            JsonSerializer.Deserialize<VeiculoResponse>(await postVeiculoBResponse.Content.ReadAsStringAsync(),
+            JsonSerializer.Deserialize<VeiculoResponse>(await postVeiculoBResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken),
                 _jsonOptions);
 
         // Act: Tenta abrir OS para Cliente A com Veiculo B
@@ -259,11 +261,11 @@ public class OrdensServicoControllerTests(CustomWebApplicationFactory factory)
         };
         var abrirOSContent =
             new StringContent(JsonSerializer.Serialize(abrirOSRequest), Encoding.UTF8, "application/json");
-        var response = await client.PostAsync("/api/admin/ordens-servico", abrirOSContent);
+        var response = await client.PostAsync("/api/admin/ordens-servico", abrirOSContent, TestContext.Current.CancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         content.Should().Contain("Este veículo não pertence ao cliente informado.");
     }
 
@@ -277,43 +279,43 @@ public class OrdensServicoControllerTests(CustomWebApplicationFactory factory)
 
         // Criar Cliente
         var clienteRequest = new CriarClienteRequest
-            { Nome = "Maria Silva", Cpf = "44455566619", Email = "maria.silva@email.com", Telefone = "11977778888" };
+        { Nome = "Maria Silva", Cpf = "44455566619", Email = "maria.silva@email.com", Telefone = "11977778888" };
         var clienteContent =
             new StringContent(JsonSerializer.Serialize(clienteRequest), Encoding.UTF8, "application/json");
-        var postClienteResponse = await client.PostAsync("/api/admin/clientes", clienteContent);
+        var postClienteResponse = await client.PostAsync("/api/admin/clientes", clienteContent, TestContext.Current.CancellationToken);
         var cliente =
-            JsonSerializer.Deserialize<ClienteResponse>(await postClienteResponse.Content.ReadAsStringAsync(),
+            JsonSerializer.Deserialize<ClienteResponse>(await postClienteResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken),
                 _jsonOptions);
 
         // Criar Veiculo
         var veiculoRequest = new CriarVeiculoRequest
-            { Placa = "CCC-1234", Marca = "Chevrolet", Modelo = "Cruze", Ano = 2021 };
+        { Placa = "CCC-1234", Marca = "Chevrolet", Modelo = "Cruze", Ano = 2021 };
         var veiculoContent =
             new StringContent(JsonSerializer.Serialize(veiculoRequest), Encoding.UTF8, "application/json");
-        var postVeiculoResponse = await client.PostAsync($"/api/admin/clientes/{cliente!.Id}/veiculos", veiculoContent);
+        var postVeiculoResponse = await client.PostAsync($"/api/admin/clientes/{cliente!.Id}/veiculos", veiculoContent, TestContext.Current.CancellationToken);
         var veiculo =
-            JsonSerializer.Deserialize<VeiculoResponse>(await postVeiculoResponse.Content.ReadAsStringAsync(),
+            JsonSerializer.Deserialize<VeiculoResponse>(await postVeiculoResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken),
                 _jsonOptions);
 
         // Abrir OS
         var abrirOSRequest = new AbrirOrdemServicoRequest
-            { ClienteId = cliente.Id, VeiculoId = veiculo!.Id, DescricaoProblema = "Troca de amortecedor" };
+        { ClienteId = cliente.Id, VeiculoId = veiculo!.Id, DescricaoProblema = "Troca de amortecedor" };
         var abrirOSContent =
             new StringContent(JsonSerializer.Serialize(abrirOSRequest), Encoding.UTF8, "application/json");
-        var postOSResponse = await client.PostAsync("/api/admin/ordens-servico", abrirOSContent);
-        var os = JsonSerializer.Deserialize<OrdemServicoResponse>(await postOSResponse.Content.ReadAsStringAsync(),
+        var postOSResponse = await client.PostAsync("/api/admin/ordens-servico", abrirOSContent, TestContext.Current.CancellationToken);
+        var os = JsonSerializer.Deserialize<OrdemServicoResponse>(await postOSResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken),
             _jsonOptions);
 
         // Act: Atualizar status para EmDiagnostico usando JSON request body
         var statusRequest = new { NovoStatus = (int)StatusOrdemServico.EmDiagnostico };
         var statusContent =
             new StringContent(JsonSerializer.Serialize(statusRequest), Encoding.UTF8, "application/json");
-        var putResponse = await client.PutAsync($"/api/admin/ordens-servico/{os!.Id}/status", statusContent);
+        var putResponse = await client.PutAsync($"/api/admin/ordens-servico/{os!.Id}/status", statusContent, TestContext.Current.CancellationToken);
 
         // Assert
         putResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var osAtualizada =
-            JsonSerializer.Deserialize<OrdemServicoResponse>(await putResponse.Content.ReadAsStringAsync(),
+            JsonSerializer.Deserialize<OrdemServicoResponse>(await putResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken),
                 _jsonOptions);
         osAtualizada.Should().NotBeNull();
         osAtualizada!.Status.Should().Be("EmDiagnostico");

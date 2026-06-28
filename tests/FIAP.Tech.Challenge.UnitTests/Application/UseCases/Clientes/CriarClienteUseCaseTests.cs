@@ -67,7 +67,7 @@ public class CriarClienteUseCaseTests
             .Returns((Cliente)null!);
 
         // Act
-        var response = await _useCase.ExecutarAsync(request);
+        var response = await _useCase.ExecutarAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         response.Should().NotBeNull();

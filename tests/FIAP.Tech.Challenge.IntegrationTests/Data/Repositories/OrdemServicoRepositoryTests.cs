@@ -49,18 +49,18 @@ public class OrdemServicoRepositoryTests : IDisposable
         var os = new OrdemServico(Guid.NewGuid(), cliente.Id, veiculo.Id, "Alinhamento e balanceamento");
 
         // Precisamos persistir as entidades das quais a OS depende (FKs)
-        await _context.Clientes.AddAsync(cliente);
-        await _context.Veiculos.AddAsync(veiculo);
-        await _context.SaveChangesAsync();
+        await _context.Clientes.AddAsync(cliente, TestContext.Current.CancellationToken);
+        await _context.Veiculos.AddAsync(veiculo, TestContext.Current.CancellationToken);
+        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Act
-        await _repository.AdicionarAsync(os);
-        await _context.SaveChangesAsync();
+        await _repository.AdicionarAsync(os, TestContext.Current.CancellationToken);
+        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Limpar o rastreamento do EF para forçar uma consulta fresca ao banco
         _context.ChangeTracker.Clear();
 
-        var osRecuperada = await _repository.ObterPorIdAsync(os.Id);
+        var osRecuperada = await _repository.ObterPorIdAsync(os.Id, TestContext.Current.CancellationToken);
 
         // Assert
         osRecuperada.Should().NotBeNull();

@@ -25,7 +25,7 @@ public class PecasControllerTests(CustomWebApplicationFactory factory) : IClassF
         var client = factory.CreateClient();
 
         // Act
-        var response = await client.GetAsync("/api/admin/pecas");
+        var response = await client.GetAsync("/api/admin/pecas", TestContext.Current.CancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
@@ -39,7 +39,7 @@ public class PecasControllerTests(CustomWebApplicationFactory factory) : IClassF
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", ObterTokenAdmin());
 
         // Act
-        var response = await client.GetAsync("/api/admin/pecas");
+        var response = await client.GetAsync("/api/admin/pecas", TestContext.Current.CancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -54,7 +54,7 @@ public class PecasControllerTests(CustomWebApplicationFactory factory) : IClassF
         var request = new AdicionarPecaRequest { Nome = "", Preco = -10, QuantidadeEstoque = 5 };
 
         // Act
-        var response = await client.PostAsJsonAsync("/api/admin/pecas", request);
+        var response = await client.PostAsJsonAsync("/api/admin/pecas", request, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -69,7 +69,7 @@ public class PecasControllerTests(CustomWebApplicationFactory factory) : IClassF
         var request = new AdicionarPecaRequest { Nome = "Piston", Preco = 120.00m, QuantidadeEstoque = 10 };
 
         // Act
-        var response = await client.PostAsJsonAsync("/api/admin/pecas", request);
+        var response = await client.PostAsJsonAsync("/api/admin/pecas", request, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Created);

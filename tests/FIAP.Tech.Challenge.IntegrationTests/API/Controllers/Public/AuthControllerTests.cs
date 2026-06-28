@@ -13,11 +13,11 @@ public class AuthControllerTests(CustomWebApplicationFactory factory) : IClassFi
         var client = factory.CreateClient();
 
         // Act
-        var response = await client.PostAsync("/api/public/auth/token?usuario=test_user&perfil=Admin", null);
+        var response = await client.PostAsync("/api/public/auth/token?usuario=test_user&perfil=Admin", null, TestContext.Current.CancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         content.Should().Contain("token");
     }
 }

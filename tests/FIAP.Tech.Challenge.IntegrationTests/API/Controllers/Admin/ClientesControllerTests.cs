@@ -16,7 +16,7 @@ public class ClientesControllerTests(CustomWebApplicationFactory factory) : ICla
         var client = factory.CreateClient();
 
         // Act
-        var response = await client.GetAsync("/api/admin/Clientes");
+        var response = await client.GetAsync("/api/admin/Clientes", TestContext.Current.CancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
@@ -37,7 +37,7 @@ public class ClientesControllerTests(CustomWebApplicationFactory factory) : ICla
         }
 
         // Act
-        var response = await client.GetAsync("/api/admin/Clientes");
+        var response = await client.GetAsync("/api/admin/Clientes", TestContext.Current.CancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);

@@ -108,7 +108,7 @@ public class CriarVeiculoUseCaseTests
             .Returns((Veiculo)null!);
 
         // Act
-        var response = await _useCase.ExecutarAsync(clienteId, request);
+        var response = await _useCase.ExecutarAsync(clienteId, request, TestContext.Current.CancellationToken);
 
         // Assert
         response.Should().NotBeNull();

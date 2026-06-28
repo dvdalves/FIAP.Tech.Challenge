@@ -43,12 +43,12 @@ public class PecaRepositoryTests : IDisposable
         var peca = new Peca(Guid.NewGuid(), "Filtro de Óleo", 59.90m, 15);
 
         // Act
-        await _repository.AdicionarAsync(peca);
-        await _context.SaveChangesAsync();
+        await _repository.AdicionarAsync(peca, TestContext.Current.CancellationToken);
+        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         _context.ChangeTracker.Clear();
 
-        var pecaRecuperada = await _repository.ObterPorIdAsync(peca.Id);
+        var pecaRecuperada = await _repository.ObterPorIdAsync(peca.Id, TestContext.Current.CancellationToken);
 
         // Assert
         pecaRecuperada.Should().NotBeNull();
@@ -65,14 +65,14 @@ public class PecaRepositoryTests : IDisposable
         var peca1 = new Peca(Guid.NewGuid(), "Peca A", 10.00m, 5);
         var peca2 = new Peca(Guid.NewGuid(), "Peca B", 20.00m, 10);
 
-        await _repository.AdicionarAsync(peca1);
-        await _repository.AdicionarAsync(peca2);
-        await _context.SaveChangesAsync();
+        await _repository.AdicionarAsync(peca1, TestContext.Current.CancellationToken);
+        await _repository.AdicionarAsync(peca2, TestContext.Current.CancellationToken);
+        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         _context.ChangeTracker.Clear();
 
         // Act
-        var todas = await _repository.ObterTodasAsync();
+        var todas = await _repository.ObterTodasAsync(TestContext.Current.CancellationToken);
 
         // Assert
         todas.Should().HaveCountGreaterThanOrEqualTo(2);
@@ -83,18 +83,18 @@ public class PecaRepositoryTests : IDisposable
     {
         // Arrange
         var peca = new Peca(Guid.NewGuid(), "Filtro de Óleo", 59.90m, 15);
-        await _repository.AdicionarAsync(peca);
-        await _context.SaveChangesAsync();
+        await _repository.AdicionarAsync(peca, TestContext.Current.CancellationToken);
+        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         _context.ChangeTracker.Clear();
 
         // Act
         peca.AjustarEstoque(30);
-        await _repository.AtualizarAsync(peca);
-        await _context.SaveChangesAsync();
+        await _repository.AtualizarAsync(peca, TestContext.Current.CancellationToken);
+        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         _context.ChangeTracker.Clear();
-        var recuperada = await _repository.ObterPorIdAsync(peca.Id);
+        var recuperada = await _repository.ObterPorIdAsync(peca.Id, TestContext.Current.CancellationToken);
 
         // Assert
         recuperada.Should().NotBeNull();
