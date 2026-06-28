@@ -109,7 +109,7 @@ Desenvolvemos uma mecânica de registro de dados flexível no [DependencyInjecti
   * **Validação**: A API valida a integridade do token por meio do middleware oficial do ASP.NET Core `Microsoft.AspNetCore.Authentication.JwtBearer` (configurado em `JwtSetup.cs`).
   * **Rotas Protegidas**: Todas as rotas administrativas sob o prefixo `/api/admin/*` exigem o cabeçalho HTTP `Authorization: Bearer <seu_token>`.
   * **Roles e Perfis**: O middleware extrai as Claims de perfil (ex: `Admin`) mapeando as permissões de acesso de forma granular através do atributo `[Authorize]`.
-  * **Evolução de Arquitetura**: O plano de evolução da infraestrutura de segurança (IdP/Keycloak), desacoplamento com mensageria e escalabilidade de banco de dados está detalhado em: [docs/Fase 1/arquitetura_futura.md](file:///Users/david/Projects/FIAP.Tech.Challenge/docs/Fase%201/arquitetura_futura.md).
+  * **Evolução de Arquitetura**: O plano detalhado para a evolução arquitetural de segurança (IDP/Keycloak), orquestração (.NET Aspire), testes de mutação (Stryker), resiliência (Polly/Refit), mensageria (RabbitMQ/MassTransit), cache (Redis) e logs estruturados (Serilog) está disponível em: [docs/Fase 1/evolucao_arquitetural.md](file:///Users/david/Projects/FIAP.Tech.Challenge/docs/Fase%201/evolucao_arquitetural.md).
 * **Prevenção contra IDOR (Insecure Direct Object Reference)**: O sistema não expõe chaves primárias sequenciais do banco de dados (ex: `id = 1, 2, 3...`) nas URLs expostas publicamente. Em vez disso, utilizamos identificadores globais do tipo **`Guid` (UUID)** de forma nativa para todas as referências públicas das entidades de domínio.
 
 ---
