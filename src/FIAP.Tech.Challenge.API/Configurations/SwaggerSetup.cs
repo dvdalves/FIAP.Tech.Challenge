@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using Microsoft.OpenApi;
 
 namespace FIAP.Tech.Challenge.API.Configurations;
@@ -35,6 +36,14 @@ public static class SwaggerSetup
                     new List<string>()
                 }
             });
+
+            // Carrega os comentários XML para exibir resumos e descrições no Swagger
+            var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+            var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+            if (File.Exists(xmlPath))
+            {
+                c.IncludeXmlComments(xmlPath);
+            }
         });
 
         return services;

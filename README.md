@@ -196,6 +196,10 @@ O Swagger expõe os seguintes fluxos operacionais mapeados na solução:
   - `POST /api/admin/pecas` (Adiciona peça ao catálogo)
   - `PUT /api/admin/pecas/{id}/estoque` (Atualiza saldo em estoque)
 
+Para uma descrição completa e detalhada de cada endpoint, contendo parâmetros, payloads, exemplos de requisição curl e respostas de sucesso/erro, consulte a referência técnica:
+
+- **[API Reference - api_reference.md](docs/api_reference.md)**
+
 ---
 
 ## 7. Cobertura de Testes
