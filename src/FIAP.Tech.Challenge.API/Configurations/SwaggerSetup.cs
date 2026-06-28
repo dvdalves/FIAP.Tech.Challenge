@@ -23,17 +23,18 @@ public static class SwaggerSetup
             // Configuração do esquema de autenticação JWT Bearer no Swagger
             c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
-                Description = "Autenticação baseada em token JWT. Insira 'Bearer [seu_token]'",
+                Description = "Insira o token JWT gerado (o prefixo 'Bearer ' será adicionado automaticamente).",
                 Name = "Authorization",
                 In = ParameterLocation.Header,
-                Type = SecuritySchemeType.ApiKey,
-                Scheme = "Bearer"
+                Type = SecuritySchemeType.Http,
+                Scheme = "bearer",
+                BearerFormat = "JWT"
             });
 
             c.AddSecurityRequirement(doc => new OpenApiSecurityRequirement
             {
                 {
-                    new OpenApiSecuritySchemeReference("Bearer"),
+                    new OpenApiSecuritySchemeReference("Bearer", doc),
                     new System.Collections.Generic.List<string>()
                 }
             });
