@@ -3,6 +3,7 @@ using FIAP.Tech.Challenge.Application.Mappings;
 using FIAP.Tech.Challenge.Domain;
 using FIAP.Tech.Challenge.Domain.Aggregates.OrdemServicoAggregate;
 using FIAP.Tech.Challenge.Domain.Aggregates.PecaAggregate;
+using FIAP.Tech.Challenge.Domain.Aggregates.ServicoAggregate;
 using FIAP.Tech.Challenge.Domain.Exceptions;
 
 namespace FIAP.Tech.Challenge.Application.UseCases.OrdensServico;
@@ -10,6 +11,7 @@ namespace FIAP.Tech.Challenge.Application.UseCases.OrdensServico;
 public class LancarItensOSUseCase(
     IOrdemServicoRepository ordemServicoRepository,
     IPecaRepository pecaRepository,
+    IServicoRepository servicoRepository,
     IUnitOfWork unitOfWork)
 {
     public async Task<OrdemServicoResponse> ExecutarAsync(Guid osId, LancarItensOSRequest request,
@@ -40,7 +42,22 @@ public class LancarItensOSUseCase(
 
         // 3. Adicionar as mãos de obra (serviços)
         foreach (var itemServico in request.Servicos)
-            os.AdicionarItem(null, itemServico.Descricao, 1, 0, itemServico.ValorMaoDeObra);
+        {
+            var descricao = itemServico.Descricao;
+            var valorMaoDeObra = itemServico.ValorMaoDeObra;
+
+            if (itemServico.ServicoId.HasValue && itemServico.ServicoId.Value != Guid.Empty)
+            {
+                var servico = await servicoRepository.ObterPorIdAsync(itemServico.ServicoId.Value, cancellationToken);
+                if (servico == null)
+                    throw new DominioException($"Serviço com ID '{itemServico.ServicoId}' não cadastrado no catálogo.");
+
+                descricao = servico.Nome;
+                valorMaoDeObra = servico.PrecoMaoDeObra;
+            }
+
+            os.AdicionarItem(null, descricao, 1, 0, valorMaoDeObra);
+        }
 
         // 4. Finalizar o diagnóstico (recalcula orçamento e transiciona para AguardandoAprovacao)
         os.FinalizarDiagnostico();

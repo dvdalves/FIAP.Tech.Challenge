@@ -16,6 +16,7 @@ public class PecasController(
     : ControllerBase
 {
     [HttpGet]
+    [Authorize(Roles = "Mecanico,Admin")]
     public async Task<IActionResult> ObterEstoque(CancellationToken cancellationToken)
     {
         var pecas = await pecaRepository.ObterTodasAsync(cancellationToken);
@@ -30,6 +31,7 @@ public class PecasController(
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> AdicionarPeca([FromBody] AdicionarPecaRequest request,
         CancellationToken cancellationToken)
     {
@@ -54,6 +56,7 @@ public class PecasController(
     }
 
     [HttpPut("{id:guid}/estoque")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> AjustarEstoque(Guid id, [FromQuery] int quantidade,
         CancellationToken cancellationToken)
     {

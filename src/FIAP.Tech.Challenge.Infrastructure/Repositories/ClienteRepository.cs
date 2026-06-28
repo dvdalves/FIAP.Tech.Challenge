@@ -9,17 +9,23 @@ public class ClienteRepository(OficinaDbContext context) : IClienteRepository
 {
     public async Task<Cliente?> ObterPorIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await context.Clientes.FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
+        return await context.Clientes
+            .Include(c => c.Veiculos)
+            .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
     }
 
     public async Task<Cliente?> ObterPorCpfAsync(Cpf cpf, CancellationToken cancellationToken = default)
     {
-        return await context.Clientes.FirstOrDefaultAsync(c => c.Cpf == cpf, cancellationToken);
+        return await context.Clientes
+            .Include(c => c.Veiculos)
+            .FirstOrDefaultAsync(c => c.Cpf == cpf, cancellationToken);
     }
 
     public async Task<IEnumerable<Cliente>> ObterTodosAsync(CancellationToken cancellationToken = default)
     {
-        return await context.Clientes.ToListAsync(cancellationToken);
+        return await context.Clientes
+            .Include(c => c.Veiculos)
+            .ToListAsync(cancellationToken);
     }
 
     public async Task AdicionarAsync(Cliente cliente, CancellationToken cancellationToken = default)

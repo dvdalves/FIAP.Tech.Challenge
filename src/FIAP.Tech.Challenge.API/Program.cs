@@ -11,8 +11,12 @@ builder.Services.AddDependencyInjection(builder.Configuration);
 // 2. Configurar autenticação JWT Bearer
 builder.Services.AddJwtAuthentication();
 
-// 3. Configurar Controllers com Filtro de Exceção Global do Domínio
-builder.Services.AddControllers(options => { options.Filters.Add<FiltroExcecaoGlobal>(); });
+// 3. Configurar Controllers com Filtro de Exceção Global do Domínio e Conversor de Enum
+builder.Services.AddControllers(options => { options.Filters.Add<FiltroExcecaoGlobal>(); })
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+    });
 
 // 4. Configurar Swagger com esquema funcional de autenticação JWT Bearer
 builder.Services.AddSwaggerConfiguration();

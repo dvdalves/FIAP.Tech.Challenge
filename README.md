@@ -12,14 +12,15 @@ O desenvolvimento foi estruturado seguindo os princípios de **Domain-Driven Des
 
 - [1. Como Executar a Aplicação](#1-como-executar-a-aplicação)
 - [2. Arquitetura da Solução](#2-arquitetura-da-solução)
-- [3. Decisões Técnicas Principais](#3-decisões-técnicas-principais)
-- [4. Engenharia de Domínio & Documentação DDD](#4-engenharia-de-domínio--documentação-ddd)
-  - [4.1. Linguagem Ubíqua](#41-linguagem-ubíqua)
-  - [4.2. Documentação DDD & Diagramas](#42-documentação-ddd--diagramas)
-- [5. APIs e Funcionalidades do MVP](#5-apis-e-funcionalidades-do-mvp)
-- [6. Cobertura de Testes](#6-cobertura-de-testes)
-- [7. Relatório de Análise de Vulnerabilidades](#7-relatório-de-análise-de-vulnerabilidades)
-- [8. Plano de Evolução Arquitetural](#8-plano-de-evolução-arquitetural)
+- [3. Requisitos do Sistema](#3-requisitos-do-sistema)
+- [4. Decisões Técnicas Principais](#4-decisões-técnicas-principais)
+- [5. Engenharia de Domínio & Documentação DDD](#5-engenharia-de-domínio--documentação-ddd)
+  - [5.1. Linguagem Ubíqua](#51-linguagem-ubíqua)
+  - [5.2. Documentação DDD & Diagramas](#52-documentação-ddd--diagramas)
+- [6. APIs e Funcionalidades do MVP](#6-apis-e-funcionalidades-do-mvp)
+- [7. Cobertura de Testes](#7-cobertura-de-testes)
+- [8. Relatório de Análise de Vulnerabilidades](#8-relatório-de-análise-de-vulnerabilidades)
+- [9. Plano de Evolução Arquitetural](#9-plano-de-evolução-arquitetural)
 
 ---
 
@@ -91,7 +92,20 @@ FIAP.Tech.Challenge
 
 ---
 
-## 3. Decisões Técnicas Principais
+## 3. Requisitos do Sistema
+
+O mapeamento completo dos requisitos do negócio e das especificações técnicas que orientam o desenvolvimento deste MVP está documentado na íntegra no seguinte plano detalhado:
+
+- **[Requisitos Funcionais e Não Funcionais - requisitos.md](docs/Fase%201/requisitos.md)**
+
+Este documento aborda:
+
+- **Requisitos Funcionais (RF-01 a RF-12)**: Mapeamento de regras para a gestão de clientes, veículos, estoque de peças, catálogo de serviços, ciclo de vida das Ordens de Serviço (OS) e métricas operacionais.
+- **Requisitos Não Funcionais (RNF-01 a RNF-12)**: Definições de arquitetura (Clean Architecture & DDD), segurança de acesso (JWT & UUID/Guid para mitigar IDOR), tolerância de falhas, integridade relacional com EF Core (PostgreSQL/SQLite) e estratégias de automação de testes.
+
+---
+
+## 4. Decisões Técnicas Principais
 
 ### Provedor de Banco de Dados Relacional (PostgreSQL)
 
@@ -112,9 +126,9 @@ Para agilizar o desenvolvimento local, o arquivo [DependencyInjectionSetup.cs](s
 
 ---
 
-## 4. Engenharia de Domínio & Documentação DDD
+## 5. Engenharia de Domínio & Documentação DDD
 
-### 4.1. Linguagem Ubíqua
+### 5.1. Linguagem Ubíqua
 
 Os termos utilizados no domínio da oficina mecânica e sua respectiva representação no código-fonte são:
 
@@ -129,7 +143,7 @@ Os termos utilizados no domínio da oficina mecânica e sua respectiva represent
 | **Orçamento**             | Proposta de preço calculada somando peças e mão de obra.                                            | `Orcamento` (Objeto de Valor)        |
 | **Status da OS**          | Estados da OS: _Recebida, Em diagnóstico, Aguardando aprovação, Em execução, Finalizada, Entregue_. | `StatusOrdemServico` (Enum)          |
 
-### 4.2. Documentação DDD & Diagramas
+### 5.2. Documentação DDD & Diagramas
 
 A dinâmica de negócios da oficina foi mapeada seguindo os padrões do DDD. Os diagramas em alta resolução estão disponíveis no repositório:
 
@@ -137,7 +151,6 @@ A dinâmica de negócios da oficina foi mapeada seguindo os padrões do DDD. Os 
 
 Ilustra o fluxo de atendimento da oficina, representando os passos que o cliente e a equipe realizam desde a entrada do veículo até a entrega.
 
-- **SVG Original**: [domain-storytelling.svg](docs/Fase%201/domain-storytelling.svg)
 - **Imagem**:
   ![Domain Storytelling](docs/Fase%201/domain-storytelling.png)
 
@@ -145,19 +158,19 @@ Ilustra o fluxo de atendimento da oficina, representando os passos que o cliente
 
 Define a linha do tempo com Comandos, Agregados, Eventos de Domínio e Políticas aplicadas ao ciclo de vida das ordens de serviço.
 
-- **SVG Original**: [event-storming.svg](docs/Fase%201/event-storming.svg)
 - **Imagem**:
   ![Event Storming](docs/Fase%201/event-storming.png)
 
 ---
 
-## 5. APIs e Funcionalidades do MVP
+## 6. APIs e Funcionalidades do MVP
 
 O Swagger expõe os seguintes fluxos operacionais mapeados na solução:
 
 ### 👤 Fluxo do Cliente (Público - `/api/public/`)
 
-- **Consulta de OS** (`GET /api/public/ordens-servico/{id}`): Permite ao cliente acompanhar o status do serviço.
+- **Consulta de OS** (`GET /api/public/ordens-servico/{id}`): Permite ao cliente acompanhar o status de uma OS específica.
+- **Descoberta de OSs Ativas** (`GET /api/public/ordens-servico`): Lista todas as ordens de serviço ativas vinculadas ao cliente autenticado (filtradas pelo token JWT).
 - **Aprovação de Orçamento** (`POST /api/public/ordens-servico/{id}/aprovar`): Cliente autoriza o orçamento, alterando o status para `EmExecucao` e deduzindo as peças utilizadas do estoque de forma atômica.
 - **Rejeição de Orçamento** (`POST /api/public/ordens-servico/{id}/rejeitar`): Cancela a OS (Status transiciona para `Cancelada`).
 - **Token de Teste** (`POST /api/public/auth/token`): Emite JWT para testes das rotas administrativas.
@@ -166,13 +179,18 @@ O Swagger expõe os seguintes fluxos operacionais mapeados na solução:
 
 - **Gestão de Clientes**:
   - `POST /api/admin/clientes` (Cadastra novo cliente)
-  - `GET /api/admin/clientes` (Lista clientes cadastrados)
+  - `GET /api/admin/clientes` (Lista clientes cadastrados com suas frotas)
 - **Gestão de Veículos**:
   - `POST /api/admin/clientes/{id}/veiculos` (Vincula veículo ao cliente)
 - **Gestão de Ordens de Serviço**:
   - `POST /api/admin/ordens-servico` (Abre OS inicial - Status: `Recebida`)
-  - `POST /api/admin/ordens-servico/{id}/itens` (Adiciona peças e serviços, envia para `AguardandoAprovacao`)
-  - `PUT /api/admin/ordens-servico/{id}/status` (Transiciona manualmente o status da OS)
+  - `GET /api/admin/ordens-servico` (Lista todas as OSs do sistema com filtros opcionais de `status` e `clienteId`)
+  - `POST /api/admin/ordens-servico/{id}/itens` (Adiciona peças e serviços a partir do catálogo, envia para `AguardandoAprovacao`)
+  - `PUT /api/admin/ordens-servico/{id}/status` (Transiciona manualmente o status da OS e marca timestamps de controle de tempo)
+  - `GET /api/admin/ordens-servico/metricas/tempo-medio` (Retorna o tempo médio de execução dos serviços finalizados)
+- **Gestão de Serviços (Catálogo de Mão de Obra)**:
+  - `GET /api/admin/servicos` (Lista o catálogo de serviços cadastrados)
+  - `POST /api/admin/servicos` (Cadastra um novo serviço e seu preço padrão de mão de obra)
 - **Gestão de Peças e Estoque**:
   - `GET /api/admin/pecas` (Lista catálogo e saldos em estoque)
   - `POST /api/admin/pecas` (Adiciona peça ao catálogo)
@@ -180,7 +198,7 @@ O Swagger expõe os seguintes fluxos operacionais mapeados na solução:
 
 ---
 
-## 6. Cobertura de Testes
+## 7. Cobertura de Testes
 
 Os testes foram desenvolvidos utilizando **xUnit**, **NSubstitute** (para isolamento/mocking) e **FluentAssertions** (asserções descritivas).
 
@@ -211,7 +229,7 @@ O SonarQube pode ser levantado localmente para validação de cobertura:
 
 ---
 
-## 7. Relatório de Análise de Vulnerabilidades
+## 8. Relatório de Análise de Vulnerabilidades
 
 ### 📝 Sumário Executivo
 
@@ -225,7 +243,7 @@ A análise detalhada dos scans de segurança executados (SCA e SAST), contendo e
 
 ---
 
-## 8. Plano de Evolução Arquitetural
+## 9. Plano de Evolução Arquitetural
 
 Para detalhes sobre como o sistema evoluirá do monolito clássico atual para uma arquitetura modular de alta disponibilidade com resiliência, mensageria, observabilidade completa e segurança avançada, consulte o documento completo:
 

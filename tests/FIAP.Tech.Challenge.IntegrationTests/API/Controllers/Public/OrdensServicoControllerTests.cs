@@ -5,8 +5,12 @@ using System.Text.Json;
 using FIAP.Tech.Challenge.Application.DTOs.Responses;
 using FIAP.Tech.Challenge.Application.UseCases.Clientes;
 using FIAP.Tech.Challenge.Application.UseCases.OrdensServico;
+using FIAP.Tech.Challenge.Domain.Aggregates.ClienteAggregate;
+using FIAP.Tech.Challenge.Domain.ValueObjects;
+using FIAP.Tech.Challenge.Infrastructure.Data.Context;
 using FIAP.Tech.Challenge.Domain.Aggregates.OrdemServicoAggregate;
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace FIAP.Tech.Challenge.IntegrationTests.API.Controllers.Public;
@@ -120,8 +124,13 @@ public class OrdensServicoControllerTests(CustomWebApplicationFactory factory)
         osDiagnosticoResponse.ValorTotal.Should().Be(450.00m);
 
         // Step 5: Cliente aprova o orçamento (Status muda para EmExecucao e abate o estoque)
-        // Removemos a autorização Bearer para simular o cliente acessando publicamente pelo App
-        client.DefaultRequestHeaders.Authorization = null;
+        var clienteTokenResponse = await client.PostAsync($"/api/public/auth/token?usuario={clienteResponse.Id}&perfil=Cliente", null, TestContext.Current.CancellationToken);
+        clienteTokenResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var clienteTokenContent = await clienteTokenResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        using var docCliente = JsonDocument.Parse(clienteTokenContent);
+        var clienteToken = docCliente.RootElement.GetProperty("token").GetString()!;
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", clienteToken);
+
         var aprovarResponse = await client.PostAsync($"/api/public/ordens-servico/{osResponse.Id}/aprovar", null, TestContext.Current.CancellationToken);
         aprovarResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
@@ -196,7 +205,13 @@ public class OrdensServicoControllerTests(CustomWebApplicationFactory factory)
         await client.PostAsync($"/api/admin/ordens-servico/{osResponse!.Id}/itens", diagnosticoContent, TestContext.Current.CancellationToken);
 
         // Act: Cliente rejeita
-        client.DefaultRequestHeaders.Authorization = null;
+        var clienteTokenResponse = await client.PostAsync($"/api/public/auth/token?usuario={clienteResponse!.Id}&perfil=Cliente", null, TestContext.Current.CancellationToken);
+        clienteTokenResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var clienteTokenContent = await clienteTokenResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        using var docCliente = JsonDocument.Parse(clienteTokenContent);
+        var clienteToken = docCliente.RootElement.GetProperty("token").GetString()!;
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", clienteToken);
+
         var rejeitarResponse = await client.PostAsync($"/api/public/ordens-servico/{osResponse.Id}/rejeitar", null, TestContext.Current.CancellationToken);
         rejeitarResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
@@ -319,5 +334,131 @@ public class OrdensServicoControllerTests(CustomWebApplicationFactory factory)
                 _jsonOptions);
         osAtualizada.Should().NotBeNull();
         osAtualizada!.Status.Should().Be("EmDiagnostico");
+    }
+
+    [Fact]
+    public async Task ObterMinhasOrdens_ComTokenClienteValido_DeveRetornarOrdensAtivas()
+    {
+        // Arrange
+        var client = factory.CreateClient();
+        
+        Guid clienteId;
+        using (var scope = factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<OficinaDbContext>();
+            var cliente = new Cliente(Guid.NewGuid(), "Jose Minhas Ordens", new Cpf("55566677720"), "jose.ordens@email.com", "11988887777");
+            clienteId = cliente.Id;
+            await context.Clientes.AddAsync(cliente, TestContext.Current.CancellationToken);
+
+            var veiculo = new FIAP.Tech.Challenge.Domain.Aggregates.VeiculoAggregate.Veiculo(Guid.NewGuid(), new Placa("XYZ9999"), "Fiat", "Uno", 2012, clienteId);
+            await context.Veiculos.AddAsync(veiculo, TestContext.Current.CancellationToken);
+
+            var os = new OrdemServico(Guid.NewGuid(), clienteId, veiculo.Id, "Problema no motor");
+            await context.OrdensServico.AddAsync(os, TestContext.Current.CancellationToken);
+
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+        }
+
+        // Obtém token para o ID do cliente criado
+        var tokenResponse = await client.PostAsync($"/api/public/auth/token?usuario={clienteId}&perfil=Cliente", null, TestContext.Current.CancellationToken);
+        tokenResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var tokenJson = await tokenResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        using var doc = JsonDocument.Parse(tokenJson);
+        var token = doc.RootElement.GetProperty("token").GetString()!;
+
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        // Act
+        var response = await client.GetAsync("/api/public/ordens-servico", TestContext.Current.CancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var list = JsonSerializer.Deserialize<List<OrdemServicoResponse>>(
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken), _jsonOptions);
+        list.Should().NotBeNull();
+        list.Should().ContainSingle();
+        list![0].DescricaoProblema.Should().Be("Problema no motor");
+    }
+
+    [Fact]
+    public async Task Admin_ObterTodas_ComFiltros_DeveRetornarOrdensFiltradas()
+    {
+        // Arrange
+        var client = factory.CreateClient();
+        var token = await ObterTokenBearerAsync(client);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        // Act
+        var response = await client.GetAsync("/api/admin/ordens-servico?status=Recebida", TestContext.Current.CancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var list = JsonSerializer.Deserialize<List<OrdemServicoResponse>>(
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken), _jsonOptions);
+        list.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task Admin_ObterMetricasTempoMedio_DeveRetornarOk()
+    {
+        // Arrange
+        var client = factory.CreateClient();
+        var token = await ObterTokenBearerAsync(client);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        // Act
+        var response = await client.GetAsync("/api/admin/ordens-servico/metricas/tempo-medio", TestContext.Current.CancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task ObterPorId_ClienteDiferente_DeveRetornar403Forbidden()
+    {
+        // Arrange
+        var client = factory.CreateClient();
+        
+        Guid clienteId1;
+        Guid clienteId2;
+        Guid veiculoId;
+        Guid osId = Guid.NewGuid();
+
+        using (var scope = factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<OficinaDbContext>();
+            
+            var cliente1 = new Cliente(Guid.NewGuid(), "Jose Dono", new Cpf("33322211169"), "jose.dono@email.com", "11988887777");
+            clienteId1 = cliente1.Id;
+            await context.Clientes.AddAsync(cliente1, TestContext.Current.CancellationToken);
+
+            var cliente2 = new Cliente(Guid.NewGuid(), "Maria Invasora", new Cpf("44455566619"), "maria.invasora@email.com", "11977776666");
+            clienteId2 = cliente2.Id;
+            await context.Clientes.AddAsync(cliente2, TestContext.Current.CancellationToken);
+
+            var veiculo = new FIAP.Tech.Challenge.Domain.Aggregates.VeiculoAggregate.Veiculo(Guid.NewGuid(), new Placa("XYZ9999"), "Fiat", "Uno", 2012, clienteId1);
+            veiculoId = veiculo.Id;
+            await context.Veiculos.AddAsync(veiculo, TestContext.Current.CancellationToken);
+
+            var os = new OrdemServico(osId, clienteId1, veiculoId, "Problema no motor do Jose");
+            await context.OrdensServico.AddAsync(os, TestContext.Current.CancellationToken);
+
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+        }
+
+        // Obtém token para o ID do cliente 2 (Maria Invasora)
+        var tokenResponse = await client.PostAsync($"/api/public/auth/token?usuario={clienteId2}&perfil=Cliente", null, TestContext.Current.CancellationToken);
+        tokenResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var tokenJson = await tokenResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        using var doc = JsonDocument.Parse(tokenJson);
+        var token = doc.RootElement.GetProperty("token").GetString()!;
+
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        // Act: Maria Invasora tenta obter a OS do Jose
+        var response = await client.GetAsync($"/api/public/ordens-servico/{osId}", TestContext.Current.CancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 }

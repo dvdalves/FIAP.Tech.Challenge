@@ -36,6 +36,9 @@ public class OrdemServicoConfiguration : IEntityTypeConfiguration<OrdemServico>
         builder.Property(o => o.DataCriacao)
             .IsRequired();
 
+        builder.Property(o => o.DataInicioExecucao)
+            .IsRequired(false);
+
         builder.Property(o => o.DataFinalizacao)
             .IsRequired(false);
 

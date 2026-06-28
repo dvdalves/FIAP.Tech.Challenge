@@ -1,3 +1,4 @@
+using FIAP.Tech.Challenge.Domain.Aggregates.VeiculoAggregate;
 using FIAP.Tech.Challenge.Domain.Exceptions;
 using FIAP.Tech.Challenge.Domain.ValueObjects;
 
@@ -5,6 +6,8 @@ namespace FIAP.Tech.Challenge.Domain.Aggregates.ClienteAggregate;
 
 public class Cliente
 {
+    private readonly List<Veiculo> _veiculos = new();
+
     // EF Core constructor
     private Cliente()
     {
@@ -28,6 +31,7 @@ public class Cliente
     public Cpf Cpf { get; private set; } = null!;
     public string Email { get; private set; } = string.Empty;
     public string Telefone { get; private set; } = string.Empty;
+    public IReadOnlyCollection<Veiculo> Veiculos => _veiculos.AsReadOnly();
 
     public void AlterarNome(string nome)
     {

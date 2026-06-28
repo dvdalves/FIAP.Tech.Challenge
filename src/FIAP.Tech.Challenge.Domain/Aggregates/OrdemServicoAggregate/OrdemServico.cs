@@ -38,6 +38,7 @@ public class OrdemServico
     public decimal ValorTotal { get; private set; }
     public StatusOrdemServico Status { get; private set; }
     public DateTime DataCriacao { get; private set; }
+    public DateTime? DataInicioExecucao { get; private set; }
     public DateTime? DataFinalizacao { get; private set; }
     public IReadOnlyCollection<ItemOrdemServico> Itens => _itens.AsReadOnly();
 
@@ -127,6 +128,8 @@ public class OrdemServico
         }
 
         Status = novoStatus;
+
+        if (Status == StatusOrdemServico.EmExecucao) DataInicioExecucao = DateTime.UtcNow;
 
         if (Status == StatusOrdemServico.Finalizada || Status == StatusOrdemServico.Entregue ||
             Status == StatusOrdemServico.Cancelada) DataFinalizacao = DateTime.UtcNow;

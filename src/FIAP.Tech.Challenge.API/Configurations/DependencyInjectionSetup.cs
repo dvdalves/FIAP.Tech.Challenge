@@ -2,11 +2,13 @@ using System.Diagnostics.CodeAnalysis;
 using FIAP.Tech.Challenge.Application.UseCases.Clientes;
 using FIAP.Tech.Challenge.Application.UseCases.OrdensServico;
 using FIAP.Tech.Challenge.Application.UseCases.Pecas;
+using FIAP.Tech.Challenge.Application.UseCases.Servicos;
 using FIAP.Tech.Challenge.Application.Validators;
 using FIAP.Tech.Challenge.Domain;
 using FIAP.Tech.Challenge.Domain.Aggregates.ClienteAggregate;
 using FIAP.Tech.Challenge.Domain.Aggregates.OrdemServicoAggregate;
 using FIAP.Tech.Challenge.Domain.Aggregates.PecaAggregate;
+using FIAP.Tech.Challenge.Domain.Aggregates.ServicoAggregate;
 using FIAP.Tech.Challenge.Domain.Aggregates.VeiculoAggregate;
 using FIAP.Tech.Challenge.Infrastructure.Data.Context;
 using FIAP.Tech.Challenge.Infrastructure.Repositories;
@@ -49,6 +51,7 @@ public static class DependencyInjectionSetup
         services.AddScoped<IVeiculoRepository, VeiculoRepository>();
         services.AddScoped<IOrdemServicoRepository, OrdemServicoRepository>();
         services.AddScoped<IPecaRepository, PecaRepository>();
+        services.AddScoped<IServicoRepository, ServicoRepository>();
 
         // Casos de Uso
         services.AddScoped<CriarOrdemServicoUseCase>();
@@ -60,6 +63,7 @@ public static class DependencyInjectionSetup
         services.AddScoped<AprovarOrcamentoUseCase>();
         services.AddScoped<RejeitarOrcamentoUseCase>();
         services.AddScoped<AjustarEstoquePecaUseCase>();
+        services.AddScoped<CriarServicoUseCase>();
 
         // Serviços de Infraestrutura
         services.AddSingleton<TokenService>();

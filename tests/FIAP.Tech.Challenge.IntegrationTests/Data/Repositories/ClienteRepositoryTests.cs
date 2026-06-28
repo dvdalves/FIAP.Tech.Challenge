@@ -60,6 +60,30 @@ public class ClienteRepositoryTests : IDisposable
     }
 
     [Fact]
+    public async Task ObterPorIdAsync_ComVeiculos_DeveRetornarClienteComVeiculos()
+    {
+        // Arrange
+        var cliente = new Cliente(Guid.NewGuid(), "José Silva", new Cpf("12345678909"), "jose@email.com",
+            "11977776666");
+        await _repository.AdicionarAsync(cliente, TestContext.Current.CancellationToken);
+        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var veiculo = new FIAP.Tech.Challenge.Domain.Aggregates.VeiculoAggregate.Veiculo(Guid.NewGuid(), new Placa("ABC1234"), "Honda", "Civic", 2020, cliente.Id);
+        await _context.Veiculos.AddAsync(veiculo, TestContext.Current.CancellationToken);
+        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        _context.ChangeTracker.Clear();
+
+        // Act
+        var clienteRecuperado = await _repository.ObterPorIdAsync(cliente.Id, TestContext.Current.CancellationToken);
+
+        // Assert
+        clienteRecuperado.Should().NotBeNull();
+        clienteRecuperado!.Veiculos.Should().HaveCount(1);
+        clienteRecuperado.Veiculos.First().Placa.Valor.Should().Be("ABC1234");
+    }
+
+    [Fact]
     public async Task ObterPorCpfAsync_DeveRetornarClienteCorreto()
     {
         // Arrange

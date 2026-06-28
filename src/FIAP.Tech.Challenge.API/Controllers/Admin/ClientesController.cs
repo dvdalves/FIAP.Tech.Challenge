@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FIAP.Tech.Challenge.API.Controllers.Admin;
 
-[Authorize]
+[Authorize(Roles = "Admin")]
 [ApiController]
 [Route("api/admin/clientes")]
 public class ClientesController(

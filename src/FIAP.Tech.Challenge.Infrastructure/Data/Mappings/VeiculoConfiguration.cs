@@ -38,7 +38,7 @@ public class VeiculoConfiguration : IEntityTypeConfiguration<Veiculo>
 
         // Relacionamento com Cliente
         builder.HasOne<Cliente>()
-            .WithMany()
+            .WithMany(c => c.Veiculos)
             .HasForeignKey(v => v.ClienteId)
             .OnDelete(DeleteBehavior.Restrict);
 

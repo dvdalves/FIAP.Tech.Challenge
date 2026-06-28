@@ -39,5 +39,9 @@ public class ClienteConfiguration : IEntityTypeConfiguration<Cliente>
         // Índice único para o CPF
         builder.HasIndex(c => c.Cpf)
             .IsUnique();
+
+        // Habilitar acesso ao backing field _veiculos
+        builder.Metadata.FindNavigation(nameof(Cliente.Veiculos))
+            ?.SetPropertyAccessMode(PropertyAccessMode.Field);
     }
 }

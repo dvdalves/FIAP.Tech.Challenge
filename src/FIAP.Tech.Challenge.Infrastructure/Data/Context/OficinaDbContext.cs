@@ -4,6 +4,7 @@ using FIAP.Tech.Challenge.Domain;
 using FIAP.Tech.Challenge.Domain.Aggregates.ClienteAggregate;
 using FIAP.Tech.Challenge.Domain.Aggregates.OrdemServicoAggregate;
 using FIAP.Tech.Challenge.Domain.Aggregates.PecaAggregate;
+using FIAP.Tech.Challenge.Domain.Aggregates.ServicoAggregate;
 using FIAP.Tech.Challenge.Domain.Aggregates.VeiculoAggregate;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,6 +17,7 @@ public class OficinaDbContext(DbContextOptions<OficinaDbContext> options) : DbCo
     public DbSet<Veiculo> Veiculos => Set<Veiculo>();
     public DbSet<OrdemServico> OrdensServico => Set<OrdemServico>();
     public DbSet<Peca> Pecas => Set<Peca>();
+    public DbSet<Servico> Servicos => Set<Servico>();
     public DbSet<ItemOrdemServico> ItensOrdemServico => Set<ItemOrdemServico>();
 
     public async Task<bool> CommitAsync(CancellationToken cancellationToken = default)
