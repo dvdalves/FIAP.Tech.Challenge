@@ -1,30 +1,25 @@
-# Oficina Mecânica - Tech Challenge FIAP Arquitetura de Software
+# Oficina Mecânica - Tech Challenge FIAP (Fase 1)
 
 ## SIAES - Sistema Integrado de Atendimento e Execução de Serviços
 
-Este repositório contém o projeto de software desenvolvido para o **Tech Challenge** do curso de Arquitetura de Software
-da **FIAP (Turma 15SOAT)**.
+Este repositório contém a solução back-end para o **SIAES (Sistema Integrado de Atendimento e Execução de Serviços)**, um sistema projetado para otimizar e organizar os fluxos de trabalho de uma oficina mecânica de médio porte. O sistema abrange desde a recepção de veículos e abertura de ordens de serviço (OS) até o controle de estoque de peças, geração automática de orçamentos, aprovação do cliente e encerramento com registro de métricas.
 
-O objetivo do projeto é o desenvolvimento do back-end para o **SIAES (Sistema Integrado de Atendimento e Execução de
-Serviços)**, um sistema concebido para otimizar e organizar os fluxos de trabalho de uma oficina mecânica de médio
-porte. O sistema abrange desde a recepção de veículos e abertura de ordens de serviço (OS) até o controle de estoque de
-peças, geração automática de orçamentos, aprovação do cliente e encerramento com registro de métricas.
-
-O desenvolvimento foi guiado pelos princípios de **Domain-Driven Design (DDD)**, **Clean Architecture**, segurança
-contra vulnerabilidades comuns (SAST) e testes automatizados.
+O desenvolvimento foi estruturado seguindo os princípios de **Domain-Driven Design (DDD)**, **Clean Architecture**, testes automatizados e segurança de código.
 
 ---
 
 ## 🧭 Menu de Navegação
 
-* [1. Como Executar a Aplicação](#1-como-executar-a-aplicação)
-* [2. Arquitetura da Solução](#2-arquitetura-da-solução)
-* [3. Decisões Técnicas Principais](#3-decisões-técnicas-principais)
-* [4. Linguagem Ubíqua](#4-linguagem-ubíqua)
-* [5. Documentação DDD & Diagramas](#5-documentação-ddd--diagramas)
-* [6. APIs e Funcionalidades do MVP](#6-apis-e-funcionalidades-do-mvp)
-* [7. Cobertura de Testes](#7-cobertura-de-testes)
-* [8. Relatório de Análise de Vulnerabilidades](#8-relatório-de-análise-de-vulnerabilidades)
+- [1. Como Executar a Aplicação](#1-como-executar-a-aplicação)
+- [2. Arquitetura da Solução](#2-arquitetura-da-solução)
+- [3. Decisões Técnicas Principais](#3-decisões-técnicas-principais)
+- [4. Engenharia de Domínio & Documentação DDD](#4-engenharia-de-domínio--documentação-ddd)
+  - [4.1. Linguagem Ubíqua](#41-linguagem-ubíqua)
+  - [4.2. Documentação DDD & Diagramas](#42-documentação-ddd--diagramas)
+- [5. APIs e Funcionalidades do MVP](#5-apis-e-funcionalidades-do-mvp)
+- [6. Cobertura de Testes](#6-cobertura-de-testes)
+- [7. Relatório de Análise de Vulnerabilidades](#7-relatório-de-análise-de-vulnerabilidades)
+- [8. Plano de Evolução Arquitetural](#8-plano-de-evolução-arquitetural)
 
 ---
 
@@ -34,38 +29,36 @@ contra vulnerabilidades comuns (SAST) e testes automatizados.
 
 Para rodar a aplicação localmente, certifique-se de possuir instalado em sua máquina:
 
-* [Docker Desktop](https://www.docker.com/products/docker-desktop/) (com suporte ao comando `docker compose`)
-* (Opcional) [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) para compilação local fora do container
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (com suporte ao comando `docker compose`)
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) (Opcional, caso queira compilar/testar fora dos contêineres)
 
 ### 🚀 Inicialização via Docker Compose (Recomendado)
 
-A inicialização do ambiente completo (API + Banco de Dados PostgreSQL) é automatizada. A partir da raiz do repositório,
-execute o seguinte comando no terminal:
+O ambiente completo é inicializado de forma orquestrada e resiliente. A partir da raiz do repositório, execute o comando:
 
 ```bash
-docker compose up --build -d
+docker compose up --build
 ```
 
-Este comando irá:
+#### 🛡️ Inicialização Resiliente (Healthcheck)
 
-1. Compilar os projetos .NET em múltiplos estágios otimizados (`multi-stage build`
-   do [Dockerfile](file:///Users/david/Projects/FIAP.Tech.Challenge/src/FIAP.Tech.Challenge.API/Dockerfile)).
-2. Levantar o container da API na porta **`8080`**.
-3. Levantar o banco de dados PostgreSQL na porta padrão **`5432`** com as variáveis de ambiente pré-configuradas.
+A orquestração do [docker-compose.yml](file:///Users/david/Projects/FIAP.Tech.Challenge/docker-compose.yml) possui um mecanismo de resiliência:
 
-### 🌐 Acessando a API
+1. O banco de dados PostgreSQL 18 inicia primeiro.
+2. O container da API (`api`) aguarda a sinalização de que o banco está pronto para receber conexões.
+3. O healthcheck do PostgreSQL é validado via `pg_isready` a cada 5 segundos.
+4. Somente após a validação bem-sucedida do banco (`service_healthy`), a compilação e inicialização do container da API são concluídas, evitando falhas de conexão de rede durante a subida.
 
-Uma vez inicializada a aplicação:
+### 🌐 Acessando as APIs e o Swagger
 
-* Abra o seu navegador e acesse **`http://localhost:8080`**
-* O sistema possui uma rota inteligente de redirecionamento
-  no [Program.cs](file:///Users/david/Projects/FIAP.Tech.Challenge/src/FIAP.Tech.Challenge.API/Program.cs). Ao acessar o
-  endereço raiz (`/`), você será **automaticamente redirecionado** para a documentação interativa do **Swagger** (
-  `/swagger/index.html`).
+Assim que a inicialização for concluída, a API estará escutando na porta **`8080`**.
+
+- Acesse no navegador: **`http://localhost:8080`**
+- O sistema possui um redirecionamento inteligente no endpoint raiz (`/`). Ao acessar a URL acima, você será **automaticamente redirecionado** para o Swagger da aplicação (**`http://localhost:8080/swagger/index.html`**), onde poderá testar todos os fluxos de forma interativa.
 
 ### 🧪 Executando os Testes Localmente
 
-Para rodar os testes unitários e de integração fora do Docker, utilize a CLI do .NET:
+Para executar a suíte completa de testes de unidade e de integração através da CLI do .NET:
 
 ```bash
 dotnet test
@@ -75,252 +68,166 @@ dotnet test
 
 ## 2. Arquitetura da Solução
 
-O sistema foi estruturado seguindo os princípios de **Clean Architecture**, dividindo a aplicação em camadas isoladas
-para garantir desacoplamento, testabilidade e agnosticismo de infraestrutura:
+O sistema é estruturado como um **Monolito Coeso**, isolando rigorosamente a lógica de negócio dos detalhes de infraestrutura através da **Clean Architecture** e namespaces em projetos C#:
 
 ```text
 FIAP.Tech.Challenge
 ├── src/
-│   ├── FIAP.Tech.Challenge.API                 # Ponto de entrada REST, Filtros Globais, Setup JWT/Swagger
-│   ├── FIAP.Tech.Challenge.Application         # Casos de uso (Orquestração), DTOs, Validadores (FluentValidation)
-│   ├── FIAP.Tech.Challenge.Domain              # Entidades Ricas, Objetos de Valor (VOs), Interfaces, Exceções
-│   └── FIAP.Tech.Challenge.Infrastructure      # Persistência (EF Core), Criptografia, Repositórios SQL
+│   ├── FIAP.Tech.Challenge.API                 # Entry point HTTP, filtros globais, setup Swagger e JWT
+│   ├── FIAP.Tech.Challenge.Application         # Casos de uso (Use Cases), DTOs e FluentValidation
+│   ├── FIAP.Tech.Challenge.Domain              # Entidades Ricas, Objetos de Valor (VOs), interfaces e exceções
+│   └── FIAP.Tech.Challenge.Infrastructure      # DbContext (EF Core), mapeamentos Fluent API, repositórios SQL
 └── tests/
-    ├── FIAP.Tech.Challenge.UnitTests           # Testes unitários com foco nas regras de negócio (Domain)
-    └── FIAP.Tech.Challenge.IntegrationTests    # Testes integrados (Endpoints da API usando banco in-memory)
+    ├── FIAP.Tech.Challenge.UnitTests           # Testes unitários focados nas regras e entidades de domínio
+    └── FIAP.Tech.Challenge.IntegrationTests    # Testes integrados de endpoints e repositórios (SQLite in-memory)
 ```
 
-### Detalhamento das Camadas
+### Isolamento de Camadas (DDD)
 
-1. **Domain (`Domain`)**: O coração da aplicação. Não possui dependência de frameworks externos ou bibliotecas de banco.
-   Contém as regras cruciais de negócio do domínio de oficina mecânica. As entidades (como `OrdemServico`, `Veiculo` e
-   `Cliente`) possuem estado com modificadores `private set` e métodos internos ricos que impedem modelos anêmicos.
-2. **Application (`Application`)**: Contém os Casos de Uso (Use Cases) que coordenam o fluxo de dados entre o Domínio e
-   a Infraestrutura. Utiliza FluentValidation para higienização dos payloads de entrada (ex: checagem de formato de
-   placa Mercosul e estrutura de CPF/CNPJ) antes de chamar o Domínio.
-3. **Infrastructure (`Infrastructure`)**: Implementa as abstrações do domínio. Contém o DbContext do Entity Framework
-   Core, as configurações de mapeamento de tabela (Fluent API) que mantêm as classes de domínio limpas de decorações do
-   ORM, e as implementações reais de repositórios.
-4. **API (`API`)**: Controladores REST enxutos que recebem requisições HTTP, delegam aos Casos de Uso e retornam status
-   HTTP adequados. Conta com um `Global Exception Filter` que captura automaticamente exceções do domínio (
-   `DominioException`) e as traduz em respostas amigáveis (`400 Bad Request` ou `422 Unprocessable Entity`), sem vazar
-   logs confidenciais da infraestrutura.
+- **Domain**: Camada pura, sem dependência de frameworks ou bibliotecas externas. Contém entidades ricas que garantem integridade conceitual usando encapsulamento rígido (propriedades com modificadores `private set` e métodos internos de alteração de estado com validação).
+- **Application**: Contém os Casos de Uso que expõem os fluxos do negócio, sanitizando os dados de entrada usando validadores e mapeando-os para DTOs.
+- **Infrastructure**: Implementa os acessos ao PostgreSQL usando o Entity Framework Core (EF Core). Os mapeamentos de tabelas são definidos com a Fluent API fora das classes do Domínio para evitar acoplamento tecnológico.
+- **API**: Controladores REST limpos encarregados unicamente do protocolo HTTP. Possui um filtro global de exceções para traduzir exceções de negócio em retornos HTTP apropriados (`400 Bad Request` ou `422 Unprocessable Entity`).
 
 ---
 
 ## 3. Decisões Técnicas Principais
 
-### Provedor de Banco de Dados Relacional
+### Provedor de Banco de Dados Relacional (PostgreSQL)
 
-Optamos pelo **PostgreSQL** (versão `18-alpine` mapeada no docker-compose) para produção e ambiente de contêineres
-devido à sua robustez operacional, conformidade total com ACID (garantindo consistência nas transações de estoque e
-orçamentos) e excelente integração de alta performance com o EF Core.
+Optou-se pelo **PostgreSQL 18** no ambiente de contêineres devido à sua robustez, maturidade industrial, suporte nativo a transações ACID concorrentes (essencial para o controle transacional de estoque e orçamentos da oficina) e ótima integração com o Entity Framework Core.
 
-### 🔌 Seleção Dinâmica do Provedor de Banco (PostgreSQL / SQLite Fallback)
+### 🔌 Flexibilidade nos Testes (SQLite Fallback)
 
-Desenvolvemos uma mecânica de registro de dados flexível
-no [DependencyInjectionSetup.cs](file:///Users/david/Projects/FIAP.Tech.Challenge/src/FIAP.Tech.Challenge.API/Configurations/DependencyInjectionSetup.cs):
+Para agilizar o desenvolvimento local, o arquivo [DependencyInjectionSetup.cs](file:///Users/david/Projects/FIAP.Tech.Challenge/src/FIAP.Tech.Challenge.API/Configurations/DependencyInjectionSetup.cs) possui uma lógica de seleção dinâmica de banco de dados:
 
-* Quando a API detecta uma conexão contendo indicadores de PostgreSQL (ex: `Host=` ou `Server=`) ou a variável de
-  ambiente `DbProvider=PostgreSQL`, ela carrega o provedor `Npgsql.EntityFrameworkCore.PostgreSQL`.
-* Caso a aplicação seja executada fora do Docker ou em contextos de testes integrados nos quais nenhuma conexão é
-  passada, o sistema faz um **fallback transparente e automático para SQLite**. Isso permite que o desenvolvedor execute
-  a suíte de testes integrados instantaneamente com `dotnet test` usando SQLite in-memory, eliminando a dependência
-  obrigatória de subir contêineres Docker para fins de teste local rápido.
+- Em execução padrão (Docker), a API conecta-se ao PostgreSQL.
+- Caso executado localmente sem uma string de conexão PostgreSQL configurada, o sistema efetua um **fallback automático e transparente para o SQLite in-memory**. Isto permite executar a suíte de testes integrados instantaneamente com `dotnet test` sem a necessidade de subir contêineres externos de banco de dados.
 
-### 🔒 Segurança de Acesso e APIs
+### 🔒 Autenticação JWT e Segurança de Acesso
 
-* **Autenticação JWT Bearer**: Os endpoints sensíveis de administração (cadastro de peças, CRUDs de clientes e
-  gerenciamento de faturamento) são protegidos por tokens JWT assinados digitalmente.
-    * **Emissão no MVP**: Para fins de teste e validação do MVP do produto, disponibilizamos o endpoint público
-      `POST /api/public/auth/token` para geração rápida de tokens temporários com perfis customizados (ex: `Admin`).
-    * **Algoritmo e Chave de Assinatura**: O token é assinado localmente com chave simétrica usando o segredo de
-      validação acadêmica `SuperSecretSecurityKeyOficinaMecanica2026!` via algoritmo `HMAC-SHA256`.
-    * **Validação**: A API valida a integridade do token por meio do middleware oficial do ASP.NET Core
-      `Microsoft.AspNetCore.Authentication.JwtBearer` (configurado em `JwtSetup.cs`).
-    * **Rotas Protegidas**: Todas as rotas administrativas sob o prefixo `/api/admin/*` exigem o cabeçalho HTTP
-      `Authorization: Bearer <seu_token>`.
-    * **Roles e Perfis**: O middleware extrai as Claims de perfil (ex: `Admin`) mapeando as permissões de acesso de
-      forma granular através do atributo `[Authorize]`.
-    * **Evolução de Arquitetura**: O plano detalhado para a evolução arquitetural de segurança (IDP/Keycloak),
-      orquestração (.NET Aspire), testes de mutação (Stryker), resiliência (Polly/Refit), mensageria (
-      RabbitMQ/MassTransit), cache (Redis) e logs estruturados (Serilog) está disponível
-      em: [docs/Fase 1/evolucao_arquitetural.md](file:///Users/david/Projects/FIAP.Tech.Challenge/docs/Fase%201/evolucao_arquitetural.md).
-* **Prevenção contra IDOR (Insecure Direct Object Reference)**: O sistema não expõe chaves primárias sequenciais do
-  banco de dados (ex: `id = 1, 2, 3...`) nas URLs expostas publicamente. Em vez disso, utilizamos identificadores
-  globais do tipo **`Guid` (UUID)** de forma nativa para todas as referências públicas das entidades de domínio.
+- **Segurança Administrativa**: Endpoints sob o prefixo `/api/admin/*` exigem autenticação do tipo JWT Bearer com a validação das Roles correspondentes (ex: `Admin`).
+- **Endpoint de Token do MVP**: Para validação rápida das funcionalidades do MVP no Swagger, disponibilizamos a rota pública `/api/public/auth/token` para geração de tokens de testes.
+- **Prevenção contra IDOR (Insecure Direct Object Reference)**: O sistema não expõe chaves primárias sequenciais inteiras (ex: `id = 1, 2, 3...`) nas URLs expostas. Todas as entidades de domínio expõem publicamente chaves baseadas em **`Guid` (UUID)**, inviabilizando tentativas de varreduras não autorizadas.
 
 ---
 
-## 4. Linguagem Ubíqua
+## 4. Engenharia de Domínio & Documentação DDD
 
-A tabela abaixo mapeia os termos de negócio utilizados na oficina mecânica e suas respectivas implementações no
-código-fonte da aplicação:
+### 4.1. Linguagem Ubíqua
 
-| Termo do Negócio          | Significado Técnico                                                                                 | Classe/Código Correspondente         |
-|:--------------------------|:----------------------------------------------------------------------------------------------------|:-------------------------------------|
-| **Cliente**               | Pessoa física ou jurídica que contrata a manutenção do veículo.                                     | `Cliente` (Entidade)                 |
-| **Veículo**               | O carro ou utilitário do cliente que receberá diagnóstico ou manutenção.                            | `Veiculo` (Entidade)                 |
-| **Ordem de Serviço (OS)** | O documento que rastreia todo o ciclo de vida do veículo dentro da oficina.                         | `OrdemServico` (Entidade / Agregado) |
-| **Peça / Insumo**         | Componentes físicos estocados e adicionados à OS (ex: pastilha de freio, filtro).                   | `Peca` (Entidade de estoque)         |
-| **Serviço / Mão de Obra** | Trabalho mecânico tabelado aplicado sobre o veículo (ex: troca de óleo).                            | `Servico` (Entidade)                 |
-| **Diagnóstico**           | Análise técnica inicial feita pelo mecânico para listar danos e peças.                              | `Diagnostico` (Objeto de Valor)      |
-| **Orçamento**             | Proposta de preço gerada automaticamente somando peças e mão de obra.                               | `Orcamento` (Objeto de Valor)        |
-| **SIAES**                 | Sistema Integrado de Atendimento e Execução de Serviços (Back-end/API).                             | `FIAP.Tech.Challenge.API`            |
-| **Status da OS**          | Estados da OS: *Recebida, Em diagnóstico, Aguardando aprovação, Em execução, Finalizada, Entregue*. | `StatusOrdemServico` (Enum)          |
+Os termos utilizados no domínio da oficina mecânica e sua respectiva representação no código-fonte são:
 
----
+| Termo do Negócio          | Significado Técnico                                                                                 | Classe/Código                        |
+| :------------------------ | :-------------------------------------------------------------------------------------------------- | :----------------------------------- |
+| **Cliente**               | Pessoa física ou jurídica que contrata a manutenção.                                                | `Cliente` (Entidade)                 |
+| **Veículo**               | O carro ou utilitário do cliente que receberá a manutenção.                                         | `Veiculo` (Entidade)                 |
+| **Ordem de Serviço (OS)** | O documento/agregado que rastreia o ciclo de vida do serviço.                                       | `OrdemServico` (Entidade / Agregado) |
+| **Peça / Insumo**         | Componentes físicos estocados e adicionados à OS.                                                   | `Peca` (Entidade)                    |
+| **Serviço / Mão de Obra** | Trabalho mecânico tabelado aplicado sobre o veículo.                                                | `Servico` (Entidade)                 |
+| **Diagnóstico**           | Análise inicial do mecânico para listar danos e peças.                                              | `Diagnostico` (Objeto de Valor)      |
+| **Orçamento**             | Proposta de preço calculada somando peças e mão de obra.                                            | `Orcamento` (Objeto de Valor)        |
+| **Status da OS**          | Estados da OS: _Recebida, Em diagnóstico, Aguardando aprovação, Em execução, Finalizada, Entregue_. | `StatusOrdemServico` (Enum)          |
 
-## 5. Documentação DDD & Diagramas
+### 4.2. Documentação DDD & Diagramas
 
-Alinhado às melhores práticas de **DDD (Domain-Driven Design)**, a dinâmica de negócios da oficina foi mapeada por meio
-de duas ferramentas principais. Os diagramas oficiais estão disponíveis para consulta no repositório:
+A dinâmica de negócios da oficina foi mapeada seguindo os padrões do DDD. Os diagramas em alta resolução estão disponíveis no repositório:
 
-### A. Domain Storytelling (Modelagem Narrativa do Domínio)
+#### A. Domain Storytelling (Modelagem Narrativa)
 
-O fluxo de atendimento da oficina foi desenhado usando a linguagem de atores e objetos de trabalho do Domain
-Storytelling. Ele ilustra os 12 passos da narrativa desde o contato inicial do cliente com o atendente até o
-encerramento do serviço.
+Ilustra o fluxo de atendimento da oficina, representando os passos que o cliente e a equipe realizam desde a entrada do veículo até a entrega.
 
-* **Arquivo Gráfico SVG
-  **: [docs/Fase 1/domain-storytelling.svg](file:///Users/david/Projects/FIAP.Tech.Challenge/docs/Fase%201/domain-storytelling.svg)
-* **Visualização Completa**:
-
+- **SVG Original**: [domain-storytelling.svg](file:///Users/david/Projects/FIAP.Tech.Challenge/docs/Fase%201/domain-storytelling.svg)
+- **Imagem**:
   ![Domain Storytelling](docs/Fase%201/domain-storytelling.png)
 
-### B. Event Storming (Workshop de Eventos e Políticas)
+#### B. Event Storming (Workshop de Eventos)
 
-A linha do tempo do ciclo de vida das ordens de serviço modelada horizontalmente em dominós de causa e efeito (Comandos,
-Agregados, Eventos de Domínio e Políticas):
+Define a linha do tempo com Comandos, Agregados, Eventos de Domínio e Políticas aplicadas ao ciclo de vida das ordens de serviço.
 
-* **Arquivo Gráfico SVG
-  **: [docs/Fase 1/event-storming.svg](file:///Users/david/Projects/FIAP.Tech.Challenge/docs/Fase%201/event-storming.svg)
-* **Visualização Completa**:
-
+- **SVG Original**: [event-storming.svg](file:///Users/david/Projects/FIAP.Tech.Challenge/docs/Fase%201/event-storming.svg)
+- **Imagem**:
   ![Event Storming](docs/Fase%201/event-storming.png)
 
 ---
 
-## 6. APIs e Funcionalidades do MVP
+## 5. APIs e Funcionalidades do MVP
 
-O Swagger fornece a documentação de todos os endpoints mapeados no back-end. A API expõe os seguintes fluxos
-operacionais:
+O Swagger expõe os seguintes fluxos operacionais mapeados na solução:
 
-### 👤 Fluxo do Cliente (Público - `api/public/`)
+### 👤 Fluxo do Cliente (Público - `/api/public/`)
 
-* **Consulta de OS** (`GET /api/public/ordens-servico/{id}`): Consulta o status de sua manutenção em tempo real.
-* **Aprovação de Orçamento** (`POST /api/public/ordens-servico/{id}/aprovar`): Cliente autoriza o orçamento, alterando o
-  status para `EmExecucao` e deduzindo automaticamente as quantidades de peças utilizadas do estoque.
-* **Rejeição de Orçamento** (`POST /api/public/ordens-servico/{id}/rejeitar`): Cliente recusa o orçamento, cancelando a
-  OS (Status transiciona para `Cancelada`).
-* **Autenticação de Teste** (`POST /api/public/auth/token`): Emissão de token JWT para testar as rotas administrativas
-  protegidas.
+- **Consulta de OS** (`GET /api/public/ordens-servico/{id}`): Permite ao cliente acompanhar o status do serviço.
+- **Aprovação de Orçamento** (`POST /api/public/ordens-servico/{id}/aprovar`): Cliente autoriza o orçamento, alterando o status para `EmExecucao` e deduzindo as peças utilizadas do estoque de forma atômica.
+- **Rejeição de Orçamento** (`POST /api/public/ordens-servico/{id}/rejeitar`): Cancela a OS (Status transiciona para `Cancelada`).
+- **Token de Teste** (`POST /api/public/auth/token`): Emite JWT para testes das rotas administrativas.
 
-### ⚙️ Fluxo Administrativo (Autenticado via JWT Bearer - `api/admin/`)
+### ⚙️ Fluxo Administrativo (Autenticado - `/api/admin/`)
 
-* **Gestão de Clientes**:
-    * `POST /api/admin/clientes` (Cadastra novo cliente).
-    * `GET /api/admin/clientes` (Lista todos os clientes).
-    * `GET /api/admin/clientes/{id}` (Consulta cliente por ID).
-* **Gestão de Veículos**:
-    * `POST /api/admin/clientes/{id}/veiculos` (Vicula um veículo à frota do cliente).
-* **Gestão de Ordens de Serviço**:
-    * `POST /api/admin/ordens-servico` (Abre nova OS inicial - Status: `Recebida`).
-    * `PUT /api/admin/ordens-servico/{id}/status` (Transiciona status da OS manualmente).
-    * `POST /api/admin/ordens-servico/{id}/itens` (Mecânico insere peças e serviços ao diagnóstico da OS, recalculando o
-      orçamento total automaticamente e enviando para `AguardandoAprovacao`).
-* **Gestão de Peças / Catálogo**:
-    * `GET /api/admin/pecas` (Lista catálogo e quantidades em estoque).
-    * `POST /api/admin/pecas` (Adiciona novas peças ao catálogo).
-    * `HttpPut /api/admin/pecas/{id}/estoque` (Atualiza a quantidade de saldo em estoque da peça).
+- **Gestão de Clientes**:
+  - `POST /api/admin/clientes` (Cadastra novo cliente)
+  - `GET /api/admin/clientes` (Lista clientes cadastrados)
+- **Gestão de Veículos**:
+  - `POST /api/admin/clientes/{id}/veiculos` (Vincula veículo ao cliente)
+- **Gestão de Ordens de Serviço**:
+  - `POST /api/admin/ordens-servico` (Abre OS inicial - Status: `Recebida`)
+  - `POST /api/admin/ordens-servico/{id}/itens` (Adiciona peças e serviços, envia para `AguardandoAprovacao`)
+  - `PUT /api/admin/ordens-servico/{id}/status` (Transiciona manualmente o status da OS)
+- **Gestão de Peças e Estoque**:
+  - `GET /api/admin/pecas` (Lista catálogo e saldos em estoque)
+  - `POST /api/admin/pecas` (Adiciona peça ao catálogo)
+  - `PUT /api/admin/pecas/{id}/estoque` (Atualiza saldo em estoque)
 
 ---
 
-## 7. Cobertura de Testes
+## 6. Cobertura de Testes
 
-Os testes automatizados foram criados utilizando **xUnit**, **NSubstitute** (para isolamento e criação de mocks de
-repositórios e serviços) e **FluentAssertions** (para asserções fluidas).
+Os testes foram desenvolvidos utilizando **xUnit**, **NSubstitute** (para isolamento/mocking) e **FluentAssertions** (asserções descritivas).
 
-A suíte de testes cobre os domínios críticos do sistema, com foco nas seguintes validações:
+### Executando os Testes
 
-1. **Regras de Negócio de Ordem de Serviço**: Transição correta de status (ex: uma OS só pode ir para `EmExecucao` após
-   aprovada; bloqueio de alteração de orçamentos se a OS já foi encerrada).
-2. **Cálculos Matemáticos**: Somatório automático dos preços de peças do estoque somados ao custo das mãos de obra no
-   momento em que o diagnóstico é fechado pelo mecânico.
-3. **Consistência de Estoque**: Dedução correta de saldo de estoque apenas quando a OS é aprovada para execução.
-4. **Validação de Inputs**: Checagem de formato de placa de veículos e estruturas de CPF/CNPJ.
-
-Para rodar a suíte de testes (que automaticamente inicializa um banco de dados SQLite em memória para total isolamento e
-performance), execute o comando a partir do diretório raiz:
+Para rodar a suíte contendo **29 testes unitários** e **7 testes integrados**:
 
 ```bash
 dotnet test
 ```
 
-Isso executará os **29 testes unitários** de domínio e os **7 testes integrados** de ponta a ponta (verificando fluxos
-completos de criação de clientes, frotas de veículos, abertura de OS, cálculo automático de orçamento no diagnóstico e
-baixa transacional de estoque).
+### 📈 Qualidade e Cobertura
 
-### 🚫 Exclusão Estratégica de Cobertura
+- Os testes validam: transição correta de estados da OS, regras atômicas de cálculo de orçamentos, validação de inputs (CPF/CNPJ, placa Mercosul) e atualização transacional do estoque de peças.
+- Visando focar as métricas na lógica crítica de negócio, o atributo `[ExcludeFromCodeCoverage]` foi aplicado a classes de transporte (DTOs), arquivos puramente de mapeamento ORM (Fluent API) e configurações estruturais da API.
 
-Para garantir que a métrica de cobertura de código reflita de forma fidedigna a saúde da lógica de negócio (Regras de
-Domínio e Casos de Uso/Application Services), o projeto utiliza de forma estratégica o atributo padrão do .NET
-`[ExcludeFromCodeCoverage]` nas seguintes classes estruturais que não possuem lógica condicional ou comportamentos
-complexos:
+### 📊 Integração com SonarQube
 
-* **Camada de Apresentação (API)**: Configurações de inicialização do ASP.NET Core (`Program.cs`, setups de injeção de
-  dependência, JWT e Swagger).
-* **Camada de Aplicação**: DTOs, Requests e Responses puros de transferência de dados (localizados em `DTOs/` e payloads
-  de entrada/saída em `UseCases/`).
-* **Camada de Infraestrutura**: Contexto do Banco de Dados (`OficinaDbContext`) e arquivos de mapeamento Fluent API (
-  `IEntityTypeConfiguration`).
-* **Camada de Domínio**: Exceções de negócio customizadas que servem apenas para tipagem de erros estruturais (
-  `DominioException`).
+O SonarQube pode ser levantado localmente para validação de cobertura:
 
-### 📊 Análise de Cobertura via SonarQube
-
-O projeto possui suporte nativo para análise estática e relatórios de cobertura integrados ao **SonarQube**:
-
-1. **Subir o Servidor SonarQube**:
-   O SonarQube está mapeado como um serviço no `docker-compose.yml`. Suba-o executando:
-
-   ```bash
-   docker compose up -d sonarqube
-   ```
-
-   Acesse o painel em [http://localhost:9000](http://localhost:9000) (credenciais padrão: `admin` / `admin`, sendo
-   exigido redefinir a senha no primeiro login). Crie um projeto manual com a chave `FIAP.Tech.Challenge` e obtenha o
-   Token de Acesso.
-
-2. **Rodar a Análise**:
-   Rode o script de automação na raiz do projeto:
-
+1. Suba o serviço: `docker compose up -d sonarqube`
+2. Acesse `http://localhost:9000` (credenciais: `admin`/`admin`), crie um projeto com a chave `FIAP.Tech.Challenge` e obtenha o token de acesso.
+3. Execute o script de análise na raiz:
    ```bash
    ./run-sonar.sh
    ```
 
-   *O script gerenciará os pré-requisitos (Java, instalação do `dotnet-sonarscanner`), limpará relatórios antigos,
-   compilará a solução, rodará os testes gerando o relatório XML do Coverlet e enviará os resultados de qualidade e
-   cobertura diretamente ao console do SonarQube.*
+---
+
+## 7. Relatório de Análise de Vulnerabilidades
+
+### 📝 Sumário Executivo
+
+Como parte dos requisitos de segurança do código estático (SAST) e análise de composição de dependências (SCA), a solução foi submetida a varreduras profundas utilizando as ferramentas oficiais integradas do .NET SDK.
+
+- **SCA (Software Composition Analysis)**: Mapeamento de dependências diretas e transitivas contra o _GitHub Advisory Database_, resultando em **zero vulnerabilidades** identificadas.
+- **SAST (Static Application Security Testing)**: Compilação forçada em modo restrito de segurança utilizando as regras integradas dos _Roslyn Analyzers_ (`AnalysisLevel=latest-Security`), sem qualquer inconformidade de segurança detectada nos projetos principais de produção.
+
+A análise detalhada dos scans de segurança executados (SCA e SAST), contendo evidências dos comandos executados e conformidade das dependências com o GitHub Advisory Database, está documentada na íntegra em:
+**[Relatório de Vulnerabilidades - vulnerabilidade.md](file:///Users/david/Projects/FIAP.Tech.Challenge/docs/Fase%201/vulnerabilidade.md)**.
 
 ---
 
-## 8. Relatório de Análise de Vulnerabilidades
+## 8. Plano de Evolução Arquitetural
 
-Como parte das exigências de segurança de código estático (SAST) e alinhamento com mitigação de riscos do OWASP Top 10,
-a solução foi blindada nos seguintes pilares:
+Para detalhes sobre como o sistema evoluirá do monolito clássico atual para uma arquitetura modular de alta disponibilidade com resiliência, mensageria, observabilidade completa e segurança avançada, consulte o documento completo:
 
-* **Remediação de Segurança de Dependências (Alerta NU1903)**: Corrigida a vulnerabilidade crítica de truncamento
-  numérico (CVE-2025-6965 / GHSA-2m69-gcr7-jv3q) associada ao motor SQLite antigo (`SQLitePCLRaw.lib.e_sqlite3`
-  v2.1.11). Adicionamos referências explícitas ao bundle seguro `SQLitePCLRaw.bundle_e_sqlite3` v3.0.3 em todos os
-  projetos e suítes de teste, eliminando todos os alertas de dependências vulneráveis do compilador NuGet.
-* **Mitigação de IDOR (Insecure Direct Object Reference)**: Todas as APIs públicas e administrativas utilizam
-  identificadores globais aleatórios do tipo `Guid` (UUID) em vez de chaves primárias sequenciais inteiras,
-  inviabilizando varreduras automatizadas e acessos cruzados não autorizados.
-* **Prevenção a SQL Injection**: Todas as queries e persistências utilizam o Entity Framework Core (ORM) parametrizando
-  as operações automaticamente tanto no PostgreSQL quanto no SQLite local.
-* **Proteção contra Broken Object Level Authorization (BOLA)**: Implementada validação de escopo na abertura de OS (
-  `AbrirOrdemServicoUseCase`) para garantir que o veículo pertence de fato ao cliente que está abrindo a OS, impedindo
-  fraude de vínculo de frotas.
-* **Segurança de APIs**: Proteção de rotas administrativas sob token criptográfico JWT Bearer com chaves simétricas de
-  assinatura de 256 bits.
+- **[Plano de Evolução Arquitetural - plano_evolucao_arquitetural.md](file:///Users/david/Projects/FIAP.Tech.Challenge/docs/Fase%201/plano_evolucao_arquitetural.md)**
+
+Este plano detalha as futuras integrações e melhorias estratégicas da solução, incluindo Keycloak (IDP), .NET Aspire, Redis, RabbitMQ, Blazor WebApp, além de testes dinâmicos focados no OWASP Top 10 e o bloqueio automático de pipelines de deploy do GitHub Actions diante de vulnerabilidades críticas.
