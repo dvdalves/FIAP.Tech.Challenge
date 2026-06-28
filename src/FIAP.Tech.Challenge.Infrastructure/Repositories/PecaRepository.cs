@@ -27,4 +27,9 @@ public class PecaRepository(OficinaDbContext context) : IPecaRepository
         if (entry.State == EntityState.Detached) context.Pecas.Update(peca);
         return Task.CompletedTask;
     }
+
+    public void Remover(Peca peca)
+    {
+        context.Pecas.Remove(peca);
+    }
 }

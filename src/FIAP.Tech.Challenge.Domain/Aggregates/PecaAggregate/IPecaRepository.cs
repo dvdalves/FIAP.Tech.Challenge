@@ -6,4 +6,5 @@ public interface IPecaRepository
     Task<IEnumerable<Peca>> ObterTodasAsync(CancellationToken cancellationToken = default);
     Task AdicionarAsync(Peca peca, CancellationToken cancellationToken = default);
     Task AtualizarAsync(Peca peca, CancellationToken cancellationToken = default);
+    void Remover(Peca peca);
 }

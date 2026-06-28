@@ -6,4 +6,5 @@ public interface IServicoRepository
     Task<IEnumerable<Servico>> ObterTodosAsync(CancellationToken cancellationToken = default);
     Task AdicionarAsync(Servico servico, CancellationToken cancellationToken = default);
     Task AtualizarAsync(Servico servico, CancellationToken cancellationToken = default);
+    void Remover(Servico servico);
 }

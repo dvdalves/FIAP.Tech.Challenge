@@ -187,6 +187,197 @@ Resposta: **200 OK**
 
 </details>
 
+<details>
+<summary>
+ Atualizar cliente
+</summary>
+
+**Método:** PUT  
+**URI:** `/api/admin/clientes/{id}`
+
+**Parâmetros:**
+
+- `id` (path, required): `Guid` (ID do cliente)
+
+**Exemplo request:**
+
+```bash
+curl -X PUT "http://localhost:8080/api/admin/clientes/3fa85f64-5717-4562-b3fc-2c963f66afa6" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <TOKEN_ADMIN>" \
+  -d '{"nome":"João da Silva Atualizado","email":"joao.novo@email.com","telefone":"11999998888"}'
+```
+
+Resposta: **200 OK**
+
+```json
+{
+  "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "nome": "João da Silva Atualizado",
+  "cpf": "12345678909",
+  "email": "joao.novo@email.com",
+  "telefone": "11999998888"
+}
+```
+
+</details>
+
+<details>
+<summary>
+ Excluir cliente
+</summary>
+
+**Método:** DELETE  
+**URI:** `/api/admin/clientes/{id}`
+
+**Parâmetros:**
+
+- `id` (path, required): `Guid` (ID do cliente)
+
+**Exemplo request:**
+
+```bash
+curl -X DELETE "http://localhost:8080/api/admin/clientes/3fa85f64-5717-4562-b3fc-2c963f66afa6" \
+  -H "Authorization: Bearer <TOKEN_ADMIN>"
+```
+
+Resposta: **204 No Content**
+
+_⚠️ Nota: A exclusão é impedida caso o cliente possua veículos vinculados ou ordens de serviço associadas (retorna erro HTTP 400)._
+
+</details>
+
+<details>
+<summary>
+ Listar todos os veículos
+</summary>
+
+**Método:** GET  
+**URI:** `/api/admin/veiculos`
+
+**Parâmetros (Query):**
+
+- `clienteId` (optional): `Guid` (Filtra veículos por cliente proprietário)
+
+**Exemplo request:**
+
+```bash
+curl -X GET "http://localhost:8080/api/admin/veiculos" \
+  -H "Authorization: Bearer <TOKEN_ADMIN>"
+```
+
+Resposta: **200 OK**
+
+```json
+[
+  {
+    "id": "7ca85f64-5717-4562-b3fc-2c963f66afb2",
+    "placa": "ABC1D23",
+    "marca": "Ford",
+    "modelo": "Focus",
+    "ano": 2018,
+    "clienteId": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+  }
+]
+```
+
+</details>
+
+<details>
+<summary>
+ Obter veículo por ID
+</summary>
+
+**Método:** GET  
+**URI:** `/api/admin/veiculos/{id}`
+
+**Parâmetros:**
+
+- `id` (path, required): `Guid` (ID do veículo)
+
+**Exemplo request:**
+
+```bash
+curl -X GET "http://localhost:8080/api/admin/veiculos/7ca85f64-5717-4562-b3fc-2c963f66afb2" \
+  -H "Authorization: Bearer <TOKEN_ADMIN>"
+```
+
+Resposta: **200 OK**
+
+```json
+{
+  "id": "7ca85f64-5717-4562-b3fc-2c963f66afb2",
+  "placa": "ABC1D23",
+  "marca": "Ford",
+  "modelo": "Focus",
+  "ano": 2018,
+  "clienteId": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+}
+```
+
+</details>
+
+<details>
+<summary>
+ Atualizar veículo
+</summary>
+
+**Método:** PUT  
+**URI:** `/api/admin/veiculos/{id}`
+
+**Parâmetros:**
+
+- `id` (path, required): `Guid` (ID do veículo)
+
+**Exemplo request:**
+
+```bash
+curl -X PUT "http://localhost:8080/api/admin/veiculos/7ca85f64-5717-4562-b3fc-2c963f66afb2" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <TOKEN_ADMIN>" \
+  -d '{"placa":"XYZ9D87","marca":"Ford","modelo":"Focus Novo","ano":2019}'
+```
+
+Resposta: **200 OK**
+
+```json
+{
+  "id": "7ca85f64-5717-4562-b3fc-2c963f66afb2",
+  "placa": "XYZ9D87",
+  "marca": "Ford",
+  "modelo": "Focus Novo",
+  "ano": 2019,
+  "clienteId": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+}
+```
+
+</details>
+
+<details>
+<summary>
+ Excluir veículo
+</summary>
+
+**Método:** DELETE  
+**URI:** `/api/admin/veiculos/{id}`
+
+**Parâmetros:**
+
+- `id` (path, required): `Guid` (ID do veículo)
+
+**Exemplo request:**
+
+```bash
+curl -X DELETE "http://localhost:8080/api/admin/veiculos/7ca85f64-5717-4562-b3fc-2c963f66afb2" \
+  -H "Authorization: Bearer <TOKEN_ADMIN>"
+```
+
+Resposta: **204 No Content**
+
+_⚠️ Nota: A exclusão é impedida caso o veículo possua ordens de serviço vinculadas (retorna erro HTTP 400)._
+
+</details>
+
 ---
 
 ## ⚙️ Catálogo de Peças e Estoque (Admin)
@@ -283,6 +474,97 @@ Resposta: **200 OK**
 
 </details>
 
+<details>
+<summary>
+ Obter peça por ID (Acesso: Mecanico, Admin)
+</summary>
+
+**Método:** GET  
+**URI:** `/api/admin/pecas/{id}`
+
+**Parâmetros:**
+
+- `id` (path, required): `Guid` (ID da peça)
+
+**Exemplo request:**
+
+```bash
+curl -X GET "http://localhost:8080/api/admin/pecas/5ca85f64-5717-4562-b3fc-2c963f66afc4" \
+  -H "Authorization: Bearer <TOKEN_MECANICO_OU_ADMIN>"
+```
+
+Resposta: **200 OK**
+
+```json
+{
+  "id": "5ca85f64-5717-4562-b3fc-2c963f66afc4",
+  "nome": "Pastilha de Freio Dianteira",
+  "preco": 189.9,
+  "quantidadeEstoque": 15
+}
+```
+
+</details>
+
+<details>
+<summary>
+ Atualizar peça (Acesso: Admin)
+</summary>
+
+**Método:** PUT  
+**URI:** `/api/admin/pecas/{id}`
+
+**Parâmetros:**
+
+- `id` (path, required): `Guid` (ID da peça)
+
+**Exemplo request:**
+
+```bash
+curl -X PUT "http://localhost:8080/api/admin/pecas/5ca85f64-5717-4562-b3fc-2c963f66afc4" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <TOKEN_ADMIN>" \
+  -d '{"nome":"Pastilha de Freio Dianteira Atualizada","preco":199.90}'
+```
+
+Resposta: **200 OK**
+
+```json
+{
+  "id": "5ca85f64-5717-4562-b3fc-2c963f66afc4",
+  "nome": "Pastilha de Freio Dianteira Atualizada",
+  "preco": 199.9,
+  "quantidadeEstoque": 15
+}
+```
+
+</details>
+
+<details>
+<summary>
+ Excluir peça (Acesso: Admin)
+</summary>
+
+**Método:** DELETE  
+**URI:** `/api/admin/pecas/{id}`
+
+**Parâmetros:**
+
+- `id` (path, required): `Guid` (ID da peça)
+
+**Exemplo request:**
+
+```bash
+curl -X DELETE "http://localhost:8080/api/admin/pecas/5ca85f64-5717-4562-b3fc-2c963f66afc4" \
+  -H "Authorization: Bearer <TOKEN_ADMIN>"
+```
+
+Resposta: **204 No Content**
+
+_⚠️ Nota: A exclusão é impedida caso a peça esteja associada a algum item de ordem de serviço (retorna erro HTTP 400)._
+
+</details>
+
 ---
 
 ## 🛠️ Catálogo de Serviços (Admin)
@@ -344,6 +626,95 @@ Resposta: **201 Created**
   "precoMaoDeObra": 120.0
 }
 ```
+
+</details>
+
+<details>
+<summary>
+ Obter serviço por ID (Acesso: Mecanico, Admin)
+</summary>
+
+**Método:** GET  
+**URI:** `/api/admin/servicos/{id}`
+
+**Parâmetros:**
+
+- `id` (path, required): `Guid` (ID do serviço)
+
+**Exemplo request:**
+
+```bash
+curl -X GET "http://localhost:8080/api/admin/servicos/6ca85f64-5717-4562-b3fc-2c963f66afd5" \
+  -H "Authorization: Bearer <TOKEN_MECANICO_OU_ADMIN>"
+```
+
+Resposta: **200 OK**
+
+```json
+{
+  "id": "6ca85f64-5717-4562-b3fc-2c963f66afd5",
+  "descricao": "Alinhamento e Balanceamento",
+  "precoMaoDeObra": 120.0
+}
+```
+
+</details>
+
+<details>
+<summary>
+ Atualizar serviço (Acesso: Admin)
+</summary>
+
+**Método:** PUT  
+**URI:** `/api/admin/servicos/{id}`
+
+**Parâmetros:**
+
+- `id` (path, required): `Guid` (ID do serviço)
+
+**Exemplo request:**
+
+```bash
+curl -X PUT "http://localhost:8080/api/admin/servicos/6ca85f64-5717-4562-b3fc-2c963f66afd5" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <TOKEN_ADMIN>" \
+  -d '{"descricao":"Alinhamento Completo","precoMaoDeObra":150.00}'
+```
+
+Resposta: **200 OK**
+
+```json
+{
+  "id": "6ca85f64-5717-4562-b3fc-2c963f66afd5",
+  "descricao": "Alinhamento Completo",
+  "precoMaoDeObra": 150.0
+}
+```
+
+</details>
+
+<details>
+<summary>
+ Excluir serviço (Acesso: Admin)
+</summary>
+
+**Método:** DELETE  
+**URI:** `/api/admin/servicos/{id}`
+
+**Parâmetros:**
+
+- `id` (path, required): `Guid` (ID do serviço)
+
+**Exemplo request:**
+
+```bash
+curl -X DELETE "http://localhost:8080/api/admin/servicos/6ca85f64-5717-4562-b3fc-2c963f66afd5" \
+  -H "Authorization: Bearer <TOKEN_ADMIN>"
+```
+
+Resposta: **204 No Content**
+
+_⚠️ Nota: A exclusão é impedida caso o serviço esteja associado a alguma ordem de serviço (retorna erro HTTP 400)._
 
 </details>
 
@@ -420,6 +791,41 @@ Resposta: **200 OK**
     "valorTotal": 0
   }
 ]
+```
+
+</details>
+
+<details>
+<summary>
+ Detalhar Ordem de Serviço por ID (Acesso: Mecanico, Admin)
+</summary>
+
+**Método:** GET  
+**URI:** `/api/admin/ordens-servico/{id}`
+
+**Parâmetros:**
+
+- `id` (path, required): `Guid` (ID da Ordem de Serviço)
+
+**Exemplo request:**
+
+```bash
+curl -X GET "http://localhost:8080/api/admin/ordens-servico/9ca85f64-5717-4562-b3fc-2c963f66afe6" \
+  -H "Authorization: Bearer <TOKEN_MECANICO_OU_ADMIN>"
+```
+
+Resposta: **200 OK**
+
+```json
+{
+  "id": "9ca85f64-5717-4562-b3fc-2c963f66afe6",
+  "clienteId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "veiculoId": "7ca85f64-5717-4562-b3fc-2c963f66afb2",
+  "descricaoProblema": "Vazamento de óleo e barulho na suspensão.",
+  "status": "Recebida",
+  "itens": [],
+  "valorTotal": 0
+}
 ```
 
 </details>

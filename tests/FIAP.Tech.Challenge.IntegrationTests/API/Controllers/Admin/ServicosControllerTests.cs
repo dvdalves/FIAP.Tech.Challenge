@@ -74,4 +74,36 @@ public class ServicosControllerTests(CustomWebApplicationFactory factory) : ICla
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Created);
     }
+
+    [Fact]
+    public async Task FluxoCRUD_Servico_DeveFuncionarCorretamente()
+    {
+        // Arrange
+        var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", ObterTokenAdmin());
+
+        // 1. Criar
+        var requestCriar = new CriarServicoRequest { Nome = "Servico Integracao", PrecoMaoDeObra = 150.00m };
+        var responseCriar = await client.PostAsJsonAsync("/api/admin/servicos", requestCriar, TestContext.Current.CancellationToken);
+        responseCriar.StatusCode.Should().Be(HttpStatusCode.Created);
+        var servico = await responseCriar.Content.ReadFromJsonAsync<ServicoResponse>(cancellationToken: TestContext.Current.CancellationToken);
+        servico.Should().NotBeNull();
+
+        // 2. Obter por ID
+        var responseObter = await client.GetAsync($"/api/admin/servicos/{servico!.Id}", TestContext.Current.CancellationToken);
+        responseObter.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        // 3. Atualizar
+        var requestAtualizar = new AtualizarServicoRequest { Nome = "Servico Integracao Atualizado", PrecoMaoDeObra = 175.00m };
+        var responseAtualizar = await client.PutAsJsonAsync($"/api/admin/servicos/{servico.Id}", requestAtualizar, TestContext.Current.CancellationToken);
+        responseAtualizar.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        // 4. Excluir
+        var responseExcluir = await client.DeleteAsync($"/api/admin/servicos/{servico.Id}", TestContext.Current.CancellationToken);
+        responseExcluir.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        // 5. Verificar exclusao
+        var responseObterExcluido = await client.GetAsync($"/api/admin/servicos/{servico.Id}", TestContext.Current.CancellationToken);
+        responseObterExcluido.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
 }

@@ -294,10 +294,11 @@ public class OrdensServicoControllerTests(CustomWebApplicationFactory factory)
 
         // Criar Cliente
         var clienteRequest = new CriarClienteRequest
-        { Nome = "Maria Silva", Cpf = "44455566619", Email = "maria.silva@email.com", Telefone = "11977778888" };
+        { Nome = "Maria Silva", Cpf = "90234571020", Email = "maria.silva@email.com", Telefone = "11977778888" };
         var clienteContent =
             new StringContent(JsonSerializer.Serialize(clienteRequest), Encoding.UTF8, "application/json");
         var postClienteResponse = await client.PostAsync("/api/admin/clientes", clienteContent, TestContext.Current.CancellationToken);
+        postClienteResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         var cliente =
             JsonSerializer.Deserialize<ClienteResponse>(await postClienteResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken),
                 _jsonOptions);
@@ -318,11 +319,12 @@ public class OrdensServicoControllerTests(CustomWebApplicationFactory factory)
         var abrirOSContent =
             new StringContent(JsonSerializer.Serialize(abrirOSRequest), Encoding.UTF8, "application/json");
         var postOSResponse = await client.PostAsync("/api/admin/ordens-servico", abrirOSContent, TestContext.Current.CancellationToken);
+        postOSResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         var os = JsonSerializer.Deserialize<OrdemServicoResponse>(await postOSResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken),
             _jsonOptions);
 
         // Act: Atualizar status para EmDiagnostico usando JSON request body
-        var statusRequest = new { NovoStatus = (int)StatusOrdemServico.EmDiagnostico };
+        var statusRequest = new { NovoStatus = StatusOrdemServico.EmDiagnostico.ToString() };
         var statusContent =
             new StringContent(JsonSerializer.Serialize(statusRequest), Encoding.UTF8, "application/json");
         var putResponse = await client.PutAsync($"/api/admin/ordens-servico/{os!.Id}/status", statusContent, TestContext.Current.CancellationToken);
@@ -460,5 +462,41 @@ public class OrdensServicoControllerTests(CustomWebApplicationFactory factory)
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task ObterPorId_Admin_DeveRetornar200Ok()
+    {
+        // Arrange
+        var client = factory.CreateClient();
+        var token = await ObterTokenBearerAsync(client);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var osId = Guid.NewGuid();
+        using (var scope = factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<OficinaDbContext>();
+            var cliente = new Cliente(Guid.NewGuid(), "Jose da Silva", new Cpf("12345678909"), "jose@email.com", "11999999999");
+            await context.Clientes.AddAsync(cliente, TestContext.Current.CancellationToken);
+
+            var veiculo = new FIAP.Tech.Challenge.Domain.Aggregates.VeiculoAggregate.Veiculo(Guid.NewGuid(), new Placa("ABC1D23"), "Ford", "Ka", 2020, cliente.Id);
+            await context.Veiculos.AddAsync(veiculo, TestContext.Current.CancellationToken);
+
+            var os = new OrdemServico(osId, cliente.Id, veiculo.Id, "Problema no motor");
+            await context.OrdensServico.AddAsync(os, TestContext.Current.CancellationToken);
+
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+        }
+
+        // Act
+        var response = await client.GetAsync($"/api/admin/ordens-servico/{osId}", TestContext.Current.CancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var osResponse = JsonSerializer.Deserialize<OrdemServicoResponse>(
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken), _jsonOptions);
+        osResponse.Should().NotBeNull();
+        osResponse!.Id.Should().Be(osId);
+        osResponse.DescricaoProblema.Should().Be("Problema no motor");
     }
 }

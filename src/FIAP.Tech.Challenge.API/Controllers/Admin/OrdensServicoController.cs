@@ -55,6 +55,34 @@ public class OrdensServicoController(
     }
 
     /// <summary>
+    /// Obtém o detalhamento de uma Ordem de Serviço específica pelo seu ID.
+    /// </summary>
+    /// <param name="id">ID da Ordem de Serviço.</param>
+    /// <param name="repository">Repositório de ordens de serviço.</param>
+    /// <param name="cancellationToken">Token de cancelamento.</param>
+    /// <response code="200">Ordem de Serviço retornada com sucesso.</response>
+    /// <response code="401">Usuário não autenticado.</response>
+    /// <response code="403">Acesso negado (requer perfil Admin ou Mecanico).</response>
+    /// <response code="404">Ordem de Serviço não encontrada.</response>
+    [HttpGet("{id:guid}")]
+    [Authorize(Roles = "Mecanico,Admin")]
+    [ProducesResponseType(typeof(OrdemServicoResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ObterPorId(
+        Guid id,
+        [FromServices] IOrdemServicoRepository repository,
+        CancellationToken cancellationToken)
+    {
+        var os = await repository.ObterPorIdAsync(id, cancellationToken);
+        if (os == null)
+            return NotFound(new { mensagem = "Ordem de serviço não encontrada." });
+
+        return Ok(os.ParaResponse());
+    }
+
+    /// <summary>
     /// Obtém a métrica de tempo médio de execução das Ordens de Serviço finalizadas.
     /// </summary>
     /// <param name="repository">Repositório de ordens de serviço.</param>

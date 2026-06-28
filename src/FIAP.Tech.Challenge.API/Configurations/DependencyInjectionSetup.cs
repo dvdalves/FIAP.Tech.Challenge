@@ -56,14 +56,28 @@ public static class DependencyInjectionSetup
         // Casos de Uso
         services.AddScoped<CriarOrdemServicoUseCase>();
         services.AddScoped<AtualizarStatusOSUseCase>();
+        
         services.AddScoped<CriarClienteUseCase>();
+        services.AddScoped<AtualizarClienteUseCase>();
+        services.AddScoped<ExcluirClienteUseCase>();
+        
         services.AddScoped<CriarVeiculoUseCase>();
+        services.AddScoped<AtualizarVeiculoUseCase>();
+        services.AddScoped<ExcluirVeiculoUseCase>();
+        
         services.AddScoped<AbrirOrdemServicoUseCase>();
         services.AddScoped<LancarItensOSUseCase>();
         services.AddScoped<AprovarOrcamentoUseCase>();
         services.AddScoped<RejeitarOrcamentoUseCase>();
+        
+        services.AddScoped<CriarPecaUseCase>();
+        services.AddScoped<AtualizarPecaUseCase>();
+        services.AddScoped<ExcluirPecaUseCase>();
         services.AddScoped<AjustarEstoquePecaUseCase>();
+        
         services.AddScoped<CriarServicoUseCase>();
+        services.AddScoped<AtualizarServicoUseCase>();
+        services.AddScoped<ExcluirServicoUseCase>();
 
         // Serviços de Infraestrutura
         services.AddSingleton<TokenService>();

@@ -27,9 +27,23 @@ public class Peca
     }
 
     public Guid Id { get; private set; }
-    public string Nome { get; } = string.Empty;
+    public string Nome { get; private set; } = string.Empty;
     public decimal Preco { get; private set; }
     public int QuantidadeEstoque { get; private set; }
+
+    public void AlterarNome(string nome)
+    {
+        if (string.IsNullOrWhiteSpace(nome))
+            throw new DominioException("O nome da peça é obrigatório.");
+        Nome = nome.Trim();
+    }
+
+    public void AlterarPreco(decimal preco)
+    {
+        if (preco <= 0)
+            throw new DominioException("O preço da peça deve ser maior que zero.");
+        Preco = preco;
+    }
 
     public void AjustarEstoque(int novaQuantidade)
     {

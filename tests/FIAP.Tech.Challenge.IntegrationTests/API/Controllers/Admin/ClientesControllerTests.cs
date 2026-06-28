@@ -1,5 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
+using FIAP.Tech.Challenge.Application.UseCases.Clientes;
 using FIAP.Tech.Challenge.Domain.Aggregates.ClienteAggregate;
 using FIAP.Tech.Challenge.Domain.ValueObjects;
 using FIAP.Tech.Challenge.Infrastructure.Data.Context;
@@ -83,5 +85,80 @@ public class ClientesControllerTests(CustomWebApplicationFactory factory) : ICla
         content.Should().Contain("José Teste");
         content.Should().Contain("ABC1234");
         content.Should().Contain("veiculos");
+    }
+
+    [Fact]
+    public async Task Atualizar_ClienteExistente_DeveRetornar200Ok()
+    {
+        // Arrange
+        var client = factory.CreateClient();
+        Guid id;
+
+        using (var scope = factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<OficinaDbContext>();
+            context.OrdensServico.RemoveRange(context.OrdensServico);
+            context.Veiculos.RemoveRange(context.Veiculos);
+            context.Clientes.RemoveRange(context.Clientes);
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+            var cliente = new Cliente(Guid.NewGuid(), "Nome Antigo", new Cpf("90234571020"), "antigo@email.com", "11999999999");
+            await context.Clientes.AddAsync(cliente, TestContext.Current.CancellationToken);
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+            id = cliente.Id;
+
+            var tokenService = scope.ServiceProvider.GetRequiredService<TokenService>();
+            var token = tokenService.GerarToken("teste_admin", "Admin");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        }
+
+        var request = new AtualizarClienteRequest
+        {
+            Nome = "Nome Novo",
+            Email = "novo@email.com",
+            Telefone = "11988887777"
+        };
+
+        // Act
+        var response = await client.PutAsJsonAsync($"/api/admin/clientes/{id}", request, TestContext.Current.CancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var resObj = await response.Content.ReadFromJsonAsync<ClienteResponse>(cancellationToken: TestContext.Current.CancellationToken);
+        resObj.Should().NotBeNull();
+        resObj!.Nome.Should().Be("Nome Novo");
+        resObj.Email.Should().Be("novo@email.com");
+    }
+
+    [Fact]
+    public async Task Excluir_ClienteExistenteSemVinculos_DeveRetornar24NoContent()
+    {
+        // Arrange
+        var client = factory.CreateClient();
+        Guid id;
+
+        using (var scope = factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<OficinaDbContext>();
+            context.OrdensServico.RemoveRange(context.OrdensServico);
+            context.Veiculos.RemoveRange(context.Veiculos);
+            context.Clientes.RemoveRange(context.Clientes);
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+            var cliente = new Cliente(Guid.NewGuid(), "Nome Excluir", new Cpf("80234571012"), "excluir@email.com", "11999999999");
+            await context.Clientes.AddAsync(cliente, TestContext.Current.CancellationToken);
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+            id = cliente.Id;
+
+            var tokenService = scope.ServiceProvider.GetRequiredService<TokenService>();
+            var token = tokenService.GerarToken("teste_admin", "Admin");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        }
+
+        // Act
+        var response = await client.DeleteAsync($"/api/admin/clientes/{id}", TestContext.Current.CancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 }

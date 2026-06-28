@@ -26,4 +26,9 @@ public class ServicoRepository(OficinaDbContext context) : IServicoRepository
         context.Servicos.Update(servico);
         return Task.CompletedTask;
     }
+
+    public void Remover(Servico servico)
+    {
+        context.Servicos.Remove(servico);
+    }
 }

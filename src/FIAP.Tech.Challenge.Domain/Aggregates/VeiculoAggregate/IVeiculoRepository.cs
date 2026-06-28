@@ -7,6 +7,8 @@ public interface IVeiculoRepository
     Task<Veiculo?> ObterPorIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<Veiculo?> ObterPorPlacaAsync(Placa placa, CancellationToken cancellationToken = default);
     Task<IEnumerable<Veiculo>> ObterPorClienteIdAsync(Guid clienteId, CancellationToken cancellationToken = default);
+    Task<IEnumerable<Veiculo>> ObterTodosAsync(CancellationToken cancellationToken = default);
     Task AdicionarAsync(Veiculo veiculo, CancellationToken cancellationToken = default);
     Task AtualizarAsync(Veiculo veiculo, CancellationToken cancellationToken = default);
+    void Remover(Veiculo veiculo);
 }

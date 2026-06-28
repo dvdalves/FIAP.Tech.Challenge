@@ -9,4 +9,5 @@ public interface IClienteRepository
     Task<IEnumerable<Cliente>> ObterTodosAsync(CancellationToken cancellationToken = default);
     Task AdicionarAsync(Cliente cliente, CancellationToken cancellationToken = default);
     Task AtualizarAsync(Cliente cliente, CancellationToken cancellationToken = default);
+    void Remover(Cliente cliente);
 }

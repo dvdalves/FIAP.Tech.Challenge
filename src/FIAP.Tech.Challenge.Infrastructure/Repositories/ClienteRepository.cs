@@ -38,4 +38,9 @@ public class ClienteRepository(OficinaDbContext context) : IClienteRepository
         context.Clientes.Update(cliente);
         return Task.CompletedTask;
     }
+
+    public void Remover(Cliente cliente)
+    {
+        context.Clientes.Remove(cliente);
+    }
 }

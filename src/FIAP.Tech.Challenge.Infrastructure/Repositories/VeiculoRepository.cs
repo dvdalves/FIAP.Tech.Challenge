@@ -23,6 +23,11 @@ public class VeiculoRepository(OficinaDbContext context) : IVeiculoRepository
         return await context.Veiculos.Where(v => v.ClienteId == clienteId).ToListAsync(cancellationToken);
     }
 
+    public async Task<IEnumerable<Veiculo>> ObterTodosAsync(CancellationToken cancellationToken = default)
+    {
+        return await context.Veiculos.ToListAsync(cancellationToken);
+    }
+
     public async Task AdicionarAsync(Veiculo veiculo, CancellationToken cancellationToken = default)
     {
         await context.Veiculos.AddAsync(veiculo, cancellationToken);
@@ -32,5 +37,10 @@ public class VeiculoRepository(OficinaDbContext context) : IVeiculoRepository
     {
         context.Veiculos.Update(veiculo);
         return Task.CompletedTask;
+    }
+
+    public void Remover(Veiculo veiculo)
+    {
+        context.Veiculos.Remove(veiculo);
     }
 }

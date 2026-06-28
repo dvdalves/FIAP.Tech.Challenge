@@ -17,7 +17,9 @@ namespace FIAP.Tech.Challenge.API.Controllers.Admin;
 public class ClientesController(
     IClienteRepository clienteRepository,
     CriarClienteUseCase criarClienteUseCase,
-    CriarVeiculoUseCase criarVeiculoUseCase)
+    CriarVeiculoUseCase criarVeiculoUseCase,
+    AtualizarClienteUseCase atualizarClienteUseCase,
+    ExcluirClienteUseCase excluirClienteUseCase)
     : ControllerBase
 {
     /// <summary>
@@ -124,5 +126,50 @@ public class ClientesController(
     {
         var response = await criarVeiculoUseCase.ExecutarAsync(id, request, cancellationToken);
         return Ok(response);
+    }
+
+    /// <summary>
+    /// Atualiza os dados de um cliente existente.
+    /// </summary>
+    /// <param name="id">ID do cliente.</param>
+    /// <param name="request">Novos dados do cliente.</param>
+    /// <param name="cancellationToken">Token de cancelamento.</param>
+    /// <response code="200">Cliente atualizado com sucesso.</response>
+    /// <response code="400">Dados inválidos ou erro de validação.</response>
+    /// <response code="401">Usuário não autenticado.</response>
+    /// <response code="403">Acesso negado (requer perfil Admin).</response>
+    /// <response code="404">Cliente não encontrado.</response>
+    [HttpPut("{id:guid}")]
+    [ProducesResponseType(typeof(ClienteResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Atualizar(Guid id, [FromBody] AtualizarClienteRequest request, CancellationToken cancellationToken)
+    {
+        var response = await atualizarClienteUseCase.ExecutarAsync(id, request, cancellationToken);
+        return Ok(response);
+    }
+
+    /// <summary>
+    /// Exclui um cliente cadastrado, caso não possua vínculos com veículos ou ordens de serviço.
+    /// </summary>
+    /// <param name="id">ID do cliente.</param>
+    /// <param name="cancellationToken">Token de cancelamento.</param>
+    /// <response code="204">Cliente excluído com sucesso.</response>
+    /// <response code="400">Não é possível excluir devido a vínculos ativos.</response>
+    /// <response code="401">Usuário não autenticado.</response>
+    /// <response code="403">Acesso negado (requer perfil Admin).</response>
+    /// <response code="404">Cliente não encontrado.</response>
+    [HttpDelete("{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Excluir(Guid id, CancellationToken cancellationToken)
+    {
+        await excluirClienteUseCase.ExecutarAsync(id, cancellationToken);
+        return NoContent();
     }
 }
