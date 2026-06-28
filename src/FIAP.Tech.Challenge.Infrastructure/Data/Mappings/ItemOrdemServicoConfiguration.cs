@@ -3,8 +3,11 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using FIAP.Tech.Challenge.Domain.Aggregates.OrdemServicoAggregate;
 using FIAP.Tech.Challenge.Domain.Aggregates.PecaAggregate;
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace FIAP.Tech.Challenge.Infrastructure.Data.Mappings;
 
+[ExcludeFromCodeCoverage]
 public class ItemOrdemServicoConfiguration : IEntityTypeConfiguration<ItemOrdemServico>
 {
     public void Configure(EntityTypeBuilder<ItemOrdemServico> builder)

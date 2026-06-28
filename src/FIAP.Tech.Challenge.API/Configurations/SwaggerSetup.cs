@@ -2,8 +2,11 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi;
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace FIAP.Tech.Challenge.API.Configurations;
 
+[ExcludeFromCodeCoverage]
 public static class SwaggerSetup
 {
     public static IServiceCollection AddSwaggerConfiguration(this IServiceCollection services)

@@ -3,8 +3,11 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace FIAP.Tech.Challenge.API.Configurations;
 
+[ExcludeFromCodeCoverage]
 public static class JwtSetup
 {
     private const string SecretKey = "SuperSecretSecurityKeyOficinaMecanica2026!";

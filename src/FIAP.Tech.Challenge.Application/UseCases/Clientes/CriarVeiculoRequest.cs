@@ -1,5 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace FIAP.Tech.Challenge.Application.UseCases.Clientes;
 
+[ExcludeFromCodeCoverage]
 public class CriarVeiculoRequest
 {
     public string Placa { get; set; } = string.Empty;

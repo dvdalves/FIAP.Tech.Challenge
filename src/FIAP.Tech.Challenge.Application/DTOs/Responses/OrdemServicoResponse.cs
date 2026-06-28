@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace FIAP.Tech.Challenge.Application.DTOs.Responses;
 
+[ExcludeFromCodeCoverage]
 public class OrdemServicoResponse
 {
     public Guid Id { get; set; }

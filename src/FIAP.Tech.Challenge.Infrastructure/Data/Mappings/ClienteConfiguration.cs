@@ -3,8 +3,11 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using FIAP.Tech.Challenge.Domain.Aggregates.ClienteAggregate;
 using FIAP.Tech.Challenge.Domain.ValueObjects;
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace FIAP.Tech.Challenge.Infrastructure.Data.Mappings;
 
+[ExcludeFromCodeCoverage]
 public class ClienteConfiguration : IEntityTypeConfiguration<Cliente>
 {
     public void Configure(EntityTypeBuilder<Cliente> builder)

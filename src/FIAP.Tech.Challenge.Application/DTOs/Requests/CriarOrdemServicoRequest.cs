@@ -1,5 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace FIAP.Tech.Challenge.Application.DTOs.Requests;
 
+[ExcludeFromCodeCoverage]
 public class CriarOrdemServicoRequest
 {
     public string ClienteNome { get; set; } = string.Empty;

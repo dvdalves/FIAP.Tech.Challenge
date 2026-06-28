@@ -380,3 +380,10 @@ FodyWeavers.xsd
 # Agents
 **/Agents.md
 **/*.svg
+
+# VS Code
+.vscode/
+
+# SonarQube & SonarLint
+.sonarqube/
+.sonarlint/

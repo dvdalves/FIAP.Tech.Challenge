@@ -1,5 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace FIAP.Tech.Challenge.Application.DTOs.Responses;
 
+[ExcludeFromCodeCoverage]
 public class ItemOrdemServicoResponse
 {
     public Guid Id { get; set; }

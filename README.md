@@ -205,6 +205,37 @@ dotnet test
 
 Isso executará os **29 testes unitários** de domínio e os **7 testes integrados** de ponta a ponta (verificando fluxos completos de criação de clientes, frotas de veículos, abertura de OS, cálculo automático de orçamento no diagnóstico e baixa transacional de estoque).
 
+### 🚫 Exclusão Estratégica de Cobertura
+
+Para garantir que a métrica de cobertura de código reflita de forma fidedigna a saúde da lógica de negócio (Regras de Domínio e Casos de Uso/Application Services), o projeto utiliza de forma estratégica o atributo padrão do .NET `[ExcludeFromCodeCoverage]` nas seguintes classes estruturais que não possuem lógica condicional ou comportamentos complexos:
+
+* **Camada de Apresentação (API)**: Configurações de inicialização do ASP.NET Core (`Program.cs`, setups de injeção de dependência, JWT e Swagger).
+* **Camada de Aplicação**: DTOs, Requests e Responses puros de transferência de dados (localizados em `DTOs/` e payloads de entrada/saída em `UseCases/`).
+* **Camada de Infraestrutura**: Contexto do Banco de Dados (`OficinaDbContext`) e arquivos de mapeamento Fluent API (`IEntityTypeConfiguration`).
+* **Camada de Domínio**: Exceções de negócio customizadas que servem apenas para tipagem de erros estruturais (`DominioException`).
+
+### 📊 Análise de Cobertura via SonarQube
+
+O projeto possui suporte nativo para análise estática e relatórios de cobertura integrados ao **SonarQube**:
+
+1. **Subir o Servidor SonarQube**:
+   O SonarQube está mapeado como um serviço no `docker-compose.yml`. Suba-o executando:
+
+   ```bash
+   docker compose up -d sonarqube
+   ```
+
+    Acesse o painel em [http://localhost:9000](http://localhost:9000) (credenciais padrão: `admin` / `admin`, sendo exigido redefinir a senha no primeiro login). Crie um projeto manual com a chave `FIAP.Tech.Challenge` e obtenha o Token de Acesso.
+
+2. **Rodar a Análise**:
+   Rode o script de automação na raiz do projeto:
+
+   ```bash
+   ./run-sonar.sh
+   ```
+
+   *O script gerenciará os pré-requisitos (Java, instalação do `dotnet-sonarscanner`), limpará relatórios antigos, compilará a solução, rodará os testes gerando o relatório XML do Coverlet e enviará os resultados de qualidade e cobertura diretamente ao console do SonarQube.*
+
 ---
 
 ## 8. Relatório de Análise de Vulnerabilidades

@@ -35,10 +35,9 @@ Mapeamos o comportamento do banco de dados para três cenários distintos:
 2. **Desenvolvimento Local**: Fallback automático para banco de dados **SQLite** em arquivo físico (`oficina.db`), permitindo execução imediata com `dotnet run` sem necessidade de subir dependências externas.
 3. **Testes de Integração**: Uso do provedor **In-Memory do Entity Framework Core** com nomes de bancos randômicos por instância (`InMemoryDbForTesting_Guid`). Isso evita conflito de concorrência e poluição de estado entre os testes paralelos.
 
-### D. Segurança (SAST e OWASP)
-
 * **Prevenção a IDOR**: Uso nativo de `Guid` (UUID) para todas as URLs e referências expostas a clientes.
 * **Resolução de Vulnerabilidades**: Atualização do motor de SQLite nativo nas dependências para o bundle seguro `SQLitePCLRaw.bundle_e_sqlite3` (v3.0.3) para corrigir a falha de truncamento numérico (CVE-2025-6965).
+* **Análise de Qualidade e Cobertura**: Integração com **SonarQube** utilizando `dotnet-sonarscanner` e geração de relatórios de cobertura em formato Cobertura XML (via Coverlet), centralizando as métricas de qualidade de código estático (SAST).
 
 ---
 

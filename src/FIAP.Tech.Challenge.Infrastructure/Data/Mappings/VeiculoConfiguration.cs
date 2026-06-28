@@ -3,8 +3,11 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using FIAP.Tech.Challenge.Domain.Aggregates.VeiculoAggregate;
 using FIAP.Tech.Challenge.Domain.ValueObjects;
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace FIAP.Tech.Challenge.Infrastructure.Data.Mappings;
 
+[ExcludeFromCodeCoverage]
 public class VeiculoConfiguration : IEntityTypeConfiguration<Veiculo>
 {
     public void Configure(EntityTypeBuilder<Veiculo> builder)

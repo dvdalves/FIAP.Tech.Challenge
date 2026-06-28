@@ -1,5 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace FIAP.Tech.Challenge.Application.UseCases.Clientes;
 
+[ExcludeFromCodeCoverage]
 public class VeiculoResponse
 {
     public Guid Id { get; set; }

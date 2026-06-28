@@ -8,8 +8,11 @@ using FIAP.Tech.Challenge.Domain.Aggregates.OrdemServicoAggregate;
 using FIAP.Tech.Challenge.Domain.Aggregates.VeiculoAggregate;
 using FIAP.Tech.Challenge.Domain.Aggregates.PecaAggregate;
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace FIAP.Tech.Challenge.Infrastructure.Data.Context;
 
+[ExcludeFromCodeCoverage]
 public class OficinaDbContext(DbContextOptions<OficinaDbContext> options) : DbContext(options), IUnitOfWork
 {
     public DbSet<Cliente> Clientes => Set<Cliente>();

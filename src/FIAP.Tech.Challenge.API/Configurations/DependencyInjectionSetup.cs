@@ -12,8 +12,11 @@ using FIAP.Tech.Challenge.Infrastructure.Data.Context;
 using FIAP.Tech.Challenge.Infrastructure.Repositories;
 using FIAP.Tech.Challenge.Infrastructure.Services;
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace FIAP.Tech.Challenge.API.Configurations;
 
+[ExcludeFromCodeCoverage]
 public static class DependencyInjectionSetup
 {
     public static IServiceCollection AddDependencyInjection(this IServiceCollection services, IConfiguration configuration)

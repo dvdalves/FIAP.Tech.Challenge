@@ -1,7 +1,10 @@
 using System;
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace FIAP.Tech.Challenge.Application.DTOs.Responses;
 
+[ExcludeFromCodeCoverage]
 public class PecaResponse
 {
     public Guid Id { get; set; }

@@ -51,5 +51,6 @@ app.Run();
 
 namespace FIAP.Tech.Challenge.API
 {
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     public partial class Program { }
 }
