@@ -34,19 +34,6 @@ graph TD
 
 ---
 
-## 🛠️ Tecnologias Atuais (Fase 1)
-
-O MVP foi concebido com a seguinte infraestrutura técnica de base:
-
-- **Arquitetura**: Monolito clássico com separação lógica em camadas (Clean Architecture) via namespaces/projetos.
-- **Banco de Dados**: PostgreSQL 18 como banco relacional principal em container Docker.
-- **Persistência**: Entity Framework Core como ORM principal.
-- **Segurança Básica**: Autenticação via JWT assinado localmente com HMAC-SHA256, proteção contra IDOR por meio de Guids públicos e prevenção automatizada a SQL Injection pelo EF Core.
-- **Testes e Qualidade**: Testes de unidade e testes integrados desenvolvidos com xUnit, NSubstitute e FluentAssertions.
-- **Análise Estática**: Integração de testes e cobertura via SonarQube executado em container local.
-
----
-
 ## 🚀 Melhorias e Evolução da Arquitetura
 
 Para suportar alta escala, segurança de nível corporativo e monitoramento avançado, as seguintes melhorias estão planejadas:

@@ -107,22 +107,11 @@ Este documento aborda:
 
 ## 4. Decisões Técnicas Principais
 
-### Provedor de Banco de Dados Relacional (PostgreSQL)
+As definições tecnológicas e a infraestrutura do MVP foram projetadas para garantir portabilidade local, alto rigor de segurança arquitetural e facilidade na execução de testes de integração.
 
-Optou-se pelo **PostgreSQL 18** no ambiente de contêineres devido à sua robustez, maturidade industrial, suporte nativo a transações ACID concorrentes (essencial para o controle transacional de estoque e orçamentos da oficina) e ótima integração com o Entity Framework Core.
+Para detalhes completos sobre a arquitetura do monolito coeso (Clean Architecture & DDD), a seleção de banco relacional (PostgreSQL 18), a lógica de fallback dinâmico para SQLite In-Memory, a autenticação baseada em JWT Bearer e as estratégias de mitigação a ataques do tipo IDOR por chaves UUID/Guid, consulte o documento específico:
 
-### 🔌 Flexibilidade nos Testes (SQLite Fallback)
-
-Para agilizar o desenvolvimento local, o arquivo [DependencyInjectionSetup.cs](src/FIAP.Tech.Challenge.API/Configurations/DependencyInjectionSetup.cs) possui uma lógica de seleção dinâmica de banco de dados:
-
-- Em execução padrão (Docker), a API conecta-se ao PostgreSQL.
-- Caso executado localmente sem uma string de conexão PostgreSQL configurada, o sistema efetua um **fallback automático e transparente para o SQLite in-memory**. Isto permite executar a suíte de testes integrados instantaneamente com `dotnet test` sem a necessidade de subir contêineres externos de banco de dados.
-
-### 🔒 Autenticação JWT e Segurança de Acesso
-
-- **Segurança Administrativa**: Endpoints sob o prefixo `/api/admin/*` exigem autenticação do tipo JWT Bearer com a validação das Roles correspondentes (ex: `Admin`).
-- **Endpoint de Token do MVP**: Para validação rápida das funcionalidades do MVP no Swagger, disponibilizamos a rota pública `/api/public/auth/token` para geração de tokens de testes.
-- **Prevenção contra IDOR (Insecure Direct Object Reference)**: O sistema não expõe chaves primárias sequenciais inteiras (ex: `id = 1, 2, 3...`) nas URLs expostas. Todas as entidades de domínio expõem publicamente chaves baseadas em **`Guid` (UUID)**, inviabilizando tentativas de varreduras não autorizadas.
+- **[Decisões Técnicas e Tecnologias Atuais - decisoes_tecnicas.md](docs/Fase%201/decisoes_tecnicas.md)**
 
 ---
 
@@ -165,38 +154,21 @@ Define a linha do tempo com Comandos, Agregados, Eventos de Domínio e Política
 
 ## 6. APIs e Funcionalidades do MVP
 
-O Swagger expõe os seguintes fluxos operacionais mapeados na solução:
+Os endpoints da aplicação estão estruturados de acordo com o escopo de acesso e as responsabilidades dos fluxos de trabalho da oficina:
 
-### 👤 Fluxo do Cliente (Público - `/api/public/`)
+### 🌐 Divisão de Rotas e Segurança
 
-- **Consulta de OS** (`GET /api/public/ordens-servico/{id}`): Permite ao cliente acompanhar o status de uma OS específica.
-- **Descoberta de OSs Ativas** (`GET /api/public/ordens-servico`): Lista todas as ordens de serviço ativas vinculadas ao cliente autenticado (filtradas pelo token JWT).
-- **Aprovação de Orçamento** (`POST /api/public/ordens-servico/{id}/aprovar`): Cliente autoriza o orçamento, alterando o status para `EmExecucao` e deduzindo as peças utilizadas do estoque de forma atômica.
-- **Rejeição de Orçamento** (`POST /api/public/ordens-servico/{id}/rejeitar`): Cancela a OS (Status transiciona para `Cancelada`).
-- **Token de Teste** (`POST /api/public/auth/token`): Emite JWT para testes das rotas administrativas.
+- **Fluxo Público / Cliente (`/api/public/*`)**: Acessível aos clientes finais para visualização de frotas e acompanhamento/aprovação de orçamentos de Ordens de Serviço vinculadas ao seu respectivo cadastro.
+- **Fluxo Administrativo (`/api/admin/*`)**: Endpoints restritos que exigem autenticação do tipo JWT Bearer com perfis operacionais específicos (`Admin` ou `Mecanico`) para gerenciar clientes, veículos, catálogo de serviços e estoque de peças.
 
-### ⚙️ Fluxo Administrativo (Autenticado - `/api/admin/`)
+### 🛡️ Padrão de Respostas HTTP
 
-- **Gestão de Clientes**:
-  - `POST /api/admin/clientes` (Cadastra novo cliente)
-  - `GET /api/admin/clientes` (Lista clientes cadastrados com suas frotas)
-- **Gestão de Veículos**:
-  - `POST /api/admin/clientes/{id}/veiculos` (Vincula veículo ao cliente)
-- **Gestão de Ordens de Serviço**:
-  - `POST /api/admin/ordens-servico` (Abre OS inicial - Status: `Recebida`)
-  - `GET /api/admin/ordens-servico` (Lista todas as OSs do sistema com filtros opcionais de `status` e `clienteId`)
-  - `POST /api/admin/ordens-servico/{id}/itens` (Adiciona peças e serviços a partir do catálogo, envia para `AguardandoAprovacao`)
-  - `PUT /api/admin/ordens-servico/{id}/status` (Transiciona manualmente o status da OS e marca timestamps de controle de tempo)
-  - `GET /api/admin/ordens-servico/metricas/tempo-medio` (Retorna o tempo médio de execução dos serviços finalizados)
-- **Gestão de Serviços (Catálogo de Mão de Obra)**:
-  - `GET /api/admin/servicos` (Lista o catálogo de serviços cadastrados)
-  - `POST /api/admin/servicos` (Cadastra um novo serviço e seu preço padrão de mão de obra)
-- **Gestão de Peças e Estoque**:
-  - `GET /api/admin/pecas` (Lista catálogo e saldos em estoque)
-  - `POST /api/admin/pecas` (Adiciona peça ao catálogo)
-  - `PUT /api/admin/pecas/{id}/estoque` (Atualiza saldo em estoque)
+- **`200 OK` / `201 Created`**: Sucesso e criação de novos recursos.
+- **`204 No Content`**: Sucesso na exclusão ou processamento de comandos sem retorno de entidade.
+- **`400 Bad Request` / `422 Unprocessable Entity`**: Validações estruturais inválidas ou violação de regras de domínio (ex: exclusão de entidades com vínculos ativos).
+- **`401 Unauthorized` / `403 Forbidden`**: Credenciais ausentes, inválidas ou insuficientes para a rota executada.
 
-Para uma descrição completa e detalhada de cada endpoint, contendo parâmetros, payloads, exemplos de requisição curl e respostas de sucesso/erro, consulte a referência técnica:
+Para obter a listagem completa de rotas, exemplos de requisição (`curl`), payloads (JSON) e respostas esperadas de cada operação do sistema, consulte a documentação técnica de referência:
 
 - **[API Reference - api_reference.md](docs/api_reference.md)**
 
@@ -208,7 +180,7 @@ Os testes foram desenvolvidos utilizando **xUnit**, **NSubstitute** (para isolam
 
 ### Executando os Testes
 
-Para rodar a suíte contendo **29 testes unitários** e **7 testes integrados**:
+Para rodar a suíte de testes de unidade e testes de integração:
 
 ```bash
 dotnet test
