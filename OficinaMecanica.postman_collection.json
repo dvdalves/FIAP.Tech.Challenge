@@ -2,753 +2,769 @@
   "info": {
     "_postman_id": "8b9db8d7-5ef4-4f24-9dfc-58953158c5a2",
     "name": "Oficina Mecânica - Caminho Feliz",
-    "description": "Coleção para importação no Postman contendo o fluxo ponta a ponta (caminho feliz) do sistema da Oficina Mecânica.\n\nContempla os fluxos de:\n1. Preparação (Cadastros Base)\n2. Atendimento, Diagnóstico e Orçamento\n3. Aprovação, Execução e Entrega\n\nTodos os tokens JWT de teste (Admin, Mecanico e Cliente) são gerados dinamicamente e armazenados como variáveis globais do Postman, assim como os IDs das entidades criadas (Cliente, Veículo, Peça, Serviço e Ordem de Serviço).",
+    "description": "Coleção contendo o fluxo ponta a ponta (caminho feliz) do sistema da Oficina Mecânica, ordenado sequencialmente de 1 a 14 para execução direta.\n\nContempla os fluxos de:\n- Autenticação de perfis (Admin, Mecanico, Cliente)\n- Cadastros Base (Cliente, Veículo, Peça, Serviço)\n- Abertura de OS, Diagnóstico e Lançamento de Itens\n- Consulta, Aprovação do Orçamento, Execução e Entrega.\n\nTodas as variáveis necessárias (tokens, IDs de entidades, CPF e placa dinâmicos) são gerenciadas de forma automatizada via pré-requisitos e testes do Postman.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
-      "name": "0. Autenticação",
-      "item": [
+      "name": "1. Gerar Token Admin",
+      "event": [
         {
-          "name": "Gerar Token Admin",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "var jsonData = pm.response.json();",
-                  "pm.globals.set(\"admin_token\", jsonData.token);",
-                  "pm.test(\"Token Admin gerado com sucesso\", function () {",
-                  "    pm.expect(jsonData.token).to.be.a('string');",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/api/public/auth/token?usuario=admin&perfil=Admin",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "public",
-                "auth",
-                "token"
-              ],
-              "query": [
-                {
-                  "key": "usuario",
-                  "value": "admin"
-                },
-                {
-                  "key": "perfil",
-                  "value": "Admin"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Gerar Token Mecânico",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "var jsonData = pm.response.json();",
-                  "pm.globals.set(\"mecanico_token\", jsonData.token);",
-                  "pm.test(\"Token Mecânico gerado com sucesso\", function () {",
-                  "    pm.expect(jsonData.token).to.be.a('string');",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/api/public/auth/token?usuario=mecanico&perfil=Mecanico",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "public",
-                "auth",
-                "token"
-              ],
-              "query": [
-                {
-                  "key": "usuario",
-                  "value": "mecanico"
-                },
-                {
-                  "key": "perfil",
-                  "value": "Mecanico"
-                }
-              ]
-            }
-          },
-          "response": []
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.globals.set(\"admin_token\", jsonData.token);",
+              "pm.test(\"Token Admin gerado com sucesso\", function () {",
+              "    pm.expect(jsonData.token).to.be.a('string');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
         }
-      ]
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/public/auth/token?usuario=admin&perfil=Admin",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "public",
+            "auth",
+            "token"
+          ],
+          "query": [
+            {
+              "key": "usuario",
+              "value": "admin"
+            },
+            {
+              "key": "perfil",
+              "value": "Admin"
+            }
+          ]
+        }
+      },
+      "response": []
     },
     {
-      "name": "1. Preparação (Cadastros Base)",
-      "item": [
+      "name": "2. Gerar Token Mecânico",
+      "event": [
         {
-          "name": "Cadastrar Cliente",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "var jsonData = pm.response.json();",
-                  "pm.globals.set(\"cliente_id\", jsonData.id);",
-                  "pm.globals.set(\"cliente_cpf\", jsonData.cpf);",
-                  "pm.test(\"Cliente criado com sucesso\", function () {",
-                  "    pm.response.to.have.status(201);",
-                  "    pm.expect(jsonData.id).to.be.a('string');",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{admin_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nome\": \"João da Silva\",\n  \"cpf\": \"12345678909\",\n  \"email\": \"joao.silva@email.com\",\n  \"telefone\": \"11988887777\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{base_url}}/api/admin/clientes",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "admin",
-                "clientes"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Gerar Token Cliente",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "var jsonData = pm.response.json();",
-                  "pm.globals.set(\"cliente_token\", jsonData.token);",
-                  "pm.test(\"Token Cliente gerado com sucesso\", function () {",
-                  "    pm.expect(jsonData.token).to.be.a('string');",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/api/public/auth/token?usuario={{cliente_id}}&perfil=Cliente",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "public",
-                "auth",
-                "token"
-              ],
-              "query": [
-                {
-                  "key": "usuario",
-                  "value": "{{cliente_id}}"
-                },
-                {
-                  "key": "perfil",
-                  "value": "Cliente"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Cadastrar Veículo",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "var jsonData = pm.response.json();",
-                  "pm.globals.set(\"veiculo_id\", jsonData.id);",
-                  "pm.test(\"Veículo cadastrado e vinculado com sucesso\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "    pm.expect(jsonData.id).to.be.a('string');",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{admin_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"placa\": \"ABC1D23\",\n  \"marca\": \"Ford\",\n  \"modelo\": \"Focus\",\n  \"ano\": 2018\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{base_url}}/api/admin/clientes/{{cliente_id}}/veiculos",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "admin",
-                "clientes",
-                "{{cliente_id}}",
-                "veiculos"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Cadastrar Peça",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "var jsonData = pm.response.json();",
-                  "pm.globals.set(\"peca_id\", jsonData.id);",
-                  "pm.test(\"Peça cadastrada no catálogo com sucesso\", function () {",
-                  "    pm.response.to.have.status(201);",
-                  "    pm.expect(jsonData.id).to.be.a('string');",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{admin_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nome\": \"Pastilha de Freio Dianteira\",\n  \"preco\": 189.90,\n  \"quantidadeEstoque\": 15\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{base_url}}/api/admin/pecas",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "admin",
-                "pecas"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Cadastrar Serviço",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "var jsonData = pm.response.json();",
-                  "pm.globals.set(\"servico_id\", jsonData.id);",
-                  "pm.test(\"Serviço cadastrado no catálogo com sucesso\", function () {",
-                  "    pm.response.to.have.status(201);",
-                  "    pm.expect(jsonData.id).to.be.a('string');",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{admin_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"descricao\": \"Alinhamento e Balanceamento\",\n  \"precoMaoDeObra\": 120.00\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{base_url}}/api/admin/servicos",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "admin",
-                "servicos"
-              ]
-            }
-          },
-          "response": []
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.globals.set(\"mecanico_token\", jsonData.token);",
+              "pm.test(\"Token Mecânico gerado com sucesso\", function () {",
+              "    pm.expect(jsonData.token).to.be.a('string');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
         }
-      ]
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/public/auth/token?usuario=mecanico&perfil=Mecanico",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "public",
+            "auth",
+            "token"
+          ],
+          "query": [
+            {
+              "key": "usuario",
+              "value": "mecanico"
+            },
+            {
+              "key": "perfil",
+              "value": "Mecanico"
+            }
+          ]
+        }
+      },
+      "response": []
     },
     {
-      "name": "2. Atendimento, Diagnóstico e Orçamento",
-      "item": [
+      "name": "3. Cadastrar Cliente",
+      "event": [
         {
-          "name": "Abrir Ordem de Serviço",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "var jsonData = pm.response.json();",
-                  "pm.globals.set(\"os_id\", jsonData.id);",
-                  "pm.test(\"Ordem de Serviço criada com sucesso\", function () {",
-                  "    pm.response.to.have.status(201);",
-                  "    pm.expect(jsonData.id).to.be.a('string');",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{admin_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"clienteId\": \"{{cliente_id}}\",\n  \"veiculoId\": \"{{veiculo_id}}\",\n  \"descricaoProblema\": \"Troca de óleo e barulho na suspensão dianteira.\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{base_url}}/api/admin/ordens-servico",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "admin",
-                "ordens-servico"
-              ]
-            }
-          },
-          "response": []
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "function gerarCpf() {",
+              "  const num = () => Math.floor(Math.random() * 9);",
+              "  const n1 = num(), n2 = num(), n3 = num(), n4 = num(), n5 = num(), n6 = num(), n7 = num(), n8 = num(), n9 = num();",
+              "  ",
+              "  let d1 = n9*2 + n8*3 + n7*4 + n6*5 + n5*6 + n4*7 + n3*8 + n2*9 + n1*10;",
+              "  d1 = 11 - (d1 % 11);",
+              "  if (d1 >= 10) d1 = 0;",
+              "  ",
+              "  let d2 = d1*2 + n9*3 + n8*4 + n7*5 + n6*6 + n5*7 + n4*8 + n3*9 + n2*10 + n1*11;",
+              "  d2 = 11 - (d2 % 11);",
+              "  if (d2 >= 10) d2 = 0;",
+              "  ",
+              "  return `${n1}${n2}${n3}${n4}${n5}${n6}${n7}${n8}${n9}${d1}${d2}`;",
+              "}",
+              "pm.globals.set(\"cliente_cpf\", gerarCpf());"
+            ],
+            "type": "text/javascript"
+          }
         },
         {
-          "name": "Iniciar Diagnóstico",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "var jsonData = pm.response.json();",
-                  "pm.test(\"Status atualizado para EmDiagnostico\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "    pm.expect(jsonData.status).to.eql(\"EmDiagnostico\");",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{mecanico_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "PUT",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"novoStatus\": \"EmDiagnostico\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{base_url}}/api/admin/ordens-servico/{{os_id}}/status",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "admin",
-                "ordens-servico",
-                "{{os_id}}",
-                "status"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Lançar Itens do Orçamento",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "var jsonData = pm.response.json();",
-                  "pm.test(\"Itens lançados e OS enviada para aprovação do cliente\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "    pm.expect(jsonData.status).to.eql(\"AguardandoAprovacao\");",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{mecanico_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"pecas\": [\n    {\n      \"pecaId\": \"{{peca_id}}\",\n      \"quantidade\": 2\n    }\n  ],\n  \"servicos\": [\n    {\n      \"servicoId\": \"{{servico_id}}\"\n    }\n  ]\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{base_url}}/api/admin/ordens-servico/{{os_id}}/itens",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "admin",
-                "ordens-servico",
-                "{{os_id}}",
-                "itens"
-              ]
-            }
-          },
-          "response": []
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.globals.set(\"cliente_id\", jsonData.id);",
+              "pm.test(\"Cliente criado com sucesso\", function () {",
+              "    pm.response.to.have.status(201);",
+              "    pm.expect(jsonData.id).to.be.a('string');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
         }
-      ]
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{admin_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nome\": \"João da Silva\",\n  \"cpf\": \"{{cliente_cpf}}\",\n  \"email\": \"joao.silva@email.com\",\n  \"telefone\": \"11988887777\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/admin/clientes",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "clientes"
+          ]
+        }
+      },
+      "response": []
     },
     {
-      "name": "3. Aprovação, Execução e Entrega",
-      "item": [
+      "name": "4. Gerar Token Cliente",
+      "event": [
         {
-          "name": "Consultar Minhas Ordens",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Ordens do cliente consultadas com sucesso\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData).to.be.an('array');",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{cliente_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/api/public/ordens-servico",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "public",
-                "ordens-servico"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Aprovar Orçamento",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "var jsonData = pm.response.json();",
-                  "pm.test(\"Orçamento aprovado e OS transicionada para EmExecucao\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "    pm.expect(jsonData.status).to.eql(\"EmExecucao\");",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{cliente_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/api/public/ordens-servico/{{os_id}}/aprovar",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "public",
-                "ordens-servico",
-                "{{os_id}}",
-                "aprovar"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Finalizar Execução",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "var jsonData = pm.response.json();",
-                  "pm.test(\"Status atualizado para Finalizada\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "    pm.expect(jsonData.status).to.eql(\"Finalizada\");",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{mecanico_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "PUT",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"novoStatus\": \"Finalizada\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{base_url}}/api/admin/ordens-servico/{{os_id}}/status",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "admin",
-                "ordens-servico",
-                "{{os_id}}",
-                "status"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Entregue ao Cliente",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "var jsonData = pm.response.json();",
-                  "pm.test(\"Status atualizado para Entregue\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "    pm.expect(jsonData.status).to.eql(\"Entregue\");",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{admin_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "PUT",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"novoStatus\": \"Entregue\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{base_url}}/api/admin/ordens-servico/{{os_id}}/status",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "admin",
-                "ordens-servico",
-                "{{os_id}}",
-                "status"
-              ]
-            }
-          },
-          "response": []
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.globals.set(\"cliente_token\", jsonData.token);",
+              "pm.test(\"Token Cliente gerado com sucesso\", function () {",
+              "    pm.expect(jsonData.token).to.be.a('string');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
         }
-      ]
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/public/auth/token?usuario={{cliente_id}}&perfil=Cliente",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "public",
+            "auth",
+            "token"
+          ],
+          "query": [
+            {
+              "key": "usuario",
+              "value": "{{cliente_id}}"
+            },
+            {
+              "key": "perfil",
+              "value": "Cliente"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "5. Cadastrar Veículo",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';",
+              "const nums = '0123456789';",
+              "const randChar = () => chars[Math.floor(Math.random() * chars.length)];",
+              "const randNum = () => nums[Math.floor(Math.random() * nums.length)];",
+              "const placa = `${randChar()}${randChar()}${randChar()}${randNum()}${randChar()}${randNum()}${randNum()}`;",
+              "pm.globals.set(\"veiculo_placa\", placa);"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.globals.set(\"veiculo_id\", jsonData.id);",
+              "pm.test(\"Veículo cadastrado e vinculado com sucesso\", function () {",
+              "    pm.response.to.have.status(200);",
+              "    pm.expect(jsonData.id).to.be.a('string');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{admin_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"placa\": \"{{veiculo_placa}}\",\n  \"marca\": \"Ford\",\n  \"modelo\": \"Focus\",\n  \"ano\": 2018\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/admin/clientes/{{cliente_id}}/veiculos",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "clientes",
+            "{{cliente_id}}",
+            "veiculos"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "6. Cadastrar Peça",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.globals.set(\"peca_id\", jsonData.id);",
+              "pm.test(\"Peça cadastrada no catálogo com sucesso\", function () {",
+              "    pm.response.to.have.status(201);",
+              "    pm.expect(jsonData.id).to.be.a('string');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{admin_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nome\": \"Pastilha de Freio Dianteira\",\n  \"preco\": 189.90,\n  \"quantidadeEstoque\": 15\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/admin/pecas",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "pecas"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "7. Cadastrar Serviço",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.globals.set(\"servico_id\", jsonData.id);",
+              "pm.test(\"Serviço cadastrado no catálogo com sucesso\", function () {",
+              "    pm.response.to.have.status(201);",
+              "    pm.expect(jsonData.id).to.be.a('string');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{admin_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nome\": \"Alinhamento e Balanceamento\",\n  \"precoMaoDeObra\": 120.00\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/admin/servicos",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "servicos"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "8. Abrir Ordem de Serviço",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.globals.set(\"os_id\", jsonData.id);",
+              "pm.test(\"Ordem de Serviço criada com sucesso\", function () {",
+              "    pm.response.to.have.status(201);",
+              "    pm.expect(jsonData.id).to.be.a('string');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{admin_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"clienteId\": \"{{cliente_id}}\",\n  \"veiculoId\": \"{{veiculo_id}}\",\n  \"descricaoProblema\": \"Troca de óleo e barulho na suspensão dianteira.\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/admin/ordens-servico",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "ordens-servico"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "9. Iniciar Diagnóstico",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.test(\"Status atualizado para EmDiagnostico\", function () {",
+              "    pm.response.to.have.status(200);",
+              "    pm.expect(jsonData.status).to.eql(\"EmDiagnostico\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{mecanico_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"novoStatus\": \"EmDiagnostico\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/admin/ordens-servico/{{os_id}}/status",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "ordens-servico",
+            "{{os_id}}",
+            "status"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "10. Lançar Itens do Orçamento",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.test(\"Itens lançados e OS enviada para aprovação do cliente\", function () {",
+              "    pm.response.to.have.status(200);",
+              "    pm.expect(jsonData.status).to.eql(\"AguardandoAprovacao\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{mecanico_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"pecas\": [\n    {\n      \"pecaId\": \"{{peca_id}}\",\n      \"quantidade\": 2\n    }\n  ],\n  \"servicos\": [\n    {\n      \"servicoId\": \"{{servico_id}}\"\n    }\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/admin/ordens-servico/{{os_id}}/itens",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "ordens-servico",
+            "{{os_id}}",
+            "itens"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "11. Consultar Minhas Ordens",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Ordens do cliente consultadas com sucesso\", function () {",
+              "    pm.response.to.have.status(200);",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.be.an('array');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{cliente_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/public/ordens-servico",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "public",
+            "ordens-servico"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "12. Aprovar Orçamento",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.test(\"Orçamento aprovado e OS transicionada para EmExecucao\", function () {",
+              "    pm.response.to.have.status(200);",
+              "    pm.expect(jsonData.status).to.eql(\"EmExecucao\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{cliente_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/public/ordens-servico/{{os_id}}/aprovar",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "public",
+            "ordens-servico",
+            "{{os_id}}",
+            "aprovar"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "13. Finalizar Execução",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.test(\"Status atualizado para Finalizada\", function () {",
+              "    pm.response.to.have.status(200);",
+              "    pm.expect(jsonData.status).to.eql(\"Finalizada\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{mecanico_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"novoStatus\": \"Finalizada\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/admin/ordens-servico/{{os_id}}/status",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "ordens-servico",
+            "{{os_id}}",
+            "status"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "14. Entregue ao Cliente",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.test(\"Status atualizado para Entregue\", function () {",
+              "    pm.response.to.have.status(200);",
+              "    pm.expect(jsonData.status).to.eql(\"Entregue\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{admin_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"novoStatus\": \"Entregue\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/admin/ordens-servico/{{os_id}}/status",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "ordens-servico",
+            "{{os_id}}",
+            "status"
+          ]
+        }
+      },
+      "response": []
     }
   ],
   "variable": [
     {
       "key": "base_url",
-      "value": "http://localhost:5054",
+      "value": "http://localhost:8080",
       "type": "string"
     }
   ]
