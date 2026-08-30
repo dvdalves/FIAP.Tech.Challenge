@@ -947,15 +947,80 @@ Resposta: **200 OK**
 
 </details>
 
+<details>
+<summary>
+ Consulta pontual de status da OS (Acesso: Mecanico, Admin)
+</summary>
+
+**Método:** GET  
+**URI:** `/api/admin/ordens-servico/{id}/status`
+
+**Parâmetros:**
+
+- `id` (path, required): `Guid` (ID da Ordem de Serviço)
+
+**Exemplo request:**
+
+```bash
+curl -X GET "http://localhost:8080/api/admin/ordens-servico/9ca85f64-5717-4562-b3fc-2c963f66afe6/status" \
+  -H "Authorization: Bearer <TOKEN_MECANICO_OU_ADMIN>"
+```
+
+Resposta: **200 OK**
+
+```json
+{
+  "ordemServicoId": "9ca85f64-5717-4562-b3fc-2c963f66afe6",
+  "status": "EmExecucao",
+  "descricaoStatus": "Em Execução / Manutenção",
+  "valorTotal": 499.8,
+  "dataCriacao": "2026-08-26T19:00:00Z",
+  "dataInicioExecucao": "2026-08-26T19:30:00Z",
+  "dataFinalizacao": null
+}
+```
+
+</details>
+
+<details>
+<summary>
+ Disparar notificação manual por e-mail ao cliente (Acesso: Mecanico, Admin)
+</summary>
+
+**Método:** POST  
+**URI:** `/api/admin/ordens-servico/{id}/notificar`
+
+**Parâmetros:**
+
+- `id` (path, required): `Guid` (ID da Ordem de Serviço)
+
+**Exemplo request:**
+
+```bash
+curl -X POST "http://localhost:8080/api/admin/ordens-servico/9ca85f64-5717-4562-b3fc-2c963f66afe6/notificar" \
+  -H "Authorization: Bearer <TOKEN_MECANICO_OU_ADMIN>"
+```
+
+Resposta: **200 OK**
+
+```json
+{
+  "mensagem": "Notificação de e-mail enviada com sucesso para o cliente.",
+  "email": "cliente@email.com"
+}
+```
+
+</details>
+
 ---
 
 ## 📱 Fluxo do Cliente (Público)
 
-Todos os endpoints abaixo exigem o cabeçalho `Authorization: Bearer <TOKEN_JWT>`.
+Todos os endpoints abaixo exigem o cabeçalho `Authorization: Bearer <TOKEN_JWT>`, exceto as consultas públicas e webhooks com assinatura/identificador.
 
 <details>
 <summary>
- Obter Ordens de Serviço ativas do cliente
+ Obter Ordens de Serviço ativas do cliente (Ordenadas por status e data)
 </summary>
 
 **Método:** GET  
@@ -990,6 +1055,40 @@ Resposta: **200 OK**
     "valorTotal": 379.8
   }
 ]
+```
+
+</details>
+
+<details>
+<summary>
+ Consultar status público da OS (Recebida, Diagnóstico, Aguardando Aprovação, Execução, Finalizada, Entregue)
+</summary>
+
+**Método:** GET  
+**URI:** `/api/public/ordens-servico/{id}/status`
+
+**Parâmetros:**
+
+- `id` (path, required): `Guid` (ID da Ordem de Serviço)
+
+**Exemplo request:**
+
+```bash
+curl -X GET "http://localhost:8080/api/public/ordens-servico/9ca85f64-5717-4562-b3fc-2c963f66afe6/status"
+```
+
+Resposta: **200 OK**
+
+```json
+{
+  "ordemServicoId": "9ca85f64-5717-4562-b3fc-2c963f66afe6",
+  "status": "AguardandoAprovacao",
+  "descricaoStatus": "Aguardando Aprovação do Cliente",
+  "valorTotal": 379.8,
+  "dataCriacao": "2026-08-26T18:00:00Z",
+  "dataInicioExecucao": null,
+  "dataFinalizacao": null
+}
 ```
 
 </details>
@@ -1058,7 +1157,7 @@ curl -X POST "http://localhost:8080/api/public/ordens-servico/9ca85f64-5717-4562
   -H "Authorization: Bearer <TOKEN_CLIENTE>"
 ```
 
-_⚠️ Nota: Transiciona o status da OS para `EmExecucao` e abate de forma atômica o estoque físico de insumos._
+_⚠️ Nota: Transiciona o status da OS para `EmExecucao`, abate de forma atômica o estoque físico de insumos e notifica o cliente por e-mail._
 
 Resposta: **200 OK**
 
@@ -1091,7 +1190,7 @@ curl -X POST "http://localhost:8080/api/public/ordens-servico/9ca85f64-5717-4562
   -H "Authorization: Bearer <TOKEN_CLIENTE>"
 ```
 
-_⚠️ Nota: Cancela a OS (status transiciona para `Cancelada`)._
+_⚠️ Nota: Cancela a OS (status transiciona para `Cancelada`) e dispara notificação por e-mail._
 
 Resposta: **200 OK**
 
@@ -1104,3 +1203,62 @@ Resposta: **200 OK**
 ```
 
 </details>
+
+<details>
+<summary>
+ Notificação externa / Webhook de aprovação ou recusa do orçamento
+</summary>
+
+**Método:** POST  
+**URI:** `/api/public/ordens-servico/{id}/notificacao-orcamento`
+
+**Parâmetros:**
+
+- `id` (path, required): `Guid` (ID da Ordem de Serviço)
+
+**Exemplo request (Aprovação):**
+
+```bash
+curl -X POST "http://localhost:8080/api/public/ordens-servico/9ca85f64-5717-4562-b3fc-2c963f66afe6/notificacao-orcamento" \
+  -H "Content-Type: application/json" \
+  -d '{"aprovado":true,"observacao":"Aprovado pelo cliente via integração externa/chatbot."}'
+```
+
+Resposta: **200 OK**
+
+```json
+{
+  "id": "9ca85f64-5717-4562-b3fc-2c963f66afe6",
+  "status": "EmExecucao",
+  "valorTotal": 379.8
+}
+```
+
+</details>
+
+---
+
+## 🩺 Monitoramento & Health Check
+
+<details>
+<summary>
+ Health Check da Aplicação (Kubernetes Liveness & Readiness Probes)
+</summary>
+
+**Método:** GET  
+**URI:** `/health`
+
+**Exemplo request:**
+
+```bash
+curl -X GET "http://localhost:8080/health"
+```
+
+Resposta: **200 OK**
+
+```text
+Healthy
+```
+
+</details>
+

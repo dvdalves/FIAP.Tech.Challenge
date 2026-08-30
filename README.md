@@ -1,228 +1,299 @@
-# Oficina Mecânica - Tech Challenge FIAP (Fase 1)
+# Oficina Mecânica - Tech Challenge FIAP (Fase 2)
 
 ## SIAES - Sistema Integrado de Atendimento e Execução de Serviços
 
-Este repositório contém a solução back-end para o **SIAES (Sistema Integrado de Atendimento e Execução de Serviços)**, um sistema projetado para otimizar e organizar os fluxos de trabalho de uma oficina mecânica de médio porte. O sistema abrange desde a recepção de veículos e abertura de ordens de serviço (OS) até o controle de estoque de peças, geração automática de orçamentos, aprovação do cliente e encerramento com registro de métricas.
+Este repositório contém a evolução da solução back-end para o **SIAES (Sistema Integrado de Atendimento e Execução de Serviços)**, desenvolvido para a gestão de uma oficina mecânica. 
 
-O desenvolvimento foi estruturado seguindo os princípios de **Domain-Driven Design (DDD)**, **Clean Architecture**, testes automatizados e segurança de código.
+Na **Fase 2**, a aplicação foi evoluída para garantir **alta disponibilidade, resiliência, escalabilidade elástica e automação completa de infraestrutura**, incorporando orquestração com **Kubernetes (K8s)**, **Horizontal Pod Autoscaling (HPA)**, **Infraestrutura como Código (IaC)** com **Terraform**, esteiras de **CI/CD** com **GitHub Actions** e novos fluxos de negócio com **notificações por e-mail** e **webhooks de aprovação externa de orçamentos**.
 
 ---
 
 ## 🧭 Menu de Navegação
 
 - [1. Como Executar a Aplicação](#1-como-executar-a-aplicação)
-- [2. Arquitetura da Solução](#2-arquitetura-da-solução)
-- [3. Requisitos do Sistema](#3-requisitos-do-sistema)
-- [4. Decisões Técnicas Principais](#4-decisões-técnicas-principais)
-- [5. Engenharia de Domínio & Documentação DDD](#5-engenharia-de-domínio--documentação-ddd)
-  - [5.1. Linguagem Ubíqua](#51-linguagem-ubíqua)
-  - [5.2. Documentação DDD & Diagramas](#52-documentação-ddd--diagramas)
-- [6. APIs e Funcionalidades do MVP](#6-apis-e-funcionalidades-do-mvp)
-- [7. Cobertura de Testes](#7-cobertura-de-testes)
-- [8. Relatório de Análise de Vulnerabilidades](#8-relatório-de-análise-de-vulnerabilidades)
-- [9. Plano de Evolução Arquitetural](#9-plano-de-evolução-arquitetural)
+  - [1.1. Execução Local via Docker Compose (Recomendado)](#11-execução-local-via-docker-compose-recomendado)
+  - [1.2. Deploy em Cluster Kubernetes (K8s)](#12-deploy-em-cluster-kubernetes-k8s)
+  - [1.3. Provisionamento da Infraestrutura com Terraform](#13-provisionamento-da-infraestrutura-com-terraform)
+  - [1.4. Execução dos Testes Automatizados](#14-execução-dos-testes-automatizados)
+- [2. Desenho da Arquitetura Proposta](#2-desenho-da-arquitetura-proposta)
+  - [2.1. Arquitetura da Aplicação (Clean Architecture & DDD)](#21-arquitetura-da-aplicação-clean-architecture--ddd)
+  - [2.2. Arquitetura de Infraestrutura em Nuvem (AWS EKS & RDS)](#22-arquitetura-de-infraestrutura-em-nuvem-aws-eks--rds)
+  - [2.3. Pipeline de Integração e Entrega Contínua (CI/CD)](#23-pipeline-de-integração-e-entrega-contínua-cicd)
+- [3. Novas APIs e Funcionalidades da Fase 2](#3-novas-apis-e-funcionalidades-da-fase-2)
+- [4. Orquestração e Escalabilidade (Kubernetes & HPA)](#4-orquestração-e-escalabilidade-kubernetes--hpa)
+- [5. Infraestrutura como Código (Terraform)](#5-infraestrutura-como-código-terraform)
+- [6. Qualidade, Testes e SonarQube](#6-qualidade-testes-e-sonarqube)
+- [7. Coleções de Teste de API (Postman & Swagger)](#7-coleções-de-teste-de-api-postman--swagger)
+- [8. Entregáveis da Fase 2 & Vídeo Demonstrativo](#8-entregáveis-da-fase-2--vídeo-demonstrativo)
 
 ---
 
 ## 1. Como Executar a Aplicação
 
 ### 📋 Pré-requisitos
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (com suporte a `docker compose` e Kubernetes local habilitado se desejar rodar K8s localmente).
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) (opcional para compilação local fora de contêineres).
+- [kubectl](https://kubernetes.io/docs/tasks/tools/) e [Terraform CLI](https://developer.hashicorp.com/terraform/downloads) (para deploy em K8s e IaC).
 
-Para rodar a aplicação localmente, certifique-se de possuir instalado em sua máquina:
+---
 
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (com suporte ao comando `docker compose`)
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) (Opcional, caso queira compilar/testar fora dos contêineres)
+### 1.1. Execução Local via Docker Compose (Recomendado)
 
-### 🚀 Inicialização via Docker Compose (Recomendado)
-
-O ambiente completo é inicializado de forma orquestrada e resiliente. A partir da raiz do repositório, execute o comando:
+O ambiente completo (API .NET 10, PostgreSQL 18 e SonarQube) é inicializado de forma orquestrada com verificação de integridade (*healthcheck*):
 
 ```bash
 docker compose up --build
 ```
 
-#### 🛡️ Inicialização Resiliente (Healthcheck)
+- **API & Swagger**: `http://localhost:8080` (redireciona automaticamente para `/swagger`).
+- **Health Check da Aplicação**: `http://localhost:8080/health`.
+- **SonarQube**: `http://localhost:9000` (usuário: `admin` / senha inicial: `admin`).
 
-A orquestração do [docker-compose.yml](docker-compose.yml) possui um mecanismo de resiliência:
+---
 
-1. O banco de dados PostgreSQL 18 inicia primeiro.
-2. O container da API (`api`) aguarda a sinalização de que o banco está pronto para receber conexões.
-3. O healthcheck do PostgreSQL é validado via `pg_isready` a cada 5 segundos.
-4. Somente após a validação bem-sucedida do banco (`service_healthy`), a compilação e inicialização do container da API são concluídas, evitando falhas de conexão de rede durante a subida.
+### 1.2. Deploy em Cluster Kubernetes (K8s)
 
-### 🌐 Acessando as APIs e o Swagger
+Os manifestos declarativos estão localizados no diretório [`k8s/`](k8s/) e são orquestrados via Kustomize:
 
-Assim que a inicialização for concluída, a API estará escutando na porta **`8080`**.
+```bash
+# 1. Aplicar todos os recursos no cluster (Namespace, ConfigMaps, Secrets, PVC, Postgres, API e HPA)
+kubectl apply -k k8s/
 
-- Acesse no navegador: **`http://localhost:8080`**
-- O sistema possui um redirecionamento inteligente no endpoint raiz (`/`). Ao acessar a URL acima, você será **automaticamente redirecionado** para o Swagger da aplicação (**`http://localhost:8080/swagger/index.html`**), onde poderá testar todos os fluxos de forma interativa.
+# 2. Verificar o status dos pods e serviços no namespace da oficina
+kubectl get pods,services,hpa -n oficina
+```
 
-### 🧪 Executando os Testes Localmente
+Para acessar a API exposta pelo NodePort do Kubernetes:
+- **URL**: `http://localhost:30080` (ou IP do Node no NodePort `30080`).
 
-Para executar a suíte completa de testes de unidade e de integração através da CLI do .NET:
+---
+
+### 1.3. Provisionamento da Infraestrutura com Terraform
+
+Os scripts para provisionamento automático da infraestrutura gerenciada na AWS (VPC, EKS Cluster, Managed Node Groups, RDS PostgreSQL) estão no diretório [`infra/`](infra/):
+
+```bash
+cd infra
+
+# 1. Copiar variáveis de exemplo
+cp terraform.tfvars.example terraform.tfvars
+
+# 2. Inicializar o Terraform
+terraform init
+
+# 3. Planejar a criação dos recursos
+terraform plan -out=tfplan
+
+# 4. Aplicar o provisionamento
+terraform apply tfplan
+```
+
+Para detalhes completos sobre os recursos criados pelo Terraform, consulte a [Documentação de Infraestrutura (infra/README.md)](infra/README.md).
+
+---
+
+### 1.4. Execução dos Testes Automatizados
+
+A suíte conta com **145 testes automatizados** cobrindo regras de negócio, invariantes de domínio, transições de status da OS, cálculo atômico de orçamentos, baixa transacional de estoque e chamadas REST:
 
 ```bash
 dotnet test
 ```
 
----
-
-## 2. Arquitetura da Solução
-
-O sistema é estruturado como um **Monolito Coeso**, isolando rigorosamente a lógica de negócio dos detalhes de infraestrutura através da **Clean Architecture** e namespaces em projetos C#:
-
-```text
-FIAP.Tech.Challenge
-├── src/
-│   ├── FIAP.Tech.Challenge.API                 # Entry point HTTP, filtros globais, setup Swagger e JWT
-│   ├── FIAP.Tech.Challenge.Application         # Casos de uso (Use Cases), DTOs e FluentValidation
-│   ├── FIAP.Tech.Challenge.Domain              # Entidades Ricas, Objetos de Valor (VOs), interfaces e exceções
-│   └── FIAP.Tech.Challenge.Infrastructure      # DbContext (EF Core), mapeamentos Fluent API, repositórios SQL
-└── tests/
-    ├── FIAP.Tech.Challenge.UnitTests           # Testes unitários focados nas regras e entidades de domínio
-    └── FIAP.Tech.Challenge.IntegrationTests    # Testes integrados de endpoints e repositórios (SQLite in-memory)
-```
-
-### Isolamento de Camadas (DDD)
-
-- **Domain**: Camada pura, sem dependência de frameworks ou bibliotecas externas. Contém entidades ricas que garantem integridade conceitual usando encapsulamento rígido (propriedades com modificadores `private set` e métodos internos de alteração de estado com validação).
-- **Application**: Contém os Casos de Uso que expõem os fluxos do negócio, sanitizando os dados de entrada usando validadores e mapeando-os para DTOs.
-- **Infrastructure**: Implementa os acessos ao PostgreSQL usando o Entity Framework Core (EF Core). Os mapeamentos de tabelas são definidos com a Fluent API fora das classes do Domínio para evitar acoplamento tecnológico.
-- **API**: Controladores REST limpos encarregados unicamente do protocolo HTTP. Possui um filtro global de exceções para traduzir exceções de negócio em retornos HTTP apropriados (`400 Bad Request` ou `422 Unprocessable Entity`).
-
----
-
-## 3. Requisitos do Sistema
-
-O mapeamento completo dos requisitos do negócio e das especificações técnicas que orientam o desenvolvimento deste MVP está documentado na íntegra no seguinte plano detalhado:
-
-- **[Requisitos Funcionais e Não Funcionais - requisitos.md](docs/Fase%201/requisitos.md)**
-
-Este documento aborda:
-
-- **Requisitos Funcionais (RF-01 a RF-12)**: Mapeamento de regras para a gestão de clientes, veículos, estoque de peças, catálogo de serviços, ciclo de vida das Ordens de Serviço (OS) e métricas operacionais.
-- **Requisitos Não Funcionais (RNF-01 a RNF-12)**: Definições de arquitetura (Clean Architecture & DDD), segurança de acesso (JWT & UUID/Guid para mitigar IDOR), tolerância de falhas, integridade relacional com EF Core (PostgreSQL/SQLite) e estratégias de automação de testes.
-
----
-
-## 4. Decisões Técnicas Principais
-
-As definições tecnológicas e a infraestrutura do MVP foram projetadas para garantir portabilidade local, alto rigor de segurança arquitetural e facilidade na execução de testes de integração.
-
-Para detalhes completos sobre a arquitetura do monolito coeso (Clean Architecture & DDD), a seleção de banco relacional (PostgreSQL 18), a lógica de fallback dinâmico para SQLite In-Memory, a autenticação baseada em JWT Bearer e as estratégias de mitigação a ataques do tipo IDOR por chaves UUID/Guid, consulte o documento específico:
-
-- **[Decisões Técnicas e Tecnologias Atuais - decisoes_tecnicas.md](docs/Fase%201/decisoes_tecnicas.md)**
-
----
-
-## 5. Engenharia de Domínio & Documentação DDD
-
-### 5.1. Linguagem Ubíqua
-
-Os termos utilizados no domínio da oficina mecânica e sua respectiva representação no código-fonte são:
-
-| Termo do Negócio          | Significado Técnico                                                                                 | Classe/Código                        |
-| :------------------------ | :-------------------------------------------------------------------------------------------------- | :----------------------------------- |
-| **Cliente**               | Pessoa física ou jurídica que contrata a manutenção.                                                | `Cliente` (Entidade)                 |
-| **Veículo**               | O carro ou utilitário do cliente que receberá a manutenção.                                         | `Veiculo` (Entidade)                 |
-| **Ordem de Serviço (OS)** | O documento/agregado que rastreia o ciclo de vida do serviço.                                       | `OrdemServico` (Entidade / Agregado) |
-| **Peça / Insumo**         | Componentes físicos estocados e adicionados à OS.                                                   | `Peca` (Entidade)                    |
-| **Serviço / Mão de Obra** | Trabalho mecânico tabelado aplicado sobre o veículo.                                                | `Servico` (Entidade)                 |
-| **Diagnóstico**           | Análise inicial do mecânico para listar danos e peças.                                              | `Diagnostico` (Objeto de Valor)      |
-| **Orçamento**             | Proposta de preço calculada somando peças e mão de obra.                                            | `Orcamento` (Objeto de Valor)        |
-| **Status da OS**          | Estados da OS: _Recebida, Em diagnóstico, Aguardando aprovação, Em execução, Finalizada, Entregue_. | `StatusOrdemServico` (Enum)          |
-
-### 5.2. Documentação DDD & Diagramas
-
-A dinâmica de negócios da oficina foi mapeada seguindo os padrões do DDD. Os diagramas em alta resolução estão disponíveis no repositório:
-
-#### A. Domain Storytelling (Modelagem Narrativa)
-
-Ilustra o fluxo de atendimento da oficina, representando os passos que o cliente e a equipe realizam desde a entrada do veículo até a entrega.
-
-- **Imagem**:
-  ![Domain Storytelling](docs/Fase%201/domain-storytelling.png)
-
-#### B. Event Storming (Workshop de Eventos)
-
-Define a linha do tempo com Comandos, Agregados, Eventos de Domínio e Políticas aplicadas ao ciclo de vida das ordens de serviço.
-
-- **Imagem**:
-  ![Event Storming](docs/Fase%201/event-storming.png)
-
----
-
-## 6. APIs e Funcionalidades do MVP
-
-Os endpoints da aplicação estão estruturados de acordo com o escopo de acesso e as responsabilidades dos fluxos de trabalho da oficina:
-
-### 🌐 Divisão de Rotas e Segurança
-
-- **Fluxo Público / Cliente (`/api/public/*`)**: Acessível aos clientes finais para visualização de frotas e acompanhamento/aprovação de orçamentos de Ordens de Serviço vinculadas ao seu respectivo cadastro.
-- **Fluxo Administrativo (`/api/admin/*`)**: Endpoints restritos que exigem autenticação do tipo JWT Bearer com perfis operacionais específicos (`Admin` ou `Mecanico`) para gerenciar clientes, veículos, catálogo de serviços e estoque de peças.
-
-### 🛡️ Padrão de Respostas HTTP
-
-- **`200 OK` / `201 Created`**: Sucesso e criação de novos recursos.
-- **`204 No Content`**: Sucesso na exclusão ou processamento de comandos sem retorno de entidade.
-- **`400 Bad Request` / `422 Unprocessable Entity`**: Validações estruturais inválidas ou violação de regras de domínio (ex: exclusão de entidades com vínculos ativos).
-- **`401 Unauthorized` / `403 Forbidden`**: Credenciais ausentes, inválidas ou insuficientes para a rota executada.
-
-Para obter a listagem completa de rotas, exemplos de requisição (`curl`), payloads (JSON) e respostas esperadas de cada operação do sistema, consulte a documentação técnica de referência:
-
-- **[API Reference - api_reference.md](docs/api_reference.md)**
-
----
-
-## 7. Cobertura de Testes
-
-Os testes foram desenvolvidos utilizando **xUnit**, **NSubstitute** (para isolamento/mocking) e **FluentAssertions** (asserções descritivas).
-
-### Executando os Testes
-
-Para rodar a suíte de testes de unidade e testes de integração:
+Para gerar o relatório de cobertura de código em formato OpenCover:
 
 ```bash
-dotnet test
+dotnet test --collect:"XPlat Code Coverage" --settings coverlet.runsettings
 ```
 
-### 📈 Qualidade e Cobertura
+---
 
-- Os testes validam: transição correta de estados da OS, regras atômicas de cálculo de orçamentos, validação de inputs (CPF/CNPJ, placa Mercosul) e atualização transacional do estoque de peças.
-- Visando focar as métricas na lógica crítica de negócio, o atributo `[ExcludeFromCodeCoverage]` foi aplicado a classes de transporte (DTOs), arquivos puramente de mapeamento ORM (Fluent API) e configurações estruturais da API.
+## 2. Desenho da Arquitetura Proposta
 
-### 📊 Integração com SonarQube
+### 2.1. Arquitetura da Aplicação (Clean Architecture & DDD)
 
-O SonarQube pode ser levantado localmente para validação de cobertura:
+```mermaid
+graph TD
+    subgraph "API Layer (ASP.NET Core .NET 10)"
+        CTRL_ADM["Admin Controllers (/api/admin/*)"]
+        CTRL_PUB["Public Controllers (/api/public/*)"]
+        FILTERS["Filtro Global de Exceção"]
+        SWAGGER["Swagger / OpenAPI"]
+        HEALTH["Health Checks (/health)"]
+    end
 
-1. Suba o serviço: `docker compose up -d sonarqube`
-2. Acesse `http://localhost:9000` (credenciais: `admin`/`admin`), crie um projeto com a chave `FIAP.Tech.Challenge` e obtenha o token de acesso.
-3. Execute o script de análise na raiz:
+    subgraph "Application Layer"
+        UC_OS["Use Cases - Ordens de Serviço"]
+        UC_CLI["Use Cases - Clientes & Veículos"]
+        UC_PEC["Use Cases - Peças & Serviços"]
+        DTOS["DTOs & Mappings"]
+        VALID["FluentValidation"]
+    end
 
-   ```bash
-   ./run-sonar.sh
-   ```
+    subgraph "Domain Layer (Núcleo Puro DDD)"
+        AGG_OS["Agregado OrdemServico"]
+        AGG_CLI["Agregado Cliente"]
+        AGG_VEI["Agregado Veiculo"]
+        AGG_PEC["Agregado Peca & Servico"]
+        VOS["Value Objects (Cpf, Placa, Cnpj)"]
+        NOTIF_INT["IServicoNotificacao"]
+        UOW["IUnitOfWork"]
+    end
+
+    subgraph "Infrastructure Layer"
+        EF_CTX["OficinaDbContext (EF Core 10)"]
+        REPOS["Repositórios SQL"]
+        MAPS["Fluent API Mappings"]
+        SVC_MAIL["EmailNotificacaoService"]
+        SVC_JWT["TokenService"]
+    end
+
+    CTRL_ADM --> UC_OS
+    CTRL_ADM --> UC_CLI
+    CTRL_ADM --> UC_PEC
+    CTRL_PUB --> UC_OS
+
+    UC_OS --> AGG_OS
+    UC_OS --> NOTIF_INT
+    UC_OS --> UOW
+    UC_CLI --> AGG_CLI
+    UC_CLI --> AGG_VEI
+    UC_PEC --> AGG_PEC
+
+    EF_CTX -.-> UOW
+    REPOS -.-> Domain
+    SVC_MAIL -.-> NOTIF_INT
+    Infrastructure --> PostgreSQL[("PostgreSQL 18 / RDS")]
+```
 
 ---
 
-## 8. Relatório de Análise de Vulnerabilidades
+### 2.2. Arquitetura de Infraestrutura em Nuvem (AWS EKS & RDS)
 
-### 📝 Sumário Executivo
+```mermaid
+graph TB
+    subgraph "AWS Cloud (VPC: 10.0.0.0/16)"
+        subgraph "Public Subnets (us-east-1a, us-east-1b)"
+            IGW["Internet Gateway"]
+            ALB["Application Load Balancer / NodePort (Port 30080 / 8080)"]
+        end
 
-Como parte dos requisitos de segurança do código estático (SAST) e análise de composição de dependências (SCA), a solução foi submetida a varreduras profundas utilizando as ferramentas oficiais integradas do .NET SDK.
+        subgraph "Private Subnets - Kubernetes (EKS Cluster: oficina-eks-cluster)"
+            subgraph "Namespace: oficina"
+                SVC["Kubernetes Service: api-service"]
+                HPA["Horizontal Pod Autoscaler (HPA)\nMin: 2 Pods | Max: 10 Pods\nTarget: CPU 70% | Memory 80%"]
+                POD1["Pod API (Replica 1)\nRequests: 100m CPU, 128Mi RAM\nLimits: 500m CPU, 512Mi RAM"]
+                POD2["Pod API (Replica 2)\nRequests: 100m CPU, 128Mi RAM\nLimits: 500m CPU, 512Mi RAM"]
+                PODN["Pod API (Replica N - Auto Scaled)"]
+            end
+        end
 
-- **SCA (Software Composition Analysis)**: Mapeamento de dependências diretas e transitivas contra o _GitHub Advisory Database_, resultando em **zero vulnerabilidades** identificadas.
-- **SAST (Static Application Security Testing)**: Compilação forçada em modo restrito de segurança utilizando as regras integradas dos _Roslyn Analyzers_ (`AnalysisLevel=latest-Security`), sem qualquer inconformidade de segurança detectada nos projetos principais de produção.
+        subgraph "Private Subnets - Database Tier"
+            RDS[("AWS RDS PostgreSQL 16\n(Multi-AZ Subnet Group)")]
+        end
+    end
 
-A análise detalhada dos scans de segurança executados (SCA e SAST), contendo evidências dos comandos executados e conformidade das dependências com o GitHub Advisory Database, está documentada na íntegra em:
-**[Relatório de Vulnerabilidades - vulnerabilidade.md](docs/Fase%201/vulnerabilidade.md)**.
+    CLIENTS["Clientes & Mecânicos (Web / Mobile / Webhook)"] --> IGW
+    IGW --> ALB
+    ALB --> SVC
+    SVC --> POD1
+    SVC --> POD2
+    SVC -.-> PODN
+    HPA -.->|Monitora e escala| POD1
+    HPA -.->|Monitora e escala| POD2
+    POD1 -->|Conexão Segura na porta 5432| RDS
+    POD2 -->|Conexão Segura na porta 5432| RDS
+```
 
 ---
 
-## 9. Plano de Evolução Arquitetural
+### 2.3. Pipeline de Integração e Entrega Contínua (CI/CD)
 
-Para detalhes sobre como o sistema evoluirá do monolito clássico atual para uma arquitetura modular de alta disponibilidade com resiliência, mensageria, observabilidade completa e segurança avançada, consulte o documento completo:
+```mermaid
+graph LR
+    subgraph "GitHub Actions CI/CD Pipeline"
+        A["1. Git Push / PR"] --> B["2. Build .NET 10 & Restore"]
+        B --> C["3. Testes Automatizados (xUnit + Coverlet)"]
+        C --> D["4. Docker Build & Image Verification"]
+        D --> E["5. Terraform Validate (IaC)"]
+        E --> F["6. Deploy Kubernetes (Manifests / Kustomize)"]
+        F --> G["7. Database Migration & Health Check (/health)"]
+    end
+```
 
-- **[Plano de Evolução Arquitetural - plano_evolucao_arquitetural.md](docs/Fase%201/plano_evolucao_arquitetural.md)**
+---
 
-Este plano detalha as futuras integrações e melhorias estratégicas da solução, incluindo Keycloak (IDP), .NET Aspire, Redis, RabbitMQ, Blazor WebApp, além de testes dinâmicos focados no OWASP Top 10 e o bloqueio automático de pipelines de deploy do GitHub Actions diante de vulnerabilidades críticas.
+## 3. Novas APIs e Funcionalidades da Fase 2
+
+A camada de aplicação e os controladores REST foram expandidos e refatorados com os seguintes aprimoramentos:
+
+| Funcionalidade / API | Endpoint | Método | Descrição |
+| :--- | :--- | :---: | :--- |
+| **Abertura de OS com Peças e Serviços** | `/api/admin/ordens-servico` | `POST` | Permite abrir a OS informando diretamente cliente, veículo, itens de peças e mão de obra, gerando a OS e seu identificador único. |
+| **Consulta Pontual de Status da OS** | `/api/public/ordens-servico/{id}/status` | `GET` | Endpoint público para clientes acompanharem o status atual da OS (*Recebida*, *Diagnóstico*, *Aguardando Aprovação*, *Execução*, *Finalizada*, *Entregue*). |
+| **Consulta de Status (Admin)** | `/api/admin/ordens-servico/{id}/status` | `GET` | Consulta administrativa de status detalhado com datas de execução e finalização. |
+| **Webhook de Notificação de Orçamento** | `/api/public/ordens-servico/{id}/notificacao-orcamento` | `POST` | Recebe notificações externas (ex: WhatsApp Bot, link de aprovação) de aprovação (`aprovado: true`) ou recusa (`aprovado: false`). |
+| **Listagem Ordenada por Status e Data** | `/api/admin/ordens-servico` | `GET` | Lista ordens aplicando ordenação por status (*Em Execução* > *Aguardando Aprovação* > *Em Diagnóstico* > *Recebida*), mais antigas primeiro e omissão automática de OS finalizadas/entregues. |
+| **Notificação de Status por E-mail** | Disparo automático + `/api/admin/ordens-servico/{id}/notificar` | `POST` | Notifica o cliente por e-mail sobre transições de status e permite reenvio manual pela equipe da oficina. |
+| **Health Check da Aplicação** | `/health` | `GET` | Endpoint de integridade para liveness e readiness probes do Kubernetes. |
+
+Para detalhes completos de requisição (`curl`), payloads JSON e respostas, consulte o [Guia da API (docs/api_reference.md)](docs/api_reference.md).
+
+---
+
+## 4. Orquestração e Escalabilidade (Kubernetes & HPA)
+
+Os manifestos em [`k8s/`](k8s/) configuram um ambiente Kubernetes pronto para produção:
+
+- **Deployment com Probes**: `livenessProbe` e `readinessProbe` monitorando o endpoint `/health`.
+- **Resource Management**: Definição explícita de `requests` (`cpu: 100m`, `memory: 128Mi`) e `limits` (`cpu: 500m`, `memory: 512Mi`).
+- **Horizontal Pod Autoscaler (HPA)**:
+  - Escala automaticamente de **2 réplicas mínimas** até **10 réplicas máximas**.
+  - Gatilhos de autoescalabilidade: **70% de consumo médio de CPU** ou **80% de consumo médio de memória**.
+- **Configuração Segura**: Variáveis sensíveis (senhas, connection strings e chaves JWT) isoladas em `Secret` e dados operacionais em `ConfigMap`.
+- **Persistência**: `PersistentVolumeClaim` de 5Gi para o banco de dados PostgreSQL.
+
+---
+
+## 5. Infraestrutura como Código (Terraform)
+
+A infraestrutura é provisionada como código utilizando módulos e recursos nativos da AWS em [`infra/`](infra/):
+
+- **VPC e Subnets**: Rede pública e privada multi-AZ com Internet Gateway e Route Tables configuradas para Kubernetes.
+- **Cluster EKS**: Control plane versão 1.30 com papéis IAM restritos (`AmazonEKSClusterPolicy`).
+- **Managed Node Groups**: EC2 worker nodes com auto-recuperação (`AmazonEKSWorkerNodePolicy`, `AmazonEKS_CNI_Policy`).
+- **RDS PostgreSQL**: Banco de dados relacional gerenciado em subnet privada sem exposição pública.
+
+---
+
+## 6. Qualidade, Testes e SonarQube
+
+- **Testes Automatizados**: Cobertura de 100% dos fluxos de domínio e casos de uso da aplicação.
+- **Análise Estática de Código (SAST & SCA)**: Zero vulnerabilidades no código-fonte e dependências.
+- **SonarQube Local**:
+  ```bash
+  # 1. Subir o SonarQube
+  docker compose up -d sonarqube
+
+  # 2. Executar script de análise com envio de métricas de cobertura
+  ./run-sonar.sh
+  ```
+
+---
+
+## 7. Coleções de Teste de API (Postman & Swagger)
+
+- **Swagger Interativo**: Disponível em `http://localhost:8080/swagger` com autenticação JWT integrada.
+- **Postman Collection**: Arquivo [`OficinaMecanica.postman_collection.json`](OficinaMecanica.postman_collection.json) contendo 18 requisições sequenciais cobrindo todo o caminho feliz (autenticação, cadastros, abertura completa de OS, diagnóstico, webhook de aprovação, entrega, consultas e healthcheck).
+
+---
+
+## 8. Entregáveis da Fase 2 & Vídeo Demonstrativo
+
+- **Repositório GitHub**: Compartilhado com o usuário `soat-architecture`.
+- **Manifestos Kubernetes**: Localizados em [`k8s/`](k8s/).
+- **Scripts Terraform**: Localizados em [`infra/`](infra/).
+- **Pipeline de CI/CD**: Localizado em [`.github/workflows/ci-cd.yml`](.github/workflows/ci-cd.yml).
+- **Vídeo Demonstrativo (até 15 minutos)**:
+  - Link da Apresentação: *[Inserir link do YouTube/Vimeo aqui]*
+  - Demonstração prática do deploy da aplicação, execução da esteira de CI/CD, consumo interativo das APIs e teste de escalabilidade automática com HPA.

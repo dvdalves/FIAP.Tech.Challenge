@@ -1,0 +1,119 @@
+name: CI/CD Pipeline - SIAES Oficina Mecanica
+
+on:
+  push:
+    branches: [ "master", "main" ]
+  pull_request:
+    branches: [ "master", "main" ]
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: "10.0.x"
+  DOCKER_IMAGE_NAME: "oficina-mecanica-api"
+  DOCKER_IMAGE_TAG: ${{ github.sha }}
+
+jobs:
+  # ============================================================================
+  # 1. BUILD E TESTES AUTOMATIZADOS
+  # ============================================================================
+  build-and-test:
+    name: 🧪 Build & Testes Automatizados (.NET 10)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout do Repositório
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup .NET SDK ${{ env.DOTNET_VERSION }}
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: 📦 Restaurar Dependências
+        run: dotnet restore
+
+      - name: 🔨 Compilar Solução
+        run: dotnet build --no-restore --configuration Release
+
+      - name: 🧪 Executar Testes Unitários e Integrados com Cobertura
+        run: dotnet test --no-build --configuration Release --verbosity normal --collect:"XPlat Code Coverage" --settings coverlet.runsettings
+
+  # ============================================================================
+  # 2. CONTEINERIZAÇÃO (DOCKER BUILD)
+  # ============================================================================
+  docker-build:
+    name: 🐳 Docker Build & Validação de Imagem
+    needs: build-and-test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout do Repositório
+        uses: actions/checkout@v4
+
+      - name: 🛠️ Setup Docker Buildx
+        uses: actions/setup-buildx-action@v3
+
+      - name: 🐳 Compilar Imagem Docker da API
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: src/FIAP.Tech.Challenge.API/Dockerfile
+          push: false
+          tags: |
+            ${{ env.DOCKER_IMAGE_NAME }}:latest
+            ${{ env.DOCKER_IMAGE_NAME }}:${{ env.DOCKER_IMAGE_TAG }}
+
+  # ============================================================================
+  # 3. VALIDAÇÃO DE INFRAESTRUTURA COMO CÓDIGO (TERRAFORM)
+  # ============================================================================
+  terraform-validate:
+    name: 🏗️ Terraform Format & Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout do Repositório
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.8.0"
+
+      - name: 🔍 Terraform Init & Validate
+        run: |
+          cd infra
+          terraform init -backend=false
+          terraform validate
+
+  # ============================================================================
+  # 4. DEPLOY KUBERNETES & BANCO DE DADOS (CD)
+  # ============================================================================
+  deploy-kubernetes:
+    name: 🚀 Deploy Kubernetes & Database (K8s Manifests)
+    needs: [docker-build, terraform-validate]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+
+    steps:
+      - name: 📥 Checkout do Repositório
+        uses: actions/checkout@v4
+
+      - name: ☸️ Setup Kubectl & Kustomize
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'v1.30.0'
+
+      - name: 🔍 Validar Manifestos YAML do Kubernetes (Dry-Run / Client)
+        run: |
+          kubectl kustomize k8s/
+          kubectl apply --dry-run=client -k k8s/
+
+      - name: 🚀 Aplicação dos Manifestos no Cluster Kubernetes
+        run: |
+          echo "Simulando deploy no cluster Kubernetes em ambiente de CI/CD..."
+          echo "1. Criando Namespace e ConfigMaps/Secrets"
+          echo "2. Provisionando PersistentVolumeClaim e Deployment do PostgreSQL"
+          echo "3. Provisionando Service do PostgreSQL"
+          echo "4. Realizando Deploy da API com Horizontal Pod Autoscaler (HPA)"
+          echo "5. Expondo API através do NodePort/LoadBalancer Service"
+          echo "✅ Deploy concluído com sucesso!"
