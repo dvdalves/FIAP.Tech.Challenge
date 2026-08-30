@@ -10,6 +10,7 @@ using FIAP.Tech.Challenge.Domain.Aggregates.OrdemServicoAggregate;
 using FIAP.Tech.Challenge.Domain.Aggregates.PecaAggregate;
 using FIAP.Tech.Challenge.Domain.Aggregates.ServicoAggregate;
 using FIAP.Tech.Challenge.Domain.Aggregates.VeiculoAggregate;
+using FIAP.Tech.Challenge.Domain.Services;
 using FIAP.Tech.Challenge.Infrastructure.Data.Context;
 using FIAP.Tech.Challenge.Infrastructure.Repositories;
 using FIAP.Tech.Challenge.Infrastructure.Services;
@@ -56,6 +57,8 @@ public static class DependencyInjectionSetup
         // Casos de Uso
         services.AddScoped<CriarOrdemServicoUseCase>();
         services.AddScoped<AtualizarStatusOSUseCase>();
+        services.AddScoped<ConsultarStatusOSUseCase>();
+        services.AddScoped<ProcessarNotificacaoOrcamentoUseCase>();
         
         services.AddScoped<CriarClienteUseCase>();
         services.AddScoped<AtualizarClienteUseCase>();
@@ -81,6 +84,7 @@ public static class DependencyInjectionSetup
 
         // Serviços de Infraestrutura
         services.AddSingleton<TokenService>();
+        services.AddScoped<IServicoNotificacao, EmailNotificacaoService>();
 
         // Validadores do FluentValidation
         services.AddValidatorsFromAssemblyContaining<CriarOrdemServicoValidator>();
