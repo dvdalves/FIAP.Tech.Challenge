@@ -51,7 +51,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: 🛠️ Setup Docker Buildx
-        uses: actions/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v3
 
       - name: 🐳 Compilar Imagem Docker da API
         uses: docker/build-push-action@v5
