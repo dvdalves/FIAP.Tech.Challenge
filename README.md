@@ -2,7 +2,7 @@
 
 ## SIAES - Sistema Integrado de Atendimento e Execução de Serviços
 
-Este repositório contém a evolução da solução back-end para o **SIAES (Sistema Integrado de Atendimento e Execução de Serviços)**, desenvolvido para a gestão de uma oficina mecânica. 
+Este repositório contém a evolução da solução back-end para o **SIAES (Sistema Integrado de Atendimento e Execução de Serviços)**, desenvolvido para a gestão de uma oficina mecânica.
 
 Na **Fase 2**, a aplicação foi evoluída para garantir **alta disponibilidade, resiliência, escalabilidade elástica e automação completa de infraestrutura**, incorporando orquestração com **Kubernetes (K8s)**, **Horizontal Pod Autoscaling (HPA)**, **Infraestrutura como Código (IaC)** com **Terraform**, esteiras de **CI/CD** com **GitHub Actions** e novos fluxos de negócio com **notificações por e-mail** e **webhooks de aprovação externa de orçamentos**.
 
@@ -31,6 +31,7 @@ Na **Fase 2**, a aplicação foi evoluída para garantir **alta disponibilidade,
 ## 1. Como Executar a Aplicação
 
 ### 📋 Pré-requisitos
+
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (com suporte a `docker compose` e Kubernetes local habilitado se desejar rodar K8s localmente).
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) (opcional para compilação local fora de contêineres).
 - [kubectl](https://kubernetes.io/docs/tasks/tools/) e [Terraform CLI](https://developer.hashicorp.com/terraform/downloads) (para deploy em K8s e IaC).
@@ -39,7 +40,7 @@ Na **Fase 2**, a aplicação foi evoluída para garantir **alta disponibilidade,
 
 ### 1.1. Execução Local via Docker Compose (Recomendado)
 
-O ambiente completo (API .NET 10, PostgreSQL 18 e SonarQube) é inicializado de forma orquestrada com verificação de integridade (*healthcheck*):
+O ambiente completo (API .NET 10, PostgreSQL 18 e SonarQube) é inicializado de forma orquestrada com verificação de integridade (_healthcheck_):
 
 ```bash
 docker compose up --build
@@ -64,6 +65,7 @@ kubectl get pods,services,hpa -n oficina
 ```
 
 Para acessar a API exposta pelo NodePort do Kubernetes:
+
 - **URL**: `http://localhost:30080` (ou IP do Node no NodePort `30080`).
 
 ---
@@ -227,15 +229,15 @@ graph LR
 
 A camada de aplicação e os controladores REST foram expandidos e refatorados com os seguintes aprimoramentos:
 
-| Funcionalidade / API | Endpoint | Método | Descrição |
-| :--- | :--- | :---: | :--- |
-| **Abertura de OS com Peças e Serviços** | `/api/admin/ordens-servico` | `POST` | Permite abrir a OS informando diretamente cliente, veículo, itens de peças e mão de obra, gerando a OS e seu identificador único. |
-| **Consulta Pontual de Status da OS** | `/api/public/ordens-servico/{id}/status` | `GET` | Endpoint público para clientes acompanharem o status atual da OS (*Recebida*, *Diagnóstico*, *Aguardando Aprovação*, *Execução*, *Finalizada*, *Entregue*). |
-| **Consulta de Status (Admin)** | `/api/admin/ordens-servico/{id}/status` | `GET` | Consulta administrativa de status detalhado com datas de execução e finalização. |
-| **Webhook de Notificação de Orçamento** | `/api/public/ordens-servico/{id}/notificacao-orcamento` | `POST` | Recebe notificações externas (ex: WhatsApp Bot, link de aprovação) de aprovação (`aprovado: true`) ou recusa (`aprovado: false`). |
-| **Listagem Ordenada por Status e Data** | `/api/admin/ordens-servico` | `GET` | Lista ordens aplicando ordenação por status (*Em Execução* > *Aguardando Aprovação* > *Em Diagnóstico* > *Recebida*), mais antigas primeiro e omissão automática de OS finalizadas/entregues. |
-| **Notificação de Status por E-mail** | Disparo automático + `/api/admin/ordens-servico/{id}/notificar` | `POST` | Notifica o cliente por e-mail sobre transições de status e permite reenvio manual pela equipe da oficina. |
-| **Health Check da Aplicação** | `/health` | `GET` | Endpoint de integridade para liveness e readiness probes do Kubernetes. |
+| Funcionalidade / API                    | Endpoint                                                        | Método | Descrição                                                                                                                                                                                     |
+| :-------------------------------------- | :-------------------------------------------------------------- | :----: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Abertura de OS com Peças e Serviços** | `/api/admin/ordens-servico`                                     | `POST` | Permite abrir a OS informando diretamente cliente, veículo, itens de peças e mão de obra, gerando a OS e seu identificador único.                                                             |
+| **Consulta Pontual de Status da OS**    | `/api/public/ordens-servico/{id}/status`                        | `GET`  | Endpoint público para clientes acompanharem o status atual da OS (_Recebida_, _Diagnóstico_, _Aguardando Aprovação_, _Execução_, _Finalizada_, _Entregue_).                                   |
+| **Consulta de Status (Admin)**          | `/api/admin/ordens-servico/{id}/status`                         | `GET`  | Consulta administrativa de status detalhado com datas de execução e finalização.                                                                                                              |
+| **Webhook de Notificação de Orçamento** | `/api/public/ordens-servico/{id}/notificacao-orcamento`         | `POST` | Recebe notificações externas (ex: WhatsApp Bot, link de aprovação) de aprovação (`aprovado: true`) ou recusa (`aprovado: false`).                                                             |
+| **Listagem Ordenada por Status e Data** | `/api/admin/ordens-servico`                                     | `GET`  | Lista ordens aplicando ordenação por status (_Em Execução_ > _Aguardando Aprovação_ > _Em Diagnóstico_ > _Recebida_), mais antigas primeiro e omissão automática de OS finalizadas/entregues. |
+| **Notificação de Status por E-mail**    | Disparo automático + `/api/admin/ordens-servico/{id}/notificar` | `POST` | Notifica o cliente por e-mail sobre transições de status e permite reenvio manual pela equipe da oficina.                                                                                     |
+| **Health Check da Aplicação**           | `/health`                                                       | `GET`  | Endpoint de integridade para liveness e readiness probes do Kubernetes.                                                                                                                       |
 
 Para detalhes completos de requisição (`curl`), payloads JSON e respostas, consulte o [Guia da API (docs/api_reference.md)](docs/api_reference.md).
 
@@ -271,6 +273,7 @@ A infraestrutura é provisionada como código utilizando módulos e recursos nat
 - **Testes Automatizados**: Cobertura de 100% dos fluxos de domínio e casos de uso da aplicação.
 - **Análise Estática de Código (SAST & SCA)**: Zero vulnerabilidades no código-fonte e dependências.
 - **SonarQube Local**:
+
   ```bash
   # 1. Subir o SonarQube
   docker compose up -d sonarqube
@@ -287,13 +290,3 @@ A infraestrutura é provisionada como código utilizando módulos e recursos nat
 - **Postman Collection**: Arquivo [`OficinaMecanica.postman_collection.json`](OficinaMecanica.postman_collection.json) contendo 18 requisições sequenciais cobrindo todo o caminho feliz (autenticação, cadastros, abertura completa de OS, diagnóstico, webhook de aprovação, entrega, consultas e healthcheck).
 
 ---
-
-## 8. Entregáveis da Fase 2 & Vídeo Demonstrativo
-
-- **Repositório GitHub**: Compartilhado com o usuário `soat-architecture`.
-- **Manifestos Kubernetes**: Localizados em [`k8s/`](k8s/).
-- **Scripts Terraform**: Localizados em [`infra/`](infra/).
-- **Pipeline de CI/CD**: Localizado em [`.github/workflows/ci-cd.yml`](.github/workflows/ci-cd.yml).
-- **Vídeo Demonstrativo (até 15 minutos)**:
-  - Link da Apresentação: *[Inserir link do YouTube/Vimeo aqui]*
-  - Demonstração prática do deploy da aplicação, execução da esteira de CI/CD, consumo interativo das APIs e teste de escalabilidade automática com HPA.
