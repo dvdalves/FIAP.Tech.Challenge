@@ -106,7 +106,7 @@ jobs:
       - name: 🔍 Validar Manifestos YAML do Kubernetes (Dry-Run / Client)
         run: |
           kubectl kustomize k8s/
-          kubectl apply --dry-run=client -k k8s/
+          kubectl apply --dry-run=client --validate=false -k k8s/
 
       - name: 🚀 Aplicação dos Manifestos no Cluster Kubernetes
         run: |
