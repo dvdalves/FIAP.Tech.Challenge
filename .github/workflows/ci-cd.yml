@@ -2,9 +2,9 @@ name: CI/CD Pipeline - SIAES Oficina Mecanica
 
 on:
   push:
-    branches: [ "master", "main" ]
+    branches: ["master", "main"]
   pull_request:
-    branches: [ "master", "main" ]
+    branches: ["master", "main"]
   workflow_dispatch:
 
 env:
@@ -101,7 +101,7 @@ jobs:
       - name: ☸️ Setup Kubectl & Kustomize
         uses: azure/setup-kubectl@v4
         with:
-          version: 'v1.30.0'
+          version: "v1.30.0"
 
       - name: 🔍 Validar Manifestos YAML do Kubernetes (Dry-Run / Client)
         run: |
