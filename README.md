@@ -24,7 +24,6 @@ Na **Fase 2**, a aplicação foi evoluída para garantir **alta disponibilidade,
 - [5. Infraestrutura como Código (Terraform)](#5-infraestrutura-como-código-terraform)
 - [6. Qualidade, Testes e SonarQube](#6-qualidade-testes-e-sonarqube)
 - [7. Coleções de Teste de API (Postman & Swagger)](#7-coleções-de-teste-de-api-postman--swagger)
-- [8. Entregáveis da Fase 2 & Vídeo Demonstrativo](#8-entregáveis-da-fase-2--vídeo-demonstrativo)
 
 ---
 

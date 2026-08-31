@@ -29,7 +29,7 @@ public class ConsultarStatusOSUseCaseTests
             .Returns(os);
 
         // Act
-        var response = await _useCase.ExecutarAsync(osId);
+        var response = await _useCase.ExecutarAsync(osId, TestContext.Current.CancellationToken);
 
         // Assert
         response.Should().NotBeNull();
