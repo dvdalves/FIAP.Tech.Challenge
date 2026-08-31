@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: oficina
+  labels:
+    app.kubernetes.io/name: oficina-mecanica-siaes
+    app.kubernetes.io/part-of: tech-challenge-fase-2
