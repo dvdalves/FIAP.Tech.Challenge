@@ -1,15 +1,19 @@
 using FIAP.Tech.Challenge.Application.DTOs.Responses;
 using FIAP.Tech.Challenge.Application.Mappings;
 using FIAP.Tech.Challenge.Domain;
+using FIAP.Tech.Challenge.Domain.Aggregates.ClienteAggregate;
 using FIAP.Tech.Challenge.Domain.Aggregates.OrdemServicoAggregate;
 using FIAP.Tech.Challenge.Domain.Aggregates.PecaAggregate;
 using FIAP.Tech.Challenge.Domain.Exceptions;
+using FIAP.Tech.Challenge.Domain.Services;
 
 namespace FIAP.Tech.Challenge.Application.UseCases.OrdensServico;
 
 public class AprovarOrcamentoUseCase(
     IOrdemServicoRepository ordemServicoRepository,
     IPecaRepository pecaRepository,
+    IClienteRepository clienteRepository,
+    IServicoNotificacao servicoNotificacao,
     IUnitOfWork unitOfWork)
 {
     public async Task<OrdemServicoResponse> ExecutarAsync(Guid osId, CancellationToken cancellationToken = default)
@@ -18,6 +22,8 @@ public class AprovarOrcamentoUseCase(
         var os = await ordemServicoRepository.ObterPorIdAsync(osId, cancellationToken);
         if (os == null)
             throw new DominioException("Ordem de serviço não encontrada.");
+
+        var statusAnterior = os.Status;
 
         // 2. Transicionar status para Em Execução
         os.AtualizarStatus(StatusOrdemServico.EmExecucao);
@@ -40,6 +46,20 @@ public class AprovarOrcamentoUseCase(
         // 4. Salvar e confirmar transação única
         await ordemServicoRepository.AtualizarAsync(os, cancellationToken);
         await unitOfWork.CommitAsync(cancellationToken);
+
+        // 5. Notificar cliente por e-mail
+        var cliente = await clienteRepository.ObterPorIdAsync(os.ClienteId, cancellationToken);
+        if (cliente != null)
+        {
+            await servicoNotificacao.NotificarAtualizacaoStatusAsync(
+                os.Id,
+                cliente.Nome,
+                cliente.Email,
+                statusAnterior,
+                StatusOrdemServico.EmExecucao,
+                "Orçamento aprovado pelo cliente com sucesso. Início da execução dos reparos mecânicos.",
+                cancellationToken);
+        }
 
         return os.ParaResponse();
     }

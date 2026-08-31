@@ -8,4 +8,7 @@ public class AbrirOrdemServicoRequest
     public Guid ClienteId { get; set; }
     public Guid VeiculoId { get; set; }
     public string DescricaoProblema { get; set; } = string.Empty;
+
+    public List<PecaItemRequest>? ItensPeca { get; set; } = [];
+    public List<ServicoItemRequest>? ItensServico { get; set; } = [];
 }

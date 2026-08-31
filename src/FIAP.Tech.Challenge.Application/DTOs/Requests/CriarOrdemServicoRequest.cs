@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using FIAP.Tech.Challenge.Application.UseCases.OrdensServico;
 
 namespace FIAP.Tech.Challenge.Application.DTOs.Requests;
 
@@ -16,4 +17,7 @@ public class CriarOrdemServicoRequest
     public int VeiculoAno { get; set; }
 
     public string DescricaoProblema { get; set; } = string.Empty;
+
+    public List<PecaItemRequest>? ItensPeca { get; set; } = [];
+    public List<ServicoItemRequest>? ItensServico { get; set; } = [];
 }

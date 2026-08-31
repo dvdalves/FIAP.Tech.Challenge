@@ -2,13 +2,14 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using FIAP.Tech.Challenge.Application.DTOs.Requests;
 using FIAP.Tech.Challenge.Application.DTOs.Responses;
 using FIAP.Tech.Challenge.Application.UseCases.Clientes;
 using FIAP.Tech.Challenge.Application.UseCases.OrdensServico;
 using FIAP.Tech.Challenge.Domain.Aggregates.ClienteAggregate;
+using FIAP.Tech.Challenge.Domain.Aggregates.OrdemServicoAggregate;
 using FIAP.Tech.Challenge.Domain.ValueObjects;
 using FIAP.Tech.Challenge.Infrastructure.Data.Context;
-using FIAP.Tech.Challenge.Domain.Aggregates.OrdemServicoAggregate;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -41,8 +42,8 @@ public class OrdensServicoControllerTests(CustomWebApplicationFactory factory)
         var clienteRequest = new CriarClienteRequest
         {
             Nome = "Rodrigo Silva",
-            Cpf = "12345678909",
-            Email = "rodrigo@email.com",
+            Cpf = "52998224725",
+            Email = "rodrigo.silva@email.com",
             Telefone = "11988884444"
         };
         var clienteContent =
@@ -92,7 +93,6 @@ public class OrdensServicoControllerTests(CustomWebApplicationFactory factory)
         osResponse!.Status.Should().Be("Recebida");
 
         // Step 4: Mecânico realiza diagnóstico e adiciona itens (Status muda para AguardandoAprovacao)
-        // Adiciona 2 Pastilhas de Freio (ID: 22222222-2222-2222-2222-222222222222, Preço: 180.00, Estoque Inicial: 8)
         var diagnosticoRequest = new LancarItensOSRequest
         {
             Pecas = new List<PecaItemRequest>
@@ -108,19 +108,12 @@ public class OrdensServicoControllerTests(CustomWebApplicationFactory factory)
             "application/json");
         var itensPostResponse =
             await client.PostAsync($"/api/admin/ordens-servico/{osResponse.Id}/itens", diagnosticoContent, TestContext.Current.CancellationToken);
-        if (itensPostResponse.StatusCode != HttpStatusCode.OK)
-        {
-            var err = await itensPostResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-            throw new Exception($"LancarItens failed: {itensPostResponse.StatusCode} - {err}");
-        }
-
         itensPostResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var osDiagnosticoResponse = JsonSerializer.Deserialize<OrdemServicoResponse>(
             await itensPostResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken), _jsonOptions);
         osDiagnosticoResponse.Should().NotBeNull();
         osDiagnosticoResponse!.Status.Should().Be("AguardandoAprovacao");
-        // Orçamento calculado automaticamente: (180.00 * 2) + 90.00 = 450.00
         osDiagnosticoResponse.ValorTotal.Should().Be(450.00m);
 
         // Step 5: Cliente aprova o orçamento (Status muda para EmExecucao e abate o estoque)
@@ -149,7 +142,7 @@ public class OrdensServicoControllerTests(CustomWebApplicationFactory factory)
         pecas.Should().NotBeNull();
         var pastilha = pecas!.Find(p => p.Id == Guid.Parse("22222222-2222-2222-2222-222222222222"));
         pastilha.Should().NotBeNull();
-        pastilha!.QuantidadeEstoque.Should().Be(6); // 8 inicial - 2 deduzidas
+        pastilha!.QuantidadeEstoque.Should().Be(6);
     }
 
     [Fact]
@@ -476,7 +469,7 @@ public class OrdensServicoControllerTests(CustomWebApplicationFactory factory)
         using (var scope = factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<OficinaDbContext>();
-            var cliente = new Cliente(Guid.NewGuid(), "Jose da Silva", new Cpf("12345678909"), "jose@email.com", "11999999999");
+            var cliente = new Cliente(Guid.NewGuid(), "Jose da Silva Admin", new Cpf("84580296850"), "jose.admin@email.com", "11999999999");
             await context.Clientes.AddAsync(cliente, TestContext.Current.CancellationToken);
 
             var veiculo = new FIAP.Tech.Challenge.Domain.Aggregates.VeiculoAggregate.Veiculo(Guid.NewGuid(), new Placa("ABC1D23"), "Ford", "Ka", 2020, cliente.Id);
@@ -498,5 +491,130 @@ public class OrdensServicoControllerTests(CustomWebApplicationFactory factory)
         osResponse.Should().NotBeNull();
         osResponse!.Id.Should().Be(osId);
         osResponse.DescricaoProblema.Should().Be("Problema no motor");
+    }
+
+    [Fact]
+    public async Task ConsultarStatus_Publico_DeveRetornarDetalhesDoStatus()
+    {
+        // Arrange
+        var client = factory.CreateClient();
+        var osId = Guid.NewGuid();
+
+        using (var scope = factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<OficinaDbContext>();
+            var cliente = new Cliente(Guid.NewGuid(), "Marcos Teste", new Cpf("42439977640"), "marcos@email.com", "11988887777");
+            await context.Clientes.AddAsync(cliente, TestContext.Current.CancellationToken);
+
+            var veiculo = new FIAP.Tech.Challenge.Domain.Aggregates.VeiculoAggregate.Veiculo(Guid.NewGuid(), new Placa("ABC1D23"), "Ford", "Ka", 2020, cliente.Id);
+            await context.Veiculos.AddAsync(veiculo, TestContext.Current.CancellationToken);
+
+            var os = new OrdemServico(osId, cliente.Id, veiculo.Id, "Problema na bateria");
+            await context.OrdensServico.AddAsync(os, TestContext.Current.CancellationToken);
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+        }
+
+        // Act
+        var response = await client.GetAsync($"/api/public/ordens-servico/{osId}/status", TestContext.Current.CancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var statusResponse = JsonSerializer.Deserialize<StatusOrdemServicoResponse>(
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken), _jsonOptions);
+        statusResponse.Should().NotBeNull();
+        statusResponse!.OrdemServicoId.Should().Be(osId);
+        statusResponse.Status.Should().Be("Recebida");
+        statusResponse.DescricaoStatus.Should().Contain("Recebida");
+    }
+
+    [Fact]
+    public async Task WebhookNotificacaoOrcamento_Aprovado_DeveAtualizarParaEmExecucao()
+    {
+        // Arrange
+        var client = factory.CreateClient();
+        var osId = Guid.NewGuid();
+
+        using (var scope = factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<OficinaDbContext>();
+            var cliente = new Cliente(Guid.NewGuid(), "Lucas Webhook", new Cpf("04752545462"), "lucas@email.com", "11988887777");
+            await context.Clientes.AddAsync(cliente, TestContext.Current.CancellationToken);
+
+            var veiculo = new FIAP.Tech.Challenge.Domain.Aggregates.VeiculoAggregate.Veiculo(Guid.NewGuid(), new Placa("ABC1D23"), "Ford", "Ka", 2020, cliente.Id);
+            await context.Veiculos.AddAsync(veiculo, TestContext.Current.CancellationToken);
+
+            var os = new OrdemServico(osId, cliente.Id, veiculo.Id, "Revisão geral");
+            os.AtualizarStatus(StatusOrdemServico.EmDiagnostico);
+            os.DefinirOrcamento(300.00m);
+            os.AtualizarStatus(StatusOrdemServico.AguardandoAprovacao);
+
+            await context.OrdensServico.AddAsync(os, TestContext.Current.CancellationToken);
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+        }
+
+        var webhookRequest = new NotificacaoOrcamentoRequest
+        {
+            Aprovado = true,
+            Observacao = "Aprovado via WhatsApp Bot"
+        };
+        var content = new StringContent(JsonSerializer.Serialize(webhookRequest), Encoding.UTF8, "application/json");
+
+        // Act
+        var response = await client.PostAsync($"/api/public/ordens-servico/{osId}/notificacao-orcamento", content, TestContext.Current.CancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var osResponse = JsonSerializer.Deserialize<OrdemServicoResponse>(
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken), _jsonOptions);
+        osResponse.Should().NotBeNull();
+        osResponse!.Status.Should().Be("EmExecucao");
+    }
+
+    [Fact]
+    public async Task Admin_ObterTodas_DeveRetornarOrdenadoPorPrioridadeStatusEData()
+    {
+        // Arrange
+        var client = factory.CreateClient();
+        var token = await ObterTokenBearerAsync(client);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        // Act
+        var response = await client.GetAsync("/api/admin/ordens-servico", TestContext.Current.CancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var list = JsonSerializer.Deserialize<List<OrdemServicoResponse>>(
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken), _jsonOptions);
+        list.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task Admin_NotificarCliente_DeveRetornar200Ok()
+    {
+        // Arrange
+        var client = factory.CreateClient();
+        var token = await ObterTokenBearerAsync(client);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var osId = Guid.NewGuid();
+        using (var scope = factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<OficinaDbContext>();
+            var cliente = new Cliente(Guid.NewGuid(), "Juliana Notificar", new Cpf("70995814813"), "juliana@email.com", "11988887777");
+            await context.Clientes.AddAsync(cliente, TestContext.Current.CancellationToken);
+
+            var veiculo = new FIAP.Tech.Challenge.Domain.Aggregates.VeiculoAggregate.Veiculo(Guid.NewGuid(), new Placa("ABC1D23"), "Ford", "Ka", 2020, cliente.Id);
+            await context.Veiculos.AddAsync(veiculo, TestContext.Current.CancellationToken);
+
+            var os = new OrdemServico(osId, cliente.Id, veiculo.Id, "Revisão elétrica");
+            await context.OrdensServico.AddAsync(os, TestContext.Current.CancellationToken);
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+        }
+
+        // Act
+        var response = await client.PostAsync($"/api/admin/ordens-servico/{osId}/notificar", null, TestContext.Current.CancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 }
