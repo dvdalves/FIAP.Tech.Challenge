@@ -759,6 +759,160 @@
         }
       },
       "response": []
+    },
+    {
+      "name": "15. Consultar Status da OS (Público)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.test(\"Status da OS consultado com sucesso\", function () {",
+              "    pm.response.to.have.status(200);",
+              "    pm.expect(jsonData.status).to.be.a('string');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/public/ordens-servico/{{os_id}}/status",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "public",
+            "ordens-servico",
+            "{{os_id}}",
+            "status"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "16. Webhook Externo - Notificação de Orçamento",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Webhook processado com sucesso\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"aprovado\": true,\n  \"observacao\": \"Aprovado pelo cliente via integração externa/chatbot.\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/public/ordens-servico/{{os_id}}/notificacao-orcamento",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "public",
+            "ordens-servico",
+            "{{os_id}}",
+            "notificacao-orcamento"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "17. Disparar Notificação por E-mail (Admin)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Notificação enviada com sucesso\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{admin_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/admin/ordens-servico/{{os_id}}/notificar",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "ordens-servico",
+            "{{os_id}}",
+            "notificar"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "18. Health Check da Aplicação (K8s Probe)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Aplicação saudável\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "health"
+          ]
+        }
+      },
+      "response": []
     }
   ],
   "variable": [
