@@ -17,7 +17,7 @@ Na **Fase 2**, a aplicação foi evoluída para garantir **alta disponibilidade,
   - [1.4. Execução dos Testes Automatizados](#14-execução-dos-testes-automatizados)
 - [2. Desenho da Arquitetura Proposta](#2-desenho-da-arquitetura-proposta)
   - [2.1. Arquitetura da Aplicação (Clean Architecture & DDD)](#21-arquitetura-da-aplicação-clean-architecture--ddd)
-  - [2.2. Arquitetura de Infraestrutura em Nuvem (AWS EKS & RDS)](#22-arquitetura-de-infraestrutura-em-nuvem-aws-eks--rds)
+  - [2.2. Arquitetura de Infraestrutura (Kubernetes & Banco de Dados)](#22-arquitetura-de-infraestrutura-kubernetes--banco-de-dados)
   - [2.3. Pipeline de Integração e Entrega Contínua (CI/CD)](#23-pipeline-de-integração-e-entrega-contínua-cicd)
 - [3. Novas APIs e Funcionalidades da Fase 2](#3-novas-apis-e-funcionalidades-da-fase-2)
 - [4. Orquestração e Escalabilidade (Kubernetes & HPA)](#4-orquestração-e-escalabilidade-kubernetes--hpa)
@@ -71,7 +71,7 @@ Para acessar a API exposta pelo NodePort do Kubernetes:
 
 ### 1.3. Provisionamento da Infraestrutura com Terraform
 
-Os scripts para provisionamento automático da infraestrutura gerenciada na AWS (VPC, EKS Cluster, Managed Node Groups, RDS PostgreSQL) estão no diretório [`infra/`](infra/):
+Os scripts para provisionamento automático da infraestrutura gerenciada (VPC/Rede, Cluster Kubernetes, Managed Node Groups, Banco de Dados Relacional PostgreSQL) estão no diretório [`infra/`](infra/):
 
 ```bash
 cd infra
@@ -169,17 +169,17 @@ graph TD
 
 ---
 
-### 2.2. Arquitetura de Infraestrutura em Nuvem (AWS EKS & RDS)
+### 2.2. Arquitetura de Infraestrutura (Kubernetes & Banco de Dados)
 
 ```mermaid
 graph TB
-    subgraph "AWS Cloud (VPC: 10.0.0.0/16)"
-        subgraph "Public Subnets (us-east-1a, us-east-1b)"
+    subgraph "Infraestrutura Cloud / Cluster (VPC: 10.0.0.0/16)"
+        subgraph "Camada de Acesso Público"
             IGW["Internet Gateway"]
-            ALB["Application Load Balancer / NodePort (Port 30080 / 8080)"]
+            ALB["Load Balancer / NodePort (Port 30080 / 8080)"]
         end
 
-        subgraph "Private Subnets - Kubernetes (EKS Cluster: oficina-eks-cluster)"
+        subgraph "Camada Kubernetes (Cluster K8s: oficina-cluster)"
             subgraph "Namespace: oficina"
                 SVC["Kubernetes Service: api-service"]
                 HPA["Horizontal Pod Autoscaler (HPA)\nMin: 2 Pods | Max: 10 Pods\nTarget: CPU 70% | Memory 80%"]
@@ -189,8 +189,8 @@ graph TB
             end
         end
 
-        subgraph "Private Subnets - Database Tier"
-            RDS[("AWS RDS PostgreSQL 16\n(Multi-AZ Subnet Group)")]
+        subgraph "Camada de Dados (Rede Privada)"
+            RDS[("PostgreSQL 18 Database\n(Subnet Privada Isolada)")]
         end
     end
 

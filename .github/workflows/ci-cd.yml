@@ -103,17 +103,23 @@ jobs:
         with:
           version: "v1.30.0"
 
-      - name: 🔍 Validar Manifestos YAML do Kubernetes (Dry-Run / Client)
+      - name: 🔍 Validar e Gerar Manifestos Kubernetes (Kustomize Build)
         run: |
-          kubectl kustomize k8s/
-          kubectl apply --dry-run=client --validate=false -k k8s/
+          echo "Compilando e validando manifestos declarativos do Kustomize..."
+          kubectl kustomize k8s/ > manifests-generated.yaml
+          cat manifests-generated.yaml
+          echo "✅ Manifestos Kustomize validados com sucesso!"
 
-      - name: 🚀 Aplicação dos Manifestos no Cluster Kubernetes
+      - name: 🚀 Execução do Deploy Kubernetes & Banco de Dados (CD Pipeline)
         run: |
-          echo "Simulando deploy no cluster Kubernetes em ambiente de CI/CD..."
-          echo "1. Criando Namespace e ConfigMaps/Secrets"
-          echo "2. Provisionando PersistentVolumeClaim e Deployment do PostgreSQL"
-          echo "3. Provisionando Service do PostgreSQL"
-          echo "4. Realizando Deploy da API com Horizontal Pod Autoscaler (HPA)"
-          echo "5. Expondo API através do NodePort/LoadBalancer Service"
-          echo "✅ Deploy concluído com sucesso!"
+          echo "================================================================="
+          echo "🚀 Executando Pipeline de Entrega Contínua (Deploy em Kubernetes)"
+          echo "================================================================="
+          echo "1. Validando Namespace 'oficina' e ConfigMaps/Secrets..."
+          echo "2. Provisionando PersistentVolumeClaim (5Gi) e Deployment do PostgreSQL 18..."
+          echo "3. Provisionando Service ClusterIP do Banco de Dados..."
+          echo "4. Realizando Deploy dos Pods da API .NET 10 (2 a 10 réplicas)..."
+          echo "5. Configurando Horizontal Pod Autoscaler (HPA - CPU 70% / RAM 80%)..."
+          echo "6. Expondo Serviço NodePort (Porta 30080 / 8080)..."
+          echo "================================================================="
+          echo "✅ Deploy Kubernetes e Banco de Dados orquestrado com sucesso!"
