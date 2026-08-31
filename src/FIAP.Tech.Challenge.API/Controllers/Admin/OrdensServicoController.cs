@@ -1,7 +1,9 @@
 using FIAP.Tech.Challenge.Application.Mappings;
 using FIAP.Tech.Challenge.Application.UseCases.OrdensServico;
 using FIAP.Tech.Challenge.Application.DTOs.Responses;
+using FIAP.Tech.Challenge.Domain.Aggregates.ClienteAggregate;
 using FIAP.Tech.Challenge.Domain.Aggregates.OrdemServicoAggregate;
+using FIAP.Tech.Challenge.Domain.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Mime;
@@ -9,7 +11,7 @@ using System.Net.Mime;
 namespace FIAP.Tech.Challenge.API.Controllers.Admin;
 
 /// <summary>
-/// Controller administrativo para controle e execução do fluxo de Ordens de Serviço (OS).
+/// Controller administrativo para controle, execução e monitoramento do fluxo de Ordens de Serviço (OS).
 /// </summary>
 [Authorize]
 [ApiController]
@@ -19,14 +21,22 @@ namespace FIAP.Tech.Challenge.API.Controllers.Admin;
 public class OrdensServicoController(
     AbrirOrdemServicoUseCase abrirOrdemServicoUseCase,
     AtualizarStatusOSUseCase atualizarStatusOsUseCase,
-    LancarItensOSUseCase lancarItensOsUseCase)
+    LancarItensOSUseCase lancarItensOsUseCase,
+    ConsultarStatusOSUseCase consultarStatusOsUseCase)
     : ControllerBase
 {
     /// <summary>
-    /// Lista todas as Ordens de Serviço cadastradas no sistema, com suporte a filtros.
+    /// Lista as Ordens de Serviço cadastradas com ordenação prioritária por status e antiguidade.
     /// </summary>
-    /// <param name="status">Filtrar por status da OS (opcional).</param>
+    /// <remarks>
+    /// Regras de ordenação aplicadas:
+    /// 1. Status: Em Execução > Aguardando Aprovação > Em Diagnóstico > Recebida.
+    /// 2. Data de criação: Mais antigas primeiro.
+    /// 3. Por padrão, ordens Finalizadas, Entregues ou Canceladas são omitidas da fila operacional (salvo se incluirFinalizadas=true ou filtrado por status).
+    /// </remarks>
+    /// <param name="status">Filtrar por status específico da OS (opcional).</param>
     /// <param name="clienteId">Filtrar por ID do cliente (opcional).</param>
+    /// <param name="incluirFinalizadas">Se verdadeiro, inclui ordens com status Finalizada, Entregue e Cancelada na listagem.</param>
     /// <param name="repository">Repositório de ordens de serviço.</param>
     /// <param name="cancellationToken">Token de cancelamento.</param>
     /// <response code="200">Lista de Ordens de Serviço retornada com sucesso.</response>
@@ -40,22 +50,38 @@ public class OrdensServicoController(
     public async Task<IActionResult> ObterTodas(
         [FromQuery] StatusOrdemServico? status,
         [FromQuery] Guid? clienteId,
+        [FromQuery] bool incluirFinalizadas,
         [FromServices] IOrdemServicoRepository repository,
         CancellationToken cancellationToken)
     {
         var ordens = await repository.ObterTodasAsync(cancellationToken);
 
         if (status.HasValue)
+        {
             ordens = ordens.Where(o => o.Status == status.Value);
+        }
+        else if (!incluirFinalizadas)
+        {
+            // Exclui da listagem operacional as ordens encerradas
+            ordens = ordens.Where(o =>
+                o.Status != StatusOrdemServico.Finalizada &&
+                o.Status != StatusOrdemServico.Entregue &&
+                o.Status != StatusOrdemServico.Cancelada);
+        }
 
         if (clienteId.HasValue)
             ordens = ordens.Where(o => o.ClienteId == clienteId.Value);
 
-        return Ok(ordens.Select(o => o.ParaResponse()));
+        // Ordenação por prioridade de status e antiguidade
+        var ordensOrdenadas = ordens
+            .OrderBy(o => ObterPrioridadeStatus(o.Status))
+            .ThenBy(o => o.DataCriacao);
+
+        return Ok(ordensOrdenadas.Select(o => o.ParaResponse()));
     }
 
     /// <summary>
-    /// Obtém o detalhamento de uma Ordem de Serviço específica pelo seu ID.
+    /// Obtém o detalhamento completo de uma Ordem de Serviço específica pelo seu ID.
     /// </summary>
     /// <param name="id">ID da Ordem de Serviço.</param>
     /// <param name="repository">Repositório de ordens de serviço.</param>
@@ -80,6 +106,27 @@ public class OrdensServicoController(
             return NotFound(new { mensagem = "Ordem de serviço não encontrada." });
 
         return Ok(os.ParaResponse());
+    }
+
+    /// <summary>
+    /// Consulta pontual do status atual da Ordem de Serviço.
+    /// </summary>
+    /// <param name="id">ID da Ordem de Serviço.</param>
+    /// <param name="cancellationToken">Token de cancelamento.</param>
+    /// <response code="200">Status da Ordem de Serviço retornado com sucesso.</response>
+    /// <response code="401">Usuário não autenticado.</response>
+    /// <response code="403">Acesso negado (requer perfil Admin ou Mecanico).</response>
+    /// <response code="404">Ordem de Serviço não encontrada.</response>
+    [HttpGet("{id:guid}/status")]
+    [Authorize(Roles = "Mecanico,Admin")]
+    [ProducesResponseType(typeof(StatusOrdemServicoResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ConsultarStatus(Guid id, CancellationToken cancellationToken)
+    {
+        var response = await consultarStatusOsUseCase.ExecutarAsync(id, cancellationToken);
+        return Ok(response);
     }
 
     /// <summary>
@@ -133,16 +180,22 @@ public class OrdensServicoController(
     }
 
     /// <summary>
-    /// Abre uma nova Ordem de Serviço na recepção (status inicial: Recebida).
+    /// Abre uma nova Ordem de Serviço na recepção (status inicial: Recebida ou EmDiagnostico com itens).
     /// </summary>
     /// <remarks>
-    /// Exemplo de requisição:
+    /// Exemplo de requisição completa com serviços e peças:
     /// 
     ///     POST /api/admin/ordens-servico
     ///     {
     ///        "clienteId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
     ///        "veiculoId": "7ca85f64-5717-4562-b3fc-2c963f66afb2",
-    ///        "descricaoProblema": "Troca de óleo e barulho na suspensão dianteira."
+    ///        "descricaoProblema": "Troca de pastilhas de freio e óleo.",
+    ///        "itensPeca": [
+    ///           { "pecaId": "22222222-2222-2222-2222-222222222222", "quantidade": 2 }
+    ///        ],
+    ///        "itensServico": [
+    ///           { "descricao": "Troca de pastilhas", "valorMaoDeObra": 90.00 }
+    ///        ]
     ///     }
     /// </remarks>
     /// <param name="request">Dados necessários para a abertura da OS.</param>
@@ -165,24 +218,15 @@ public class OrdensServicoController(
     }
 
     /// <summary>
-    /// Atualiza manualmente o status de uma Ordem de Serviço.
+    /// Atualiza manualmente o status de uma Ordem de Serviço e dispara notificação automática por e-mail.
     /// </summary>
     /// <remarks>
     /// Exemplo de requisição:
     /// 
     ///     PUT /api/admin/ordens-servico/3fa85f64-5717-4562-b3fc-2c963f66afa6/status
     ///     {
-    ///        "novoStatus": 4
+    ///        "novoStatus": 3
     ///     }
-    ///     
-    /// Onde o novoStatus pode ser:
-    /// - 0 = Recebida
-    /// - 1 = EmDiagnostico
-    /// - 2 = AguardandoAprovacao
-    /// - 3 = EmExecucao
-    /// - 4 = Finalizada
-    /// - 5 = Entregue
-    /// - 6 = Cancelada
     /// </remarks>
     /// <param name="id">ID da Ordem de Serviço.</param>
     /// <param name="request">Payload contendo o novo status desejado.</param>
@@ -216,19 +260,6 @@ public class OrdensServicoController(
     /// <summary>
     /// Lança as peças e serviços necessários após a avaliação técnica (diagnóstico) do veículo.
     /// </summary>
-    /// <remarks>
-    /// Exemplo de requisição:
-    /// 
-    ///     POST /api/admin/ordens-servico/3fa85f64-5717-4562-b3fc-2c963f66afa6/itens
-    ///     {
-    ///        "itensPeca": [
-    ///           { "pecaId": "5ca85f64-5717-4562-b3fc-2c963f66afc4", "quantidade": 2 }
-    ///        ],
-    ///        "itensServico": [
-    ///           { "servicoId": "6ca85f64-5717-4562-b3fc-2c963f66afd5" }
-    ///        ]
-    ///     }
-    /// </remarks>
     /// <param name="id">ID da Ordem de Serviço.</param>
     /// <param name="request">Lista de peças e serviços orçados.</param>
     /// <param name="cancellationToken">Token de cancelamento.</param>
@@ -252,4 +283,58 @@ public class OrdensServicoController(
         var osResponse = await lancarItensOsUseCase.ExecutarAsync(id, request, cancellationToken);
         return Ok(osResponse);
     }
+
+    /// <summary>
+    /// Dispara manualmente uma notificação de e-mail ao cliente com o status atual da OS.
+    /// </summary>
+    /// <param name="id">ID da Ordem de Serviço.</param>
+    /// <param name="repository">Repositório de ordens de serviço.</param>
+    /// <param name="clienteRepository">Repositório de clientes.</param>
+    /// <param name="servicoNotificacao">Serviço de notificação.</param>
+    /// <param name="cancellationToken">Token de cancelamento.</param>
+    /// <response code="200">Notificação disparada com sucesso.</response>
+    /// <response code="401">Usuário não autenticado.</response>
+    /// <response code="403">Acesso negado (requer perfil Admin ou Mecanico).</response>
+    /// <response code="404">Ordem de Serviço não encontrada.</response>
+    [HttpPost("{id:guid}/notificar")]
+    [Authorize(Roles = "Mecanico,Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> NotificarCliente(
+        Guid id,
+        [FromServices] IOrdemServicoRepository repository,
+        [FromServices] IClienteRepository clienteRepository,
+        [FromServices] IServicoNotificacao servicoNotificacao,
+        CancellationToken cancellationToken)
+    {
+        var os = await repository.ObterPorIdAsync(id, cancellationToken);
+        if (os == null)
+            return NotFound(new { mensagem = "Ordem de serviço não encontrada." });
+
+        var cliente = await clienteRepository.ObterPorIdAsync(os.ClienteId, cancellationToken);
+        if (cliente == null)
+            return NotFound(new { mensagem = "Cliente associado à ordem de serviço não encontrado." });
+
+        await servicoNotificacao.NotificarAtualizacaoStatusAsync(
+            os.Id,
+            cliente.Nome,
+            cliente.Email,
+            os.Status,
+            os.Status,
+            "Notificação enviada manualmente pela equipe da oficina.",
+            cancellationToken);
+
+        return Ok(new { mensagem = "Notificação de e-mail enviada com sucesso para o cliente.", email = cliente.Email });
+    }
+
+    private static int ObterPrioridadeStatus(StatusOrdemServico status) => status switch
+    {
+        StatusOrdemServico.EmExecucao => 1,
+        StatusOrdemServico.AguardandoAprovacao => 2,
+        StatusOrdemServico.EmDiagnostico => 3,
+        StatusOrdemServico.Recebida => 4,
+        _ => 99
+    };
 }
