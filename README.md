@@ -14,10 +14,10 @@ Atendendo aos requisitos obrigatórios da Fase 3, o projeto está estruturado em
 
 | Repositório | Descrição | Tecnologias | CI/CD |
 | :--- | :--- | :--- | :--- |
-| [**`FIAP.Tech.Challenge.Lambda`**](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge.Lambda) | Function Serverless para validação de CPF (Módulo 11), consulta ao banco e emissão de tokens JWT. | .NET 10, C# 13, AWS Lambda, API Gateway v2, Npgsql, Docker, Terraform | GitHub Actions |
-| [**`FIAP.Tech.Challenge.Infra.Kubernetes`**](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge.Infra.Kubernetes) | IaC para provisionamento de VPC Multi-AZ, Cluster AWS EKS v1.30, Node Groups, API Gateway central e Datadog. | Terraform >= 1.5.0, AWS EKS, AWS VPC, Helm, Datadog Agent, Metrics Server | GitHub Actions |
-| [**`FIAP.Tech.Challenge.Infra.Database`**](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge.Infra.Database) | IaC para provisionamento do AWS RDS PostgreSQL 16, Secrets Manager e scripts SQL versionados de DDL e Seed. | Terraform >= 1.5.0, AWS RDS PostgreSQL 16, AWS Secrets Manager, SQL | GitHub Actions |
-| [**`FIAP.Tech.Challenge`** *(este repositório)* | Aplicação principal em contêineres executando no Kubernetes (Clean Architecture & DDD). | .NET 10, C# 13, EF Core, Kubernetes, Kustomize, HPA, SonarQube | GitHub Actions |
+| [**`FIAP.Tech.Challenge.Lambda`**](https://github.com/dvdalves/FIAP.Tech.Challenge.Lambda) | Function Serverless para validação de CPF (Módulo 11), consulta ao banco e emissão de tokens JWT. | .NET 10, C# 13, AWS Lambda, API Gateway v2, Npgsql, Docker, Terraform | GitHub Actions |
+| [**`FIAP.Tech.Challenge.Infra.Kubernetes`**](https://github.com/dvdalves/FIAP.Tech.Challenge.Infra.Kubernetes) | IaC para provisionamento de VPC Multi-AZ, Cluster AWS EKS v1.30, Node Groups, API Gateway central e Datadog. | Terraform >= 1.5.0, AWS EKS, AWS VPC, Helm, Datadog Agent, Metrics Server | GitHub Actions |
+| [**`FIAP.Tech.Challenge.Infra.Database`**](https://github.com/dvdalves/FIAP.Tech.Challenge.Infra.Database) | IaC para provisionamento do AWS RDS PostgreSQL 16, Secrets Manager e scripts SQL versionados de DDL e Seed. | Terraform >= 1.5.0, AWS RDS PostgreSQL 16, AWS Secrets Manager, SQL | GitHub Actions |
+| [**`FIAP.Tech.Challenge`**](https://github.com/dvdalves/FIAP.Tech.Challenge) *(este repositório)* | Aplicação principal em contêineres executando no Kubernetes (Clean Architecture & DDD). | .NET 10, C# 13, EF Core, Kubernetes, Kustomize, HPA, SonarQube | GitHub Actions |
 
 ---
 
