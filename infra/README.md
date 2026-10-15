@@ -33,33 +33,39 @@ Os arquivos do Terraform provisionam uma infraestrutura robusta, segura e escal�
 ## 🚀 Como Aplicar a Infraestrutura
 
 ### Pré-requisitos
+
 - [Terraform CLI](https://developer.hashicorp.com/terraform/downloads) instalado (versão >= 1.5.0).
 - CLI do provedor de nuvem configurado com credenciais de provisionamento de infraestrutura.
 
 ### Passo a Passo de Execução
 
 1. **Acessar o diretório de infraestrutura**:
+
    ```bash
    cd infra
    ```
 
 2. **Configurar as variáveis**:
+
    ```bash
    cp terraform.tfvars.example terraform.tfvars
    # Ajuste as variáveis no terraform.tfvars conforme seu ambiente
    ```
 
 3. **Inicializar o Terraform**:
+
    ```bash
    terraform init
    ```
 
 4. **Planejar a criação dos recursos**:
+
    ```bash
    terraform plan -out=tfplan
    ```
 
 5. **Aplicar e provisionar o ambiente**:
+
    ```bash
    terraform apply tfplan
    ```

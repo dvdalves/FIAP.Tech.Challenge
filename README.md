@@ -1,45 +1,155 @@
-# Oficina Mecânica - Tech Challenge FIAP (Fase 2)
+# Oficina Mecânica - Tech Challenge FIAP (Fase 3)
 
 ## SIAES - Sistema Integrado de Atendimento e Execução de Serviços
 
-Este repositório contém a evolução da solução back-end para o **SIAES (Sistema Integrado de Atendimento e Execução de Serviços)**, desenvolvido para a gestão de uma oficina mecânica.
+Este repositório contém a **aplicação principal executando em Kubernetes** para o **SIAES (Sistema Integrado de Atendimento e Execução de Serviços)**, desenvolvido para a gestão de uma oficina mecânica de nível corporativo.
 
-Na **Fase 2**, a aplicação foi evoluída para garantir **alta disponibilidade, resiliência, escalabilidade elástica e automação completa de infraestrutura**, incorporando orquestração com **Kubernetes (K8s)**, **Horizontal Pod Autoscaling (HPA)**, **Infraestrutura como Código (IaC)** com **Terraform**, esteiras de **CI/CD** com **GitHub Actions** e novos fluxos de negócio com **notificações por e-mail** e **webhooks de aprovação externa de orçamentos**.
+Na **Fase 3**, o ecossistema foi elevado a um nível de operação corporativa com práticas avançadas de **Cloud Computing**, **Autenticação Serverless via CPF**, **API Gateway**, segregação em **quatro repositórios independentes**, **Banco de Dados Gerenciado (AWS RDS PostgreSQL)**, **Cluster Kubernetes Elástico (AWS EKS)** com **Horizontal Pod Autoscaler (HPA)** e **Observabilidade & Monitoramento Unificado (Datadog & CloudWatch)**.
+
+---
+
+## 🏛️ Estrutura de Repositórios da Fase 3
+
+Atendendo aos requisitos obrigatórios da Fase 3, o projeto está estruturado em **quatro repositórios independentes**, cada um com sua esteira de **CI/CD** e automação:
+
+| Repositório | Descrição | Tecnologias | CI/CD |
+| :--- | :--- | :--- | :--- |
+| [**`FIAP.Tech.Challenge.Lambda`**](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge.Lambda) | Function Serverless para validação de CPF (Módulo 11), consulta ao banco e emissão de tokens JWT. | .NET 10, C# 13, AWS Lambda, API Gateway v2, Npgsql, Docker, Terraform | GitHub Actions |
+| [**`FIAP.Tech.Challenge.Infra.Kubernetes`**](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge.Infra.Kubernetes) | IaC para provisionamento de VPC Multi-AZ, Cluster AWS EKS v1.30, Node Groups, API Gateway central e Datadog. | Terraform >= 1.5.0, AWS EKS, AWS VPC, Helm, Datadog Agent, Metrics Server | GitHub Actions |
+| [**`FIAP.Tech.Challenge.Infra.Database`**](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge.Infra.Database) | IaC para provisionamento do AWS RDS PostgreSQL 16, Secrets Manager e scripts SQL versionados de DDL e Seed. | Terraform >= 1.5.0, AWS RDS PostgreSQL 16, AWS Secrets Manager, SQL | GitHub Actions |
+| [**`FIAP.Tech.Challenge`** *(este repositório)* | Aplicação principal em contêineres executando no Kubernetes (Clean Architecture & DDD). | .NET 10, C# 13, EF Core, Kubernetes, Kustomize, HPA, SonarQube | GitHub Actions |
 
 ---
 
 ## 🧭 Menu de Navegação
 
-- [1. Como Executar a Aplicação](#1-como-executar-a-aplicação)
-  - [1.1. Execução Local via Docker Compose (Recomendado)](#11-execução-local-via-docker-compose-recomendado)
-  - [1.2. Deploy em Cluster Kubernetes (K8s)](#12-deploy-em-cluster-kubernetes-k8s)
-  - [1.3. Provisionamento da Infraestrutura com Terraform](#13-provisionamento-da-infraestrutura-com-terraform)
-  - [1.4. Execução dos Testes Automatizados](#14-execução-dos-testes-automatizados)
+- [1. Documentação Arquitetural Completa (Fase 3)](#1-documentação-arquitetural-completa-fase-3)
 - [2. Desenho da Arquitetura Proposta](#2-desenho-da-arquitetura-proposta)
-  - [2.1. Arquitetura da Aplicação (Clean Architecture & DDD)](#21-arquitetura-da-aplicação-clean-architecture--ddd)
-  - [2.2. Arquitetura de Infraestrutura (Kubernetes & Banco de Dados)](#22-arquitetura-de-infraestrutura-kubernetes--banco-de-dados)
-  - [2.3. Pipeline de Integração e Entrega Contínua (CI/CD)](#23-pipeline-de-integração-e-entrega-contínua-cicd)
-- [3. Novas APIs e Funcionalidades da Fase 2](#3-novas-apis-e-funcionalidades-da-fase-2)
+  - [2.1. Visão de Nuvem, APIs, Banco e Monitoramento](#21-visão-de-nuvem-apis-banco-e-monitoramento)
+  - [2.2. Fluxo de Autenticação Serverless via CPF e JWT](#22-fluxo-de-autenticação-serverless-via-cpf-e-jwt)
+  - [2.3. Arquitetura da Aplicação (Clean Architecture & DDD)](#23-arquitetura-da-aplicação-clean-architecture--ddd)
+- [3. Como Executar a Aplicação](#3-como-executar-a-aplicação)
+  - [3.1. Execução Local via Docker Compose (Recomendado)](#31-execução-local-via-docker-compose-recomendado)
+  - [3.2. Deploy em Cluster Kubernetes (K8s)](#32-deploy-em-cluster-kubernetes-k8s)
+  - [3.3. Execução dos Testes Automatizados](#33-execução-dos-testes-automatizados)
 - [4. Orquestração e Escalabilidade (Kubernetes & HPA)](#4-orquestração-e-escalabilidade-kubernetes--hpa)
-- [5. Infraestrutura como Código (Terraform)](#5-infraestrutura-como-código-terraform)
+- [5. Monitoramento e Observabilidade (Datadog & CloudWatch)](#5-monitoramento-e-observabilidade-datadog--cloudwatch)
 - [6. Qualidade, Testes e SonarQube](#6-qualidade-testes-e-sonarqube)
 - [7. Coleções de Teste de API (Postman & Swagger)](#7-coleções-de-teste-de-api-postman--swagger)
 
 ---
 
-## 1. Como Executar a Aplicação
+## 1. Documentação Arquitetural Completa (Fase 3)
 
-### 📋 Pré-requisitos
+A documentação arquitetural exigida pela Fase 3 está organizada no diretório [`docs/Fase 3/`](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge/docs/Fase%203/):
 
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (com suporte a `docker compose` e Kubernetes local habilitado se desejar rodar K8s localmente).
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) (opcional para compilação local fora de contêineres).
-- [kubectl](https://kubernetes.io/docs/tasks/tools/) e [Terraform CLI](https://developer.hashicorp.com/terraform/downloads) (para deploy em K8s e IaC).
+* 📘 [**Documentação Arquitetural Completa (Master)**](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge/docs/Fase%203/documentacao_arquitetural.md): Hub unificado contendo o diagrama de componentes na nuvem, diagramas de sequência de autenticação e abertura de OS, topologia de rede e checklist de conformidade.
+* 🗄️ [**Modelagem do Banco de Dados Relacional & Justificativa Técnica**](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge/docs/Fase%203/modelagem_banco_dados.md): Justificativa formal da escolha do PostgreSQL 16 no AWS RDS, Diagrama Entidade-Relacionamento (ERD) completo, dicionário de dados e análise de transações ACID.
+* 📄 **RFCs (Request for Comments) - Decisões Técnicas**:
+  * [RFC 001: Escolha do Provedor de Nuvem Pública (AWS)](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge/docs/Fase%203/rfcs/RFC-001-escolha-do-provedor-de-nuvem-aws.md)
+  * [RFC 002: Escolha do Banco de Dados Gerenciado (PostgreSQL no RDS)](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge/docs/Fase%203/rfcs/RFC-002-escolha-do-banco-de-dados-gerenciado.md)
+  * [RFC 003: Estratégia de Autenticação Serverless por CPF e Emissão de JWT](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge/docs/Fase%203/rfcs/RFC-003-estrategia-de-autenticacao-serverless-jwt.md)
+* 📐 **ADRs (Architecture Decision Records) - Decisões Permanentes**:
+  * [ADR 001: Segregação em 4 Repositórios Independentes com CI/CD Desacoplado](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge/docs/Fase%203/adrs/ADR-001-segregacao-em-quatro-repositorios-e-cicd.md)
+  * [ADR 002: Padrão de Comunicação e Roteamento via AWS API Gateway](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge/docs/Fase%203/adrs/ADR-002-padrao-de-comunicacao-e-roteamento-api-gateway.md)
+  * [ADR 003: Escalabilidade Dinâmica com HPA e Metrics Server](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge/docs/Fase%203/adrs/ADR-003-escalabilidade-dinamica-com-hpa-e-metrics-server.md)
+  * [ADR 004: Estratégia de Observabilidade, Tracing Distribuído e Logs Estruturados](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge/docs/Fase%203/adrs/ADR-004-estrategia-de-observabilidade-e-monitoramento.md)
 
 ---
 
-### 1.1. Execução Local via Docker Compose (Recomendado)
+## 2. Desenho da Arquitetura Proposta
 
-O ambiente completo (API .NET 10, PostgreSQL 18 e SonarQube) é inicializado de forma orquestrada com verificação de integridade (_healthcheck_):
+### 2.1. Visão de Nuvem, APIs, Banco e Monitoramento
+
+```mermaid
+flowchart TD
+    Customer["📱 Cliente Externo"] --> APIGW["🚪 AWS API Gateway (HTTP API v2)"]
+    Mechanic["👨‍🔧 Operador / Mecânico"] --> APIGW
+
+    subgraph Serverless ["⚡ Serverless (Lambda)"]
+        LambdaAuth["λ Auth Function (.NET 10)<br/>Validação Matemática CPF<br/>Geração de JWT"]
+    end
+
+    subgraph VPC ["AWS VPC (10.0.0.0/16)"]
+        subgraph EKS ["☸️ AWS EKS Cluster v1.30"]
+            ALB["⚖️ Ingress / Load Balancer"]
+            PodAPI["📦 Pod SIAES API (.NET 10)<br/>Clean Architecture & DDD"]
+            HPA["⚡ HPA (Auto-scaling 2-5 réplicas)"]
+            MetricsSvr["📊 Metrics Server"]
+            DDAgent["🐶 Datadog DaemonSet"]
+        end
+
+        subgraph RDS_Subnet ["🗄️ Camada Privada de Dados"]
+            RDS["🐘 AWS RDS PostgreSQL 16<br/>Storage Auto-scaling"]
+        end
+    end
+
+    APIGW -->|/auth/*| LambdaAuth
+    APIGW -->|/api/* (VPC Link)| ALB
+    ALB --> PodAPI
+    LambdaAuth -.->|Consulta CPF| RDS
+    PodAPI -->|EF Core 10 / Npgsql| RDS
+
+    MetricsSvr --> HPA
+    HPA --> PodAPI
+    PodAPI --> DDAgent
+    DDAgent --> DatadogCloud["📈 Datadog Dashboards & Alertas"]
+```
+
+### 2.2. Fluxo de Autenticação Serverless via CPF e JWT
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Cliente as 📱 Cliente
+    participant APIGW as 🚪 AWS API Gateway
+    participant Lambda as ⚡ AWS Lambda (Auth)
+    participant RDS as 🐘 AWS RDS (PostgreSQL)
+    participant API as 📦 Pod API SIAES (K8s)
+
+    Cliente->>APIGW: POST /auth/token { "cpf": "52998224725" }
+    APIGW->>Lambda: Disparo do Evento (Payload v2.0)
+    Note over Lambda: Valida algoritmo Módulo 11 do CPF
+    Lambda->>RDS: Consulta existência e status do Cliente na tabela "Clientes"
+    Note over Lambda: Gera Token JWT com Claims (sub=Id, name=Cpf, role=Cliente)
+    Lambda-->>APIGW: 200 OK + JWT
+    APIGW-->>Cliente: Retorno com Token de Acesso
+    Note over Cliente: Chamada a rotas sensíveis
+    Cliente->>APIGW: GET /api/public/ordens-servico (Authorization: Bearer <TOKEN>)
+    APIGW->>API: Encaminhamento via VPC Link
+    Note over API: Valida JWT, resolve CPF e retorna dados da OS
+    API-->>Cliente: 200 OK
+```
+
+### 2.3. Arquitetura da Aplicação (Clean Architecture & DDD)
+
+A aplicação principal é organizada como um **Monolito Coeso**, seguindo rigorosamente os preceitos de **Clean Architecture** e **Domain-Driven Design (DDD)**:
+
+```text
+src/
+├── FIAP.Tech.Challenge.Domain/         # Entidades ricas, Agregados, VOs, Exceções de Domínio
+├── FIAP.Tech.Challenge.Application/    # Casos de uso, DTOs, Mapeamentos e Validadores
+├── FIAP.Tech.Challenge.Infrastructure/ # EF Core 10, Npgsql, Mapeamentos Fluent API e Repositórios
+└── FIAP.Tech.Challenge.API/            # Controllers REST, Middleware JWT, Swagger e Filtro Global
+tests/
+├── FIAP.Tech.Challenge.UnitTests/      # Testes unitários de Domínio, VOs e Casos de Uso
+└── FIAP.Tech.Challenge.IntegrationTests/# Testes integrados com WebApplicationFactory e InMemory
+```
+
+---
+
+## 3. Como Executar a Aplicação
+
+### 📋 Pré-requisitos
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (com suporte a `docker compose` e Kubernetes local).
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) (para compilação local e execução de testes).
+- [kubectl](https://kubernetes.io/docs/tasks/tools/) e [Terraform CLI](https://developer.hashicorp.com/terraform/downloads).
+
+---
+
+### 3.1. Execução Local via Docker Compose (Recomendado)
+
+O ambiente completo (API .NET 10, PostgreSQL 18 e SonarQube) é inicializado de forma orquestrada com verificação de integridade (*healthcheck*):
 
 ```bash
 docker compose up --build
@@ -51,7 +161,7 @@ docker compose up --build
 
 ---
 
-### 1.2. Deploy em Cluster Kubernetes (K8s)
+### 3.2. Deploy em Cluster Kubernetes (K8s)
 
 Os manifestos declarativos estão localizados no diretório [`k8s/`](k8s/) e são orquestrados via Kustomize:
 
@@ -64,215 +174,52 @@ kubectl get pods,services,hpa -n oficina
 ```
 
 Para acessar a API exposta pelo NodePort do Kubernetes:
-
 - **URL**: `http://localhost:30080` (ou IP do Node no NodePort `30080`).
 
 ---
 
-### 1.3. Provisionamento da Infraestrutura com Terraform
-
-Os scripts para provisionamento automático da infraestrutura gerenciada (VPC/Rede, Cluster Kubernetes, Managed Node Groups, Banco de Dados Relacional PostgreSQL) estão no diretório [`infra/`](infra/):
-
-```bash
-cd infra
-
-# 1. Copiar variáveis de exemplo
-cp terraform.tfvars.example terraform.tfvars
-
-# 2. Inicializar o Terraform
-terraform init
-
-# 3. Planejar a criação dos recursos
-terraform plan -out=tfplan
-
-# 4. Aplicar o provisionamento
-terraform apply tfplan
-```
-
-Para detalhes completos sobre os recursos criados pelo Terraform, consulte a [Documentação de Infraestrutura (infra/README.md)](infra/README.md).
-
----
-
-### 1.4. Execução dos Testes Automatizados
+### 3.3. Execução dos Testes Automatizados
 
 A suíte conta com **145 testes automatizados** cobrindo regras de negócio, invariantes de domínio, transições de status da OS, cálculo atômico de orçamentos, baixa transacional de estoque e chamadas REST:
 
 ```bash
-dotnet test
+dotnet test --verbosity normal
 ```
-
-Para gerar o relatório de cobertura de código em formato OpenCover:
-
-```bash
-dotnet test --collect:"XPlat Code Coverage" --settings coverlet.runsettings
-```
-
----
-
-## 2. Desenho da Arquitetura Proposta
-
-### 2.1. Arquitetura da Aplicação (Clean Architecture & DDD)
-
-```mermaid
-graph TD
-    subgraph "API Layer (ASP.NET Core .NET 10)"
-        CTRL_ADM["Admin Controllers (/api/admin/*)"]
-        CTRL_PUB["Public Controllers (/api/public/*)"]
-        FILTERS["Filtro Global de Exceção"]
-        SWAGGER["Swagger / OpenAPI"]
-        HEALTH["Health Checks (/health)"]
-    end
-
-    subgraph "Application Layer"
-        UC_OS["Use Cases - Ordens de Serviço"]
-        UC_CLI["Use Cases - Clientes & Veículos"]
-        UC_PEC["Use Cases - Peças & Serviços"]
-        DTOS["DTOs & Mappings"]
-        VALID["FluentValidation"]
-    end
-
-    subgraph "Domain Layer (Núcleo Puro DDD)"
-        AGG_OS["Agregado OrdemServico"]
-        AGG_CLI["Agregado Cliente"]
-        AGG_VEI["Agregado Veiculo"]
-        AGG_PEC["Agregado Peca & Servico"]
-        VOS["Value Objects (Cpf, Placa, Cnpj)"]
-        NOTIF_INT["IServicoNotificacao"]
-        UOW["IUnitOfWork"]
-    end
-
-    subgraph "Infrastructure Layer"
-        EF_CTX["OficinaDbContext (EF Core 10)"]
-        REPOS["Repositórios SQL"]
-        MAPS["Fluent API Mappings"]
-        SVC_MAIL["EmailNotificacaoService"]
-        SVC_JWT["TokenService"]
-    end
-
-    CTRL_ADM --> UC_OS
-    CTRL_ADM --> UC_CLI
-    CTRL_ADM --> UC_PEC
-    CTRL_PUB --> UC_OS
-
-    UC_OS --> AGG_OS
-    UC_OS --> NOTIF_INT
-    UC_OS --> UOW
-    UC_CLI --> AGG_CLI
-    UC_CLI --> AGG_VEI
-    UC_PEC --> AGG_PEC
-
-    EF_CTX -.-> UOW
-    REPOS -.-> Domain
-    SVC_MAIL -.-> NOTIF_INT
-    Infrastructure --> PostgreSQL[("PostgreSQL 18 / RDS")]
-```
-
----
-
-### 2.2. Arquitetura de Infraestrutura (Kubernetes & Banco de Dados)
-
-```mermaid
-graph TB
-    subgraph "Infraestrutura Cloud / Cluster (VPC: 10.0.0.0/16)"
-        subgraph "Camada de Acesso Público"
-            IGW["Internet Gateway"]
-            ALB["Load Balancer / NodePort (Port 30080 / 8080)"]
-        end
-
-        subgraph "Camada Kubernetes (Cluster K8s: oficina-cluster)"
-            subgraph "Namespace: oficina"
-                SVC["Kubernetes Service: api-service"]
-                HPA["Horizontal Pod Autoscaler (HPA)\nMin: 2 Pods | Max: 10 Pods\nTarget: CPU 70% | Memory 80%"]
-                POD1["Pod API (Replica 1)\nRequests: 100m CPU, 128Mi RAM\nLimits: 500m CPU, 512Mi RAM"]
-                POD2["Pod API (Replica 2)\nRequests: 100m CPU, 128Mi RAM\nLimits: 500m CPU, 512Mi RAM"]
-                PODN["Pod API (Replica N - Auto Scaled)"]
-            end
-        end
-
-        subgraph "Camada de Dados (Rede Privada)"
-            RDS[("PostgreSQL 18 Database\n(Subnet Privada Isolada)")]
-        end
-    end
-
-    CLIENTS["Clientes & Mecânicos (Web / Mobile / Webhook)"] --> IGW
-    IGW --> ALB
-    ALB --> SVC
-    SVC --> POD1
-    SVC --> POD2
-    SVC -.-> PODN
-    HPA -.->|Monitora e escala| POD1
-    HPA -.->|Monitora e escala| POD2
-    POD1 -->|Conexão Segura na porta 5432| RDS
-    POD2 -->|Conexão Segura na porta 5432| RDS
-```
-
----
-
-### 2.3. Pipeline de Integração e Entrega Contínua (CI/CD)
-
-```mermaid
-graph LR
-    subgraph "GitHub Actions CI/CD Pipeline"
-        A["1. Git Push / PR"] --> B["2. Build .NET 10 & Restore"]
-        B --> C["3. Testes Automatizados (xUnit + Coverlet)"]
-        C --> D["4. Docker Build & Image Verification"]
-        D --> E["5. Terraform Validate (IaC)"]
-        E --> F["6. Deploy Kubernetes (Manifests / Kustomize)"]
-        F --> G["7. Database Migration & Health Check (/health)"]
-    end
-```
-
----
-
-## 3. Novas APIs e Funcionalidades da Fase 2
-
-A camada de aplicação e os controladores REST foram expandidos e refatorados com os seguintes aprimoramentos:
-
-| Funcionalidade / API                    | Endpoint                                                        | Método | Descrição                                                                                                                                                                                     |
-| :-------------------------------------- | :-------------------------------------------------------------- | :----: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Abertura de OS com Peças e Serviços** | `/api/admin/ordens-servico`                                     | `POST` | Permite abrir a OS informando diretamente cliente, veículo, itens de peças e mão de obra, gerando a OS e seu identificador único.                                                             |
-| **Consulta Pontual de Status da OS**    | `/api/public/ordens-servico/{id}/status`                        | `GET`  | Endpoint público para clientes acompanharem o status atual da OS (_Recebida_, _Diagnóstico_, _Aguardando Aprovação_, _Execução_, _Finalizada_, _Entregue_).                                   |
-| **Consulta de Status (Admin)**          | `/api/admin/ordens-servico/{id}/status`                         | `GET`  | Consulta administrativa de status detalhado com datas de execução e finalização.                                                                                                              |
-| **Webhook de Notificação de Orçamento** | `/api/public/ordens-servico/{id}/notificacao-orcamento`         | `POST` | Recebe notificações externas (ex: WhatsApp Bot, link de aprovação) de aprovação (`aprovado: true`) ou recusa (`aprovado: false`).                                                             |
-| **Listagem Ordenada por Status e Data** | `/api/admin/ordens-servico`                                     | `GET`  | Lista ordens aplicando ordenação por status (_Em Execução_ > _Aguardando Aprovação_ > _Em Diagnóstico_ > _Recebida_), mais antigas primeiro e omissão automática de OS finalizadas/entregues. |
-| **Notificação de Status por E-mail**    | Disparo automático + `/api/admin/ordens-servico/{id}/notificar` | `POST` | Notifica o cliente por e-mail sobre transições de status e permite reenvio manual pela equipe da oficina.                                                                                     |
-| **Health Check da Aplicação**           | `/health`                                                       | `GET`  | Endpoint de integridade para liveness e readiness probes do Kubernetes.                                                                                                                       |
-
-Para detalhes completos de requisição (`curl`), payloads JSON e respostas, consulte o [Guia da API (docs/api_reference.md)](docs/api_reference.md).
 
 ---
 
 ## 4. Orquestração e Escalabilidade (Kubernetes & HPA)
 
-Os manifestos em [`k8s/`](k8s/) configuram um ambiente Kubernetes pronto para produção:
+Os manifestos em [`k8s/`](k8s/) garantem alta disponibilidade e escalabilidade dinâmica:
 
-- **Deployment com Probes**: `livenessProbe` e `readinessProbe` monitorando o endpoint `/health`.
-- **Resource Management**: Definição explícita de `requests` (`cpu: 100m`, `memory: 128Mi`) e `limits` (`cpu: 500m`, `memory: 512Mi`).
+- **Zero Downtime**: Estratégia `RollingUpdate` garantindo substituição progressiva de pods.
+- **Probes de Confiabilidade**: `livenessProbe` e `readinessProbe` no endpoint `/health`.
+- **Gerenciamento de Recursos**: Definição de `requests` (`cpu: 100m`, `memory: 128Mi`) e `limits` (`cpu: 500m`, `memory: 512Mi`).
 - **Horizontal Pod Autoscaler (HPA)**:
-  - Escala automaticamente de **2 réplicas mínimas** até **10 réplicas máximas**.
+  - Escala automaticamente de **2 réplicas mínimas** até **5 réplicas máximas**.
   - Gatilhos de autoescalabilidade: **70% de consumo médio de CPU** ou **80% de consumo médio de memória**.
-- **Configuração Segura**: Variáveis sensíveis (senhas, connection strings e chaves JWT) isoladas em `Secret` e dados operacionais em `ConfigMap`.
-- **Persistência**: `PersistentVolumeClaim` de 5Gi para o banco de dados PostgreSQL.
+- **Configuração Segura**: Segredos de banco e JWT isolados em `Secret` e parâmetros em `ConfigMap`.
 
 ---
 
-## 5. Infraestrutura como Código (Terraform)
+## 5. Monitoramento e Observabilidade (Datadog & CloudWatch)
 
-A infraestrutura é provisionada como código utilizando módulos e recursos nativos da AWS em [`infra/`](infra/):
-
-- **VPC e Subnets**: Rede pública e privada multi-AZ com Internet Gateway e Route Tables configuradas para Kubernetes.
-- **Cluster EKS**: Control plane versão 1.30 com papéis IAM restritos (`AmazonEKSClusterPolicy`).
-- **Managed Node Groups**: EC2 worker nodes com auto-recuperação (`AmazonEKSWorkerNodePolicy`, `AmazonEKS_CNI_Policy`).
-- **RDS PostgreSQL**: Banco de dados relacional gerenciado em subnet privada sem exposição pública.
+Atendendo aos requisitos da **Fase 3**, o monitoramento contempla:
+- **Latência das APIs**: Medição dos percentis p50, p95 e p99 para rotas de abertura de OS e autenticação.
+- **Consumo de Recursos**: Alertas de saturação de CPU e memória em nós e pods.
+- **Logs Estruturados (JSON)**: Ingestão de logs contendo correlação entre requisições via `TraceId` e `SpanId`.
+- **Dashboards Operacionais no Datadog**:
+  - Volume diário de ordens de serviço (abertas, aprovadas e finalizadas);
+  - Tempo médio de execução por status (Diagnóstico, Execução e Finalização);
+  - Erros e falhas nas integrações (taxas 4xx e 5xx).
 
 ---
 
 ## 6. Qualidade, Testes e SonarQube
 
-- **Testes Automatizados**: Cobertura de 100% dos fluxos de domínio e casos de uso da aplicação.
-- **Análise Estática de Código (SAST & SCA)**: Zero vulnerabilidades no código-fonte e dependências.
-- **SonarQube Local**:
-
+- **Testes Automatizados**: 100% de cobertura nos fluxos críticos de negócio.
+- **Análise Estática de Código (SAST & SCA)**: Zero vulnerabilidades e code smells.
+- **Execução do SonarQube Local**:
   ```bash
   # 1. Subir o SonarQube
   docker compose up -d sonarqube
@@ -285,7 +232,6 @@ A infraestrutura é provisionada como código utilizando módulos e recursos nat
 
 ## 7. Coleções de Teste de API (Postman & Swagger)
 
-- **Swagger Interativo**: Disponível em `http://localhost:8080/swagger` com autenticação JWT integrada.
-- **Postman Collection**: Arquivo [`OficinaMecanica.postman_collection.json`](OficinaMecanica.postman_collection.json) contendo 18 requisições sequenciais cobrindo todo o caminho feliz (autenticação, cadastros, abertura completa de OS, diagnóstico, webhook de aprovação, entrega, consultas e healthcheck).
-
----
+- **Swagger Interativo**: Disponível em `http://localhost:8080/swagger` com suporte completo a Bearer JWT.
+- **Postman Collection**: Arquivo [`OficinaMecanica.postman_collection.json`](OficinaMecanica.postman_collection.json) contendo o fluxo completo de testes sequenciais.
+- **API Reference**: Guia detalhado de endpoints em [`docs/api_reference.md`](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge/docs/api_reference.md).
