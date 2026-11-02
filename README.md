@@ -85,7 +85,7 @@ flowchart TD
     end
 
     APIGW -->|/auth/*| LambdaAuth
-    APIGW -->|/api/* (VPC Link)| ALB
+    APIGW -->|"/api/* (VPC Link)"| ALB
     ALB --> PodAPI
     LambdaAuth -.->|Consulta CPF| RDS
     PodAPI -->|EF Core 10 / Npgsql| RDS
