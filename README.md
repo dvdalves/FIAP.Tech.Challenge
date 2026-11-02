@@ -6,18 +6,18 @@ Este repositório contém a **aplicação principal executando em Kubernetes** p
 
 Na **Fase 3**, o ecossistema foi elevado a um nível de operação corporativa com práticas avançadas de **Cloud Computing**, **Autenticação Serverless via CPF**, **API Gateway**, segregação em **quatro repositórios independentes**, **Banco de Dados Gerenciado (AWS RDS PostgreSQL)**, **Cluster Kubernetes Elástico (AWS EKS)** com **Horizontal Pod Autoscaler (HPA)** e **Observabilidade & Monitoramento Unificado (Datadog & CloudWatch)**.
 
----
+## test
 
 ## 🏛️ Estrutura de Repositórios da Fase 3
 
 Atendendo aos requisitos obrigatórios da Fase 3, o projeto está estruturado em **quatro repositórios independentes**, cada um com sua esteira de **CI/CD** e automação:
 
-| Repositório | Descrição | Tecnologias | CI/CD |
-| :--- | :--- | :--- | :--- |
-| [**`FIAP.Tech.Challenge.Lambda`**](https://github.com/dvdalves/FIAP.Tech.Challenge.Lambda) | Function Serverless para validação de CPF (Módulo 11), consulta ao banco e emissão de tokens JWT. | .NET 10, C# 13, AWS Lambda, API Gateway v2, Npgsql, Docker, Terraform | GitHub Actions |
+| Repositório                                                                                                    | Descrição                                                                                                    | Tecnologias                                                               | CI/CD          |
+| :------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------ | :------------- |
+| [**`FIAP.Tech.Challenge.Lambda`**](https://github.com/dvdalves/FIAP.Tech.Challenge.Lambda)                     | Function Serverless para validação de CPF (Módulo 11), consulta ao banco e emissão de tokens JWT.            | .NET 10, C# 13, AWS Lambda, API Gateway v2, Npgsql, Docker, Terraform     | GitHub Actions |
 | [**`FIAP.Tech.Challenge.Infra.Kubernetes`**](https://github.com/dvdalves/FIAP.Tech.Challenge.Infra.Kubernetes) | IaC para provisionamento de VPC Multi-AZ, Cluster AWS EKS v1.30, Node Groups, API Gateway central e Datadog. | Terraform >= 1.5.0, AWS EKS, AWS VPC, Helm, Datadog Agent, Metrics Server | GitHub Actions |
-| [**`FIAP.Tech.Challenge.Infra.Database`**](https://github.com/dvdalves/FIAP.Tech.Challenge.Infra.Database) | IaC para provisionamento do AWS RDS PostgreSQL 16, Secrets Manager e scripts SQL versionados de DDL e Seed. | Terraform >= 1.5.0, AWS RDS PostgreSQL 16, AWS Secrets Manager, SQL | GitHub Actions |
-| [**`FIAP.Tech.Challenge`**](https://github.com/dvdalves/FIAP.Tech.Challenge) *(este repositório)* | Aplicação principal em contêineres executando no Kubernetes (Clean Architecture & DDD). | .NET 10, C# 13, EF Core, Kubernetes, Kustomize, HPA, SonarQube | GitHub Actions |
+| [**`FIAP.Tech.Challenge.Infra.Database`**](https://github.com/dvdalves/FIAP.Tech.Challenge.Infra.Database)     | IaC para provisionamento do AWS RDS PostgreSQL 16, Secrets Manager e scripts SQL versionados de DDL e Seed.  | Terraform >= 1.5.0, AWS RDS PostgreSQL 16, AWS Secrets Manager, SQL       | GitHub Actions |
+| [**`FIAP.Tech.Challenge`**](https://github.com/dvdalves/FIAP.Tech.Challenge) _(este repositório)_              | Aplicação principal em contêineres executando no Kubernetes (Clean Architecture & DDD).                      | .NET 10, C# 13, EF Core, Kubernetes, Kustomize, HPA, SonarQube            | GitHub Actions |
 
 ---
 
@@ -43,17 +43,17 @@ Atendendo aos requisitos obrigatórios da Fase 3, o projeto está estruturado em
 
 A documentação arquitetural exigida pela Fase 3 está organizada no diretório [`docs/Fase 3/`](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge/docs/Fase%203/):
 
-* 📘 [**Documentação Arquitetural Completa (Master)**](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge/docs/Fase%203/documentacao_arquitetural.md): Hub unificado contendo o diagrama de componentes na nuvem, diagramas de sequência de autenticação e abertura de OS, topologia de rede e checklist de conformidade.
-* 🗄️ [**Modelagem do Banco de Dados Relacional & Justificativa Técnica**](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge/docs/Fase%203/modelagem_banco_dados.md): Justificativa formal da escolha do PostgreSQL 16 no AWS RDS, Diagrama Entidade-Relacionamento (ERD) completo, dicionário de dados e análise de transações ACID.
-* 📄 **RFCs (Request for Comments) - Decisões Técnicas**:
-  * [RFC 001: Escolha do Provedor de Nuvem Pública (AWS)](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge/docs/Fase%203/rfcs/RFC-001-escolha-do-provedor-de-nuvem-aws.md)
-  * [RFC 002: Escolha do Banco de Dados Gerenciado (PostgreSQL no RDS)](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge/docs/Fase%203/rfcs/RFC-002-escolha-do-banco-de-dados-gerenciado.md)
-  * [RFC 003: Estratégia de Autenticação Serverless por CPF e Emissão de JWT](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge/docs/Fase%203/rfcs/RFC-003-estrategia-de-autenticacao-serverless-jwt.md)
-* 📐 **ADRs (Architecture Decision Records) - Decisões Permanentes**:
-  * [ADR 001: Segregação em 4 Repositórios Independentes com CI/CD Desacoplado](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge/docs/Fase%203/adrs/ADR-001-segregacao-em-quatro-repositorios-e-cicd.md)
-  * [ADR 002: Padrão de Comunicação e Roteamento via AWS API Gateway](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge/docs/Fase%203/adrs/ADR-002-padrao-de-comunicacao-e-roteamento-api-gateway.md)
-  * [ADR 003: Escalabilidade Dinâmica com HPA e Metrics Server](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge/docs/Fase%203/adrs/ADR-003-escalabilidade-dinamica-com-hpa-e-metrics-server.md)
-  * [ADR 004: Estratégia de Observabilidade, Tracing Distribuído e Logs Estruturados](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge/docs/Fase%203/adrs/ADR-004-estrategia-de-observabilidade-e-monitoramento.md)
+- 📘 [**Documentação Arquitetural Completa (Master)**](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge/docs/Fase%203/documentacao_arquitetural.md): Hub unificado contendo o diagrama de componentes na nuvem, diagramas de sequência de autenticação e abertura de OS, topologia de rede e checklist de conformidade.
+- 🗄️ [**Modelagem do Banco de Dados Relacional & Justificativa Técnica**](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge/docs/Fase%203/modelagem_banco_dados.md): Justificativa formal da escolha do PostgreSQL 16 no AWS RDS, Diagrama Entidade-Relacionamento (ERD) completo, dicionário de dados e análise de transações ACID.
+- 📄 **RFCs (Request for Comments) - Decisões Técnicas**:
+  - [RFC 001: Escolha do Provedor de Nuvem Pública (AWS)](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge/docs/Fase%203/rfcs/RFC-001-escolha-do-provedor-de-nuvem-aws.md)
+  - [RFC 002: Escolha do Banco de Dados Gerenciado (PostgreSQL no RDS)](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge/docs/Fase%203/rfcs/RFC-002-escolha-do-banco-de-dados-gerenciado.md)
+  - [RFC 003: Estratégia de Autenticação Serverless por CPF e Emissão de JWT](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge/docs/Fase%203/rfcs/RFC-003-estrategia-de-autenticacao-serverless-jwt.md)
+- 📐 **ADRs (Architecture Decision Records) - Decisões Permanentes**:
+  - [ADR 001: Segregação em 4 Repositórios Independentes com CI/CD Desacoplado](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge/docs/Fase%203/adrs/ADR-001-segregacao-em-quatro-repositorios-e-cicd.md)
+  - [ADR 002: Padrão de Comunicação e Roteamento via AWS API Gateway](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge/docs/Fase%203/adrs/ADR-002-padrao-de-comunicacao-e-roteamento-api-gateway.md)
+  - [ADR 003: Escalabilidade Dinâmica com HPA e Metrics Server](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge/docs/Fase%203/adrs/ADR-003-escalabilidade-dinamica-com-hpa-e-metrics-server.md)
+  - [ADR 004: Estratégia de Observabilidade, Tracing Distribuído e Logs Estruturados](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge/docs/Fase%203/adrs/ADR-004-estrategia-de-observabilidade-e-monitoramento.md)
 
 ---
 
@@ -141,6 +141,7 @@ tests/
 ## 3. Como Executar a Aplicação
 
 ### 📋 Pré-requisitos
+
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (com suporte a `docker compose` e Kubernetes local).
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) (para compilação local e execução de testes).
 - [kubectl](https://kubernetes.io/docs/tasks/tools/) e [Terraform CLI](https://developer.hashicorp.com/terraform/downloads).
@@ -149,7 +150,7 @@ tests/
 
 ### 3.1. Execução Local via Docker Compose (Recomendado)
 
-O ambiente completo (API .NET 10, PostgreSQL 18 e SonarQube) é inicializado de forma orquestrada com verificação de integridade (*healthcheck*):
+O ambiente completo (API .NET 10, PostgreSQL 18 e SonarQube) é inicializado de forma orquestrada com verificação de integridade (_healthcheck_):
 
 ```bash
 docker compose up --build
@@ -174,6 +175,7 @@ kubectl get pods,services,hpa -n oficina
 ```
 
 Para acessar a API exposta pelo NodePort do Kubernetes:
+
 - **URL**: `http://localhost:30080` (ou IP do Node no NodePort `30080`).
 
 ---
@@ -205,6 +207,7 @@ Os manifestos em [`k8s/`](k8s/) garantem alta disponibilidade e escalabilidade d
 ## 5. Monitoramento e Observabilidade (Datadog & CloudWatch)
 
 Atendendo aos requisitos da **Fase 3**, o monitoramento contempla:
+
 - **Latência das APIs**: Medição dos percentis p50, p95 e p99 para rotas de abertura de OS e autenticação.
 - **Consumo de Recursos**: Alertas de saturação de CPU e memória em nós e pods.
 - **Logs Estruturados (JSON)**: Ingestão de logs contendo correlação entre requisições via `TraceId` e `SpanId`.
@@ -220,6 +223,7 @@ Atendendo aos requisitos da **Fase 3**, o monitoramento contempla:
 - **Testes Automatizados**: 100% de cobertura nos fluxos críticos de negócio.
 - **Análise Estática de Código (SAST & SCA)**: Zero vulnerabilidades e code smells.
 - **Execução do SonarQube Local**:
+
   ```bash
   # 1. Subir o SonarQube
   docker compose up -d sonarqube
