@@ -6,8 +6,6 @@ Este repositório contém a **aplicação principal executando em Kubernetes** p
 
 Na **Fase 3**, o ecossistema foi elevado a um nível de operação corporativa com práticas avançadas de **Cloud Computing**, **Autenticação Serverless via CPF**, **API Gateway**, segregação em **quatro repositórios independentes**, **Banco de Dados Gerenciado (AWS RDS PostgreSQL)**, **Cluster Kubernetes Elástico (AWS EKS)** com **Horizontal Pod Autoscaler (HPA)** e **Observabilidade & Monitoramento Unificado (Datadog & CloudWatch)**.
 
-## test
-
 ## 🏛️ Estrutura de Repositórios da Fase 3
 
 Atendendo aos requisitos obrigatórios da Fase 3, o projeto está estruturado em **quatro repositórios independentes**, cada um com sua esteira de **CI/CD** e automação:
