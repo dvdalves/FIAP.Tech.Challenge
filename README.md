@@ -204,6 +204,46 @@ Os manifestos em [`k8s/`](k8s/) garantem alta disponibilidade e escalabilidade d
 
 ## 5. Monitoramento e Observabilidade (Datadog & Azure Monitor)
 
+### Ambiente local com Aspire e PostgreSQL
+
+O ambiente local usa o mesmo mecanismo de banco da nuvem: PostgreSQL. O Aspire
+orquestra o container PostgreSQL, cria a base `oficina`, injeta a connection
+string na API e exibe o dashboard local de recursos, logs e traces.
+
+Pré-requisitos: .NET 10 e Aspire CLI.
+
+```bash
+aspire secret set Parameters:postgres-password "senha-local-do-postgres"
+aspire secret set Parameters:jwt-secret "chave-local-do-aspire"
+aspire start --apphost src/FIAP.Tech.Challenge.AppHost
+```
+
+O projeto `FIAP.Tech.Challenge.AppHost` gerencia a API completa, o PostgreSQL,
+as dependências, health checks e a integração de telemetria com o dashboard.
+As senhas ficam persistidas nos User Secrets do AppHost e não precisam ser
+informadas novamente a cada inicialização.
+A API aplica automaticamente as migrations PostgreSQL antes de aceitar tráfego.
+
+### Migrações automáticas do banco
+
+O perfil local usa PostgreSQL provisionado pelo Aspire e o ambiente de nuvem usa
+Azure Database for PostgreSQL. Ambos aplicam automaticamente as migrations do
+EF Core na inicialização da API.
+As migrations são separadas por provedor em
+`src/FIAP.Tech.Challenge.Infrastructure/Data/Migrations/`.
+
+Para executar a API diretamente, usando PostgreSQL local:
+
+```bash
+JWT_SECRET_KEY="chave-local" \
+DbProvider=PostgreSQL \
+ConnectionStrings__DefaultConnection="Host=localhost;Port=5432;Database=oficina;Username=postgres;Password=postgres" \
+dotnet run --project src/FIAP.Tech.Challenge.API
+```
+
+Em produção, configure `DbProvider=PostgreSQL` e a connection string via
+secret/Key Vault. A API executa `Database.Migrate()` antes de aceitar tráfego.
+
 Atendendo aos requisitos da **Fase 3**, o monitoramento contempla:
 
 - **Latência das APIs**: Medição dos percentis p50, p95 e p99 para rotas de abertura de OS e autenticação.

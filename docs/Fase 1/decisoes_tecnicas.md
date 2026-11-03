@@ -10,7 +10,6 @@ Este documento detalha a infraestrutura técnica de base e a pilha tecnológica 
 - **ASP.NET Core**: Framework web para desenvolvimento da API REST e endpoints administrativos e públicos do projeto.
 - **Entity Framework Core (EF Core)**: ORM (Object-Relational Mapping) utilizado para mapear objetos C# para tabelas do banco de dados e gerenciar a persistência.
 - **EF Core InMemory Database**: Provedor em memória utilizado para isolar o contexto do banco de dados na execução dos testes de integração do repositório e controllers.
-- **SQLite**: Banco de dados relacional leve utilizado em memória como fallback dinâmico nos testes integrados locais, facilitando a execução ágil via linha de comando.
 - **PostgreSQL**: Banco de dados relacional utilizado para a persistência de dados em produção e no ambiente de contêineres Docker.
 - **Swagger / OpenAPI**: Ferramenta para documentação de APIs REST, permitindo a visualização e testes interativos das rotas disponíveis.
 - **xUnit**: Framework de testes automatizados adotado para execução e organização da suíte de testes de unidade e integração.

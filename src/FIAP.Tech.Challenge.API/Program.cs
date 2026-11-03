@@ -2,11 +2,14 @@ using System.Diagnostics.CodeAnalysis;
 using FIAP.Tech.Challenge.API.Configurations;
 using FIAP.Tech.Challenge.API.Filters;
 using FIAP.Tech.Challenge.Infrastructure.Data.Context;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Configurar injeção de dependências e Banco de Dados (EF Core + PostgreSQL / SQLite / InMemory)
+// 1. Configurar injeção de dependências e banco PostgreSQL (InMemory apenas nos testes)
 builder.Services.AddDependencyInjection(builder.Configuration);
+builder.AddServiceDefaults();
 
 // 2. Configurar autenticação JWT Bearer
 builder.Services.AddJwtAuthentication(builder.Configuration);
@@ -26,11 +29,12 @@ builder.Services.AddSwaggerConfiguration();
 
 var app = builder.Build();
 
-// 6. Garantir a criação automática do banco para execução ágil do ambiente
+// 6. Aplicar automaticamente as migrations do banco
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<OficinaDbContext>();
-    context.Database.EnsureCreated();
+    if (context.Database.IsRelational())
+        context.Database.Migrate();
 }
 
 // 7. Configurar pipeline do HTTP request
@@ -41,8 +45,8 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// 8. Health Check endpoint para K8s
-app.MapHealthChecks("/health");
+// 8. Health Check endpoints para K8s e Aspire
+app.MapDefaultEndpoints();
 
 app.MapControllers();
 
