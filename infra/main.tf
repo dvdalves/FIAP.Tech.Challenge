@@ -44,7 +44,7 @@ resource "azurerm_kubernetes_cluster" "main" {
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
   dns_prefix          = var.cluster_name
-  kubernetes_version  = "1.30.3"
+  kubernetes_version  = "1.30"
 
   default_node_pool {
     name                 = "system"
@@ -73,18 +73,40 @@ resource "azurerm_kubernetes_cluster" "main" {
   }
 }
 
+resource "random_string" "db_suffix" {
+  length  = 6
+  special = false
+  upper   = false
+}
+
+resource "azurerm_private_dns_zone" "postgres" {
+  name                = "${var.cluster_name}.private.postgres.database.azure.com"
+  resource_group_name = azurerm_resource_group.main.name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "postgres" {
+  name                  = "postgres-dns-link"
+  private_dns_zone_name = azurerm_private_dns_zone.postgres.name
+  virtual_network_id    = azurerm_virtual_network.main.id
+  resource_group_name   = azurerm_resource_group.main.name
+  depends_on            = [azurerm_subnet.postgres]
+}
+
 resource "azurerm_postgresql_flexible_server" "postgres" {
-  name                          = "oficina-postgres-db"
+  name                          = "oficina-db-${random_string.db_suffix.result}"
   resource_group_name           = azurerm_resource_group.main.name
   location                      = azurerm_resource_group.main.location
   version                       = "16"
   delegated_subnet_id           = azurerm_subnet.postgres.id
+  private_dns_zone_id           = azurerm_private_dns_zone.postgres.id
   administrator_login           = var.db_username
   administrator_password        = var.db_password
   sku_name                      = var.db_instance_class
   storage_mb                    = 32768
   backup_retention_days         = 7
   public_network_access_enabled = false
+
+  depends_on = [azurerm_private_dns_zone_virtual_network_link.postgres]
 }
 
 resource "azurerm_postgresql_flexible_server_database" "oficina" {

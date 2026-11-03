@@ -31,14 +31,14 @@ variable "vnet_address_space" {
 variable "db_username" {
   description = "Nome de usuário administrador do banco de dados PostgreSQL."
   type        = string
-  default     = "postgres"
+  default     = "oficina_admin"
 }
 
 variable "db_password" {
   description = "Senha do usuário administrador do banco de dados PostgreSQL."
   type        = string
   sensitive   = true
-  default     = "postgres_password"
+  default     = "Oficina@Segura2025#Db"
 }
 
 variable "db_name" {

@@ -49,6 +49,7 @@ jobs:
     name: 🐳 Docker Build & Validação de Imagem
     needs: build-and-test
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
 
     steps:
       - name: 📥 Checkout do Repositório
@@ -75,11 +76,12 @@ jobs:
             ${{ env.DOCKER_IMAGE_NAME }}:${{ env.DOCKER_IMAGE_TAG }}
 
   # ============================================================================
-  # 3. VALIDAÇÃO DE INFRAESTRUTURA COMO CÓDIGO (TERRAFORM)
+  # 3. VALIDAÇÃO DE INFRAESTRUTURA (TERRAFORM VALIDATE PARA PULL REQUESTS)
   # ============================================================================
   terraform-validate:
     name: 🏗️ Terraform Format & Validation
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
 
     steps:
       - name: 📥 Checkout do Repositório
@@ -97,11 +99,104 @@ jobs:
           terraform validate
 
   # ============================================================================
-  # 4. DEPLOY KUBERNETES & BANCO DE DADOS (CD)
+  # 4. PROVISIONAMENTO DE INFRAESTRUTURA VIA TERRAFORM (PUSH MASTER/MAIN)
+  # ============================================================================
+  terraform-apply:
+    name: 🏗️ Terraform Provisioning (Azure Infrastructure)
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+    outputs:
+      resource_group_name: ${{ steps.tf_outputs.outputs.resource_group_name }}
+      aks_cluster_name: ${{ steps.tf_outputs.outputs.aks_cluster_name }}
+      postgres_fqdn: ${{ steps.tf_outputs.outputs.postgres_fqdn }}
+
+    steps:
+      - name: 📥 Checkout do Repositório
+        uses: actions/checkout@v4
+
+      - name: 🔑 Autenticar no Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: ⚙️ Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.8.0"
+
+      - name: 🗄️ Garantir Storage Account para o Backend do Terraform
+        id: tfstate
+        run: |
+          STATE_RG="fiap-tfstate-rg"
+          LOCATION="brazilsouth"
+          SUBSCRIPTION_ID="${{ fromJson(secrets.AZURE_CREDENTIALS).subscriptionId }}"
+          UNIQUE_HASH=$(echo -n "$SUBSCRIPTION_ID" | md5sum | cut -c1-8)
+          STORAGE_ACCOUNT="fiaptfstate${UNIQUE_HASH}"
+          CONTAINER_NAME="tfstate"
+
+          echo "storage_account=$STORAGE_ACCOUNT" >> $GITHUB_OUTPUT
+          echo "resource_group=$STATE_RG" >> $GITHUB_OUTPUT
+          echo "container_name=$CONTAINER_NAME" >> $GITHUB_OUTPUT
+
+          echo "Garantindo Resource Group para o estado ($STATE_RG)..."
+          az group create --name "$STATE_RG" --location "$LOCATION"
+
+          echo "Garantindo Storage Account ($STORAGE_ACCOUNT)..."
+          az storage account create \
+            --name "$STORAGE_ACCOUNT" \
+            --resource-group "$STATE_RG" \
+            --location "$LOCATION" \
+            --sku Standard_LRS \
+            --encryption-services blob
+
+          echo "Obtendo chave de acesso do Storage Account..."
+          ACCOUNT_KEY=$(az storage account keys list --resource-group "$STATE_RG" --account-name "$STORAGE_ACCOUNT" --query "[0].value" -o tsv)
+
+          echo "Garantindo Container de Blobs ($CONTAINER_NAME)..."
+          az storage container create \
+            --name "$CONTAINER_NAME" \
+            --account-name "$STORAGE_ACCOUNT" \
+            --account-key "$ACCOUNT_KEY"
+
+      - name: 🚀 Terraform Init & Apply
+        env:
+          ARM_CLIENT_ID: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientId }}
+          ARM_CLIENT_SECRET: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientSecret }}
+          ARM_SUBSCRIPTION_ID: ${{ fromJson(secrets.AZURE_CREDENTIALS).subscriptionId }}
+          ARM_TENANT_ID: ${{ fromJson(secrets.AZURE_CREDENTIALS).tenantId }}
+        run: |
+          cd infra
+          terraform init \
+            -backend-config="resource_group_name=${{ steps.tfstate.outputs.resource_group }}" \
+            -backend-config="storage_account_name=${{ steps.tfstate.outputs.storage_account }}" \
+            -backend-config="container_name=${{ steps.tfstate.outputs.container_name }}" \
+            -backend-config="key=production.terraform.tfstate"
+          terraform apply -auto-approve
+
+      - name: 📤 Exportar Outputs do Terraform
+        id: tf_outputs
+        env:
+          ARM_CLIENT_ID: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientId }}
+          ARM_CLIENT_SECRET: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientSecret }}
+          ARM_SUBSCRIPTION_ID: ${{ fromJson(secrets.AZURE_CREDENTIALS).subscriptionId }}
+          ARM_TENANT_ID: ${{ fromJson(secrets.AZURE_CREDENTIALS).tenantId }}
+        run: |
+          cd infra
+          RG=$(terraform output -raw resource_group_name)
+          AKS=$(terraform output -raw aks_cluster_name)
+          PG_FQDN=$(terraform output -raw postgres_fqdn)
+
+          echo "resource_group_name=$RG" >> $GITHUB_OUTPUT
+          echo "aks_cluster_name=$AKS" >> $GITHUB_OUTPUT
+          echo "postgres_fqdn=$PG_FQDN" >> $GITHUB_OUTPUT
+
+  # ============================================================================
+  # 5. DEPLOY KUBERNETES & BANCO DE DADOS (CD)
   # ============================================================================
   deploy-kubernetes:
     name: 🚀 Deploy Kubernetes & Database (K8s Manifests)
-    needs: [docker-build, terraform-validate]
+    needs: [docker-build, terraform-apply]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
 
@@ -129,25 +224,40 @@ jobs:
       - name: 🔐 Obter credenciais do AKS
         run: |
           az aks get-credentials \
-            --resource-group "${{ secrets.AZURE_RESOURCE_GROUP || 'fiap-tech-challenge-rg' }}" \
-            --name "${{ secrets.AZURE_AKS_NAME || 'oficina-aks-cluster' }}" \
+            --resource-group "${{ needs.terraform-apply.outputs.resource_group_name || 'fiap-tech-challenge-rg' }}" \
+            --name "${{ needs.terraform-apply.outputs.aks_cluster_name || 'oficina-aks-cluster' }}" \
             --overwrite-existing
+
+      - name: 🚀 Aplicar manifests no AKS (Kustomize)
+        run: |
+          kubectl apply -k k8s
 
       - name: 🔐 Configurar segredos da aplicação
         run: |
           kubectl create namespace oficina --dry-run=client -o yaml | kubectl apply -f -
+
+          # Secret para pull do GitHub Container Registry
           kubectl -n oficina create secret docker-registry ghcr-pull \
             --docker-server=ghcr.io \
             --docker-username="${{ github.actor }}" \
             --docker-password="${{ secrets.GITHUB_TOKEN }}" \
             --dry-run=client -o yaml | kubectl apply -f -
+
+          # Connection String dinâmica com base no PostgreSQL provisionado pelo Terraform
+          PG_HOST="${{ needs.terraform-apply.outputs.postgres_fqdn }}"
+          AUTO_CONN="Host=${PG_HOST};Port=5432;Database=oficina;Username=oficina_admin;Password=Oficina@Segura2025#Db;Ssl Mode=Require"
+          CONN_STRING="${{ secrets.DB_CONNECTION_STRING }}"
+          if [ -z "$CONN_STRING" ]; then
+            CONN_STRING="$AUTO_CONN"
+          fi
+
+          # Secret da aplicação com ConnectionString e JWT
           kubectl -n oficina create secret generic api-secret \
-            --from-literal=ConnectionStrings__DefaultConnection="${{ secrets.DB_CONNECTION_STRING }}" \
-            --from-literal=Jwt__Key="${{ secrets.JWT_SECRET_KEY }}" \
+            --from-literal=ConnectionStrings__DefaultConnection="$CONN_STRING" \
+            --from-literal=Jwt__Key="${{ secrets.JWT_SECRET_KEY || 'default-super-secret-jwt-key-2025-fiap' }}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
-      - name: 🚀 Aplicar manifests no AKS
+      - name: 🔄 Atualizar imagem e aguardar Rollout
         run: |
-          kubectl apply -k k8s
           kubectl -n oficina set image deployment/api-deployment oficina-api="${{ env.DOCKER_IMAGE_NAME }}:${{ env.DOCKER_IMAGE_TAG }}"
-          kubectl -n oficina rollout status deployment/api-deployment --timeout=180s
+          kubectl -n oficina rollout status deployment/api-deployment --timeout=300s
