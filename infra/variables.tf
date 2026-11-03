@@ -1,7 +1,7 @@
 variable "azure_region" {
   description = "Região do Azure para provisionamento da infraestrutura."
   type        = string
-  default     = "East US"
+  default     = "Brazil South"
 }
 
 variable "resource_group_name" {

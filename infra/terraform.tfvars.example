@@ -1,4 +1,4 @@
-azure_region             = "East US"
+azure_region             = "Brazil South"
 resource_group_name      = "fiap-tech-challenge-rg"
 environment              = "production"
 cluster_name             = "oficina-aks-cluster"

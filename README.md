@@ -172,4 +172,4 @@ Atendendo aos requisitos da **Fase 3**, o monitoramento contempla:
 
 - **Swagger Interativo**: Disponível em `http://localhost:8080/swagger` com suporte completo a Bearer JWT.
 - **Postman Collection**: Arquivo [`OficinaMecanica.postman_collection.json`](OficinaMecanica.postman_collection.json) contendo o fluxo completo de testes sequenciais.
-- **API Reference**: Guia detalhado de endpoints em [`docs/api_reference.md`](docs/api_reference.md)..
+- **API Reference**: Guia detalhado de endpoints em [`docs/api_reference.md`](docs/api_reference.md).

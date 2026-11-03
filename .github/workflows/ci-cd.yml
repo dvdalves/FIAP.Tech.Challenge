@@ -127,7 +127,11 @@ jobs:
           echo "✅ Manifestos Kustomize validados com sucesso!"
 
       - name: 🔐 Obter credenciais do AKS
-        run: az aks get-credentials --resource-group "${{ secrets.AZURE_RESOURCE_GROUP }}" --name "${{ secrets.AZURE_AKS_NAME }}" --overwrite-existing
+        run: |
+          az aks get-credentials \
+            --resource-group "${{ secrets.AZURE_RESOURCE_GROUP || 'fiap-tech-challenge-rg' }}" \
+            --name "${{ secrets.AZURE_AKS_NAME || 'oficina-aks-cluster' }}" \
+            --overwrite-existing
 
       - name: 🔐 Configurar segredos da aplicação
         run: |
