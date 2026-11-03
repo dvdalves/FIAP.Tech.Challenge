@@ -128,8 +128,8 @@ jobs:
       - name: 🗄️ Garantir Storage Account para o Backend do Terraform
         id: tfstate
         run: |
-          STATE_RG="fiap-tfstate-rg"
-          LOCATION="brazilsouth"
+          STATE_RG="fiap-terraform-state-rg"
+          LOCATION="eastus"
           SUBSCRIPTION_ID="${{ fromJson(secrets.AZURE_CREDENTIALS).subscriptionId }}"
           UNIQUE_HASH=$(echo -n "$SUBSCRIPTION_ID" | md5sum | cut -c1-8)
           STORAGE_ACCOUNT="fiaptfstate${UNIQUE_HASH}"
@@ -139,10 +139,13 @@ jobs:
           echo "resource_group=$STATE_RG" >> $GITHUB_OUTPUT
           echo "container_name=$CONTAINER_NAME" >> $GITHUB_OUTPUT
 
-          echo "Garantindo Resource Group para o estado ($STATE_RG)..."
+          echo "Limpando possível resource group antigo da tentativa anterior..."
+          az group delete --name "fiap-tfstate-rg" --yes --no-wait 2>/dev/null || true
+
+          echo "Garantindo Resource Group para o estado ($STATE_RG em $LOCATION)..."
           az group create --name "$STATE_RG" --location "$LOCATION"
 
-          echo "Garantindo Storage Account ($STORAGE_ACCOUNT)..."
+          echo "Garantindo Storage Account ($STORAGE_ACCOUNT em $LOCATION)..."
           az storage account create \
             --name "$STORAGE_ACCOUNT" \
             --resource-group "$STATE_RG" \
