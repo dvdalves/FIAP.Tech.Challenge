@@ -35,6 +35,8 @@ using (var scope = app.Services.CreateScope())
     var context = scope.ServiceProvider.GetRequiredService<OficinaDbContext>();
     if (context.Database.IsRelational())
         context.Database.Migrate();
+    else
+        context.Database.EnsureCreated();
 }
 
 // 7. Configurar pipeline do HTTP request
