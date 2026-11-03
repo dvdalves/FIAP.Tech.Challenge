@@ -56,5 +56,5 @@ variable "db_instance_class" {
 variable "k8s_node_instance_type" {
   description = "SKU de VM para os nós gerenciados do Kubernetes."
   type        = string
-  default     = "Standard_D2s_v5"
+  default     = "Standard_D2as_v5"
 }
