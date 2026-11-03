@@ -2,9 +2,7 @@
 
 ## SIAES - Sistema Integrado de Atendimento e Execução de Serviços
 
-Este repositório contém a **aplicação principal executando em Kubernetes** para o **SIAES (Sistema Integrado de Atendimento e Execução de Serviços)**, desenvolvido para a gestão de uma oficina mecânica de nível corporativo.
-
-Na **Fase 3**, o ecossistema foi elevado a um nível de operação corporativa com práticas avançadas de **Cloud Computing**, **Autenticação Serverless via CPF**, **API Management**, segregação em **quatro repositórios independentes**, **Banco de Dados Gerenciado (Azure Database for PostgreSQL)**, **Cluster Kubernetes Elástico (Azure AKS)** com **Horizontal Pod Autoscaler (HPA)** e **Observabilidade & Monitoramento Unificado (Datadog & Azure Monitor)**.
+Este repositório contém a aplicação principal do **SIAES (Sistema Integrado de Atendimento e Execução de Serviços)**, uma API .NET para gestão de uma oficina mecânica. O código segue Clean Architecture e DDD, utiliza PostgreSQL e possui execução local orquestrada pelo Aspire.
 
 ## 🏛️ Estrutura de Repositórios da Fase 3
 
@@ -22,20 +20,16 @@ Atendendo aos requisitos obrigatórios da Fase 3, o projeto está estruturado em
 ## 🧭 Menu de Navegação
 
 - [1. Documentação Arquitetural Completa (Fase 3)](#1-documentação-arquitetural-completa-fase-3)
-- [2. Desenho da Arquitetura Proposta](#2-desenho-da-arquitetura-proposta)
-  - [2.1. Visão de Nuvem, APIs, Banco e Monitoramento](#21-visão-de-nuvem-apis-banco-e-monitoramento)
-  - [2.2. Fluxo de Autenticação Serverless via CPF e JWT](#22-fluxo-de-autenticação-serverless-via-cpf-e-jwt)
-  - [2.3. Arquitetura da Aplicação (Clean Architecture & DDD)](#23-arquitetura-da-aplicação-clean-architecture--ddd)
+- [2. Arquitetura da Aplicação (Clean Architecture & DDD)](#2-arquitetura-da-aplicação-clean-architecture--ddd)
 - [3. Como Executar a Aplicação](#3-como-executar-a-aplicação)
-  - [3.1. Execução Local via Docker Compose (Recomendado)](#31-execução-local-via-docker-compose-recomendado)
-  - [3.2. Deploy em Cluster Kubernetes (K8s)](#32-deploy-em-cluster-kubernetes-k8s)
-  - [3.3. Execução dos Testes Automatizados](#33-execução-dos-testes-automatizados)
+  - [3.1. Execução Local via Aspire (Recomendado)](#31-execução-local-via-aspire-recomendado)
+  - [3.2. Execução Local via Docker Compose (Alternativa)](#32-execução-local-via-docker-compose-alternativa)
+  - [3.3. Deploy em Cluster Kubernetes (K8s)](#33-deploy-em-cluster-kubernetes-k8s)
+  - [3.4. Execução dos Testes Automatizados](#34-execução-dos-testes-automatizados)
 - [4. Orquestração e Escalabilidade (Kubernetes & HPA)](#4-orquestração-e-escalabilidade-kubernetes--hpa)
 - [5. Monitoramento e Observabilidade (Datadog & Azure Monitor)](#5-monitoramento-e-observabilidade-datadog--azure-monitor)
 - [6. Qualidade, Testes e SonarQube](#6-qualidade-testes-e-sonarqube)
 - [7. Coleções de Teste de API (Postman & Swagger)](#7-coleções-de-teste-de-api-postman--swagger)
-
----
 
 ## 1. Documentação Arquitetural Completa (Fase 3)
 
@@ -55,120 +49,68 @@ A documentação arquitetural exigida pela Fase 3 está organizada no diretório
 
 ---
 
-## 2. Desenho da Arquitetura Proposta
+## 2. Arquitetura da Aplicação (Clean Architecture & DDD)
 
-### 2.1. Visão de Nuvem, APIs, Banco e Monitoramento
-
-```mermaid
-flowchart TD
-    Customer["📱 Cliente Externo"] --> APIGW["🚪 Azure API Management (HTTP API v2)"]
-    Mechanic["👨‍🔧 Operador / Mecânico"] --> APIGW
-
-    subgraph Serverless ["⚡ Azure Container Apps (escala para zero)"]
-        LambdaAuth["λ Auth Service (.NET 10)<br/>Validação Matemática CPF<br/>Geração de JWT"]
-    end
-
-    subgraph VNet ["Azure VNet (10.0.0.0/16)"]
-        subgraph AKS ["☸️ Azure AKS Cluster v1.30"]
-            ApplicationGateway["⚖️ Ingress / Load Balancer"]
-            PodAPI["📦 Pod SIAES API (.NET 10)<br/>Clean Architecture & DDD"]
-            HPA["⚡ HPA (Auto-scaling 2-5 réplicas)"]
-            MetricsSvr["📊 Metrics Server"]
-            DDAgent["🐶 Datadog DaemonSet"]
-        end
-
-        subgraph PostgreSQLSubnet ["🗄️ Camada Privada de Dados"]
-            PostgreSQLFlexivel["🐘 Azure Database for PostgreSQL 16<br/>Storage Auto-scaling"]
-        end
-    end
-
-    APIGW -->|/auth/*| LambdaAuth
-    APIGW -->|"/api/* (VNet Link)"| ApplicationGateway
-    ApplicationGateway --> PodAPI
-    LambdaAuth -.->|Consulta CPF| PostgreSQLFlexivel
-    PodAPI -->|EF Core 10 / Npgsql| PostgreSQLFlexivel
-
-    MetricsSvr --> HPA
-    HPA --> PodAPI
-    PodAPI --> DDAgent
-    DDAgent --> DatadogCloud["📈 Datadog Dashboards & Alertas"]
-```
-
-### 2.2. Fluxo de Autenticação Serverless via CPF e JWT
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Cliente as 📱 Cliente
-    participant APIGW as 🚪 Azure API Management
-    participant Lambda as ⚡ Azure Container Apps (Auth)
-    participant PostgreSQLFlexivel as 🐘 Azure Database for PostgreSQL (PostgreSQL)
-    participant API as 📦 Pod API SIAES (K8s)
-
-    Cliente->>APIGW: POST /auth/token { "cpf": "52998224725" }
-    APIGW->>Lambda: Disparo do Evento (Payload v2.0)
-    Note over Lambda: Valida algoritmo Módulo 11 do CPF
-    Lambda->>PostgreSQLFlexivel: Consulta existência e status do Cliente na tabela "Clientes"
-    Note over Lambda: Gera Token JWT com Claims (sub=Id, name=Cpf, role=Cliente)
-    Lambda-->>APIGW: 200 OK + JWT
-    APIGW-->>Cliente: Retorno com Token de Acesso
-    Note over Cliente: Chamada a rotas sensíveis
-    Cliente->>APIGW: GET /api/public/ordens-servico (Authorization: Bearer <TOKEN>)
-    APIGW->>API: Encaminhamento via VNet Link
-    Note over API: Valida JWT, resolve CPF e retorna dados da OS
-    API-->>Cliente: 200 OK
-```
-
-### 2.3. Arquitetura da Aplicação (Clean Architecture & DDD)
-
-A aplicação principal é organizada como um **Monolito Coeso**, seguindo rigorosamente os preceitos de **Clean Architecture** e **Domain-Driven Design (DDD)**:
+A aplicação principal é organizada como um monolito coeso, seguindo Clean
+Architecture e Domain-Driven Design (DDD):
 
 ```text
 src/
-├── FIAP.Tech.Challenge.Domain/         # Entidades ricas, Agregados, VOs, Exceções de Domínio
-├── FIAP.Tech.Challenge.Application/    # Casos de uso, DTOs, Mapeamentos e Validadores
-├── FIAP.Tech.Challenge.Infrastructure/ # EF Core 10, Npgsql, Mapeamentos Fluent API e Repositórios
-└── FIAP.Tech.Challenge.API/            # Controllers REST, Middleware JWT, Swagger e Filtro Global
+├── FIAP.Tech.Challenge.Domain/         # Entidades, agregados, VOs e regras de domínio
+├── FIAP.Tech.Challenge.Application/    # Casos de uso, DTOs, mapeamentos e validadores
+├── FIAP.Tech.Challenge.Infrastructure/ # EF Core, Npgsql, repositórios e persistência
+└── FIAP.Tech.Challenge.API/            # Controllers REST, autenticação e Swagger
 tests/
-├── FIAP.Tech.Challenge.UnitTests/      # Testes unitários de Domínio, VOs e Casos de Uso
-└── FIAP.Tech.Challenge.IntegrationTests/# Testes integrados com WebApplicationFactory e InMemory
+├── FIAP.Tech.Challenge.UnitTests/      # Testes unitários
+└── FIAP.Tech.Challenge.IntegrationTests/# Testes de integração
 ```
-
----
 
 ## 3. Como Executar a Aplicação
 
-### 📋 Pré-requisitos
+### Pré-requisitos
 
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (com suporte a `docker compose` e Kubernetes local).
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) (para compilação local e execução de testes).
-- [kubectl](https://kubernetes.io/docs/tasks/tools/) e [Terraform CLI](https://developer.hashicorp.com/terraform/downloads).
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) para executar o PostgreSQL gerenciado pelo Aspire.
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0).
+- [Aspire CLI](https://learn.microsoft.com/dotnet/aspire/fundamentals/setup-tooling).
 
----
+### 3.1. Execução Local via Aspire (Recomendado)
 
-### 3.1. Execução Local via Docker Compose (Recomendado)
+O Aspire gerencia a API, o PostgreSQL, as migrations, os health checks e o
+dashboard de observabilidade local.
 
-O ambiente completo (API .NET 10, PostgreSQL 18 e SonarQube) é inicializado de forma orquestrada com verificação de integridade (_healthcheck_):
+Na primeira configuração da máquina, grave os secrets do AppHost:
+
+```bash
+aspire secret set Parameters:postgres-password "senha-local-do-postgres"
+aspire secret set Parameters:jwt-secret "chave-local-do-aspire"
+```
+
+Esses comandos são executados uma única vez. Depois disso, basta iniciar o
+ambiente:
+
+```bash
+aspire start --apphost src/FIAP.Tech.Challenge.AppHost
+```
+
+### 3.2. Execução Local via Docker Compose (Alternativa)
+
+Se preferir não usar o Aspire, o Docker Compose também inicia a API e o
+PostgreSQL:
 
 ```bash
 docker compose up --build
 ```
 
-- **API & Swagger**: `http://localhost:8080` (redireciona automaticamente para `/swagger`).
-- **Health Check da Aplicação**: `http://localhost:8080/health`.
-- **SonarQube**: `http://localhost:9000` (usuário: `admin` / senha inicial: `admin`).
+- **API & Swagger**: `http://localhost:8080`.
+- **Health Check**: `http://localhost:8080/health`.
+- **SonarQube**: `http://localhost:9000`.
 
----
-
-### 3.2. Deploy em Cluster Kubernetes (K8s)
+### 3.3. Deploy em Cluster Kubernetes (K8s)
 
 Os manifestos declarativos estão localizados no diretório [`k8s/`](k8s/) e são orquestrados via Kustomize:
 
 ```bash
-# 1. Aplicar todos os recursos no cluster (Namespace, ConfigMaps, Secrets, PVC, Postgres, API e HPA)
 kubectl apply -k k8s/
-
-# 2. Verificar o status dos pods e serviços no namespace da oficina
 kubectl get pods,services,hpa -n oficina
 ```
 
@@ -176,17 +118,11 @@ Para acessar a API exposta pelo NodePort do Kubernetes:
 
 - **URL**: `http://localhost:30080` (ou IP do Node no NodePort `30080`).
 
----
-
-### 3.3. Execução dos Testes Automatizados
-
-A suíte conta com **145 testes automatizados** cobrindo regras de negócio, invariantes de domínio, transições de status da OS, cálculo atômico de orçamentos, baixa transacional de estoque e chamadas REST:
+### 3.4. Execução dos Testes Automatizados
 
 ```bash
 dotnet test --verbosity normal
 ```
-
----
 
 ## 4. Orquestração e Escalabilidade (Kubernetes & HPA)
 
@@ -203,46 +139,6 @@ Os manifestos em [`k8s/`](k8s/) garantem alta disponibilidade e escalabilidade d
 ---
 
 ## 5. Monitoramento e Observabilidade (Datadog & Azure Monitor)
-
-### Ambiente local com Aspire e PostgreSQL
-
-O ambiente local usa o mesmo mecanismo de banco da nuvem: PostgreSQL. O Aspire
-orquestra o container PostgreSQL, cria a base `oficina`, injeta a connection
-string na API e exibe o dashboard local de recursos, logs e traces.
-
-Pré-requisitos: .NET 10 e Aspire CLI.
-
-```bash
-aspire secret set Parameters:postgres-password "senha-local-do-postgres"
-aspire secret set Parameters:jwt-secret "chave-local-do-aspire"
-aspire start --apphost src/FIAP.Tech.Challenge.AppHost
-```
-
-O projeto `FIAP.Tech.Challenge.AppHost` gerencia a API completa, o PostgreSQL,
-as dependências, health checks e a integração de telemetria com o dashboard.
-As senhas ficam persistidas nos User Secrets do AppHost e não precisam ser
-informadas novamente a cada inicialização.
-A API aplica automaticamente as migrations PostgreSQL antes de aceitar tráfego.
-
-### Migrações automáticas do banco
-
-O perfil local usa PostgreSQL provisionado pelo Aspire e o ambiente de nuvem usa
-Azure Database for PostgreSQL. Ambos aplicam automaticamente as migrations do
-EF Core na inicialização da API.
-As migrations são separadas por provedor em
-`src/FIAP.Tech.Challenge.Infrastructure/Data/Migrations/`.
-
-Para executar a API diretamente, usando PostgreSQL local:
-
-```bash
-JWT_SECRET_KEY="chave-local" \
-DbProvider=PostgreSQL \
-ConnectionStrings__DefaultConnection="Host=localhost;Port=5432;Database=oficina;Username=postgres;Password=postgres" \
-dotnet run --project src/FIAP.Tech.Challenge.API
-```
-
-Em produção, configure `DbProvider=PostgreSQL` e a connection string via
-secret/Key Vault. A API executa `Database.Migrate()` antes de aceitar tráfego.
 
 Atendendo aos requisitos da **Fase 3**, o monitoramento contempla:
 
