@@ -129,7 +129,7 @@ jobs:
         id: tfstate
         run: |
           STATE_RG="fiap-terraform-state-rg"
-          LOCATION="eastus"
+          LOCATION="northcentralus"
           SUBSCRIPTION_ID="${{ fromJson(secrets.AZURE_CREDENTIALS).subscriptionId }}"
           UNIQUE_HASH=$(echo -n "$SUBSCRIPTION_ID" | md5sum | cut -c1-8)
           STORAGE_ACCOUNT="fiaptfstate${UNIQUE_HASH}"
@@ -141,6 +141,12 @@ jobs:
 
           echo "Limpando possível resource group antigo da tentativa anterior..."
           az group delete --name "fiap-tfstate-rg" --yes --no-wait 2>/dev/null || true
+
+          CURRENT_LOC=$(az group show --name "$STATE_RG" --query "location" -o tsv 2>/dev/null || echo "")
+          if [ -n "$CURRENT_LOC" ] && [ "$CURRENT_LOC" != "$LOCATION" ]; then
+            echo "Recriando Resource Group de estado pois estava em $CURRENT_LOC e agora deve ser $LOCATION..."
+            az group delete --name "$STATE_RG" --yes
+          fi
 
           echo "Garantindo Resource Group para o estado ($STATE_RG em $LOCATION)..."
           az group create --name "$STATE_RG" --location "$LOCATION"
