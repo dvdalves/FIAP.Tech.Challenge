@@ -25,23 +25,25 @@ public static class DependencyInjectionSetup
     public static IServiceCollection AddDependencyInjection(this IServiceCollection services,
         IConfiguration configuration)
     {
-        // Banco de dados (usando SQLite, PostgreSQL ou InMemory detectado automaticamente ou via configuração)
-        var connectionString = configuration.GetConnectionString("DefaultConnection") ?? "Data Source=oficina.db";
-        var dbProvider = configuration["DbProvider"];
+        // PostgreSQL é o banco oficial; InMemory permanece disponível apenas para testes.
+        var connectionString = configuration.GetConnectionString("DefaultConnection")
+            ?? "Host=localhost;Port=5432;Database=oficina;Username=postgres;Password=postgres";
+        var dbProvider = configuration["DbProvider"] ?? "PostgreSQL";
 
-        if (string.IsNullOrEmpty(dbProvider))
-            dbProvider = connectionString.Contains("Host=") || connectionString.Contains("Server=")
-                ? "PostgreSQL"
-                : "Sqlite";
-
-        services.AddDbContext<OficinaDbContext>(options =>
+        services.AddScoped<OficinaDbContext>(_ =>
         {
+            var optionsBuilder = new DbContextOptionsBuilder<OficinaDbContext>();
             if (dbProvider.Equals("PostgreSQL", StringComparison.OrdinalIgnoreCase))
-                options.UseNpgsql(connectionString);
+                optionsBuilder.UseNpgsql(connectionString, npgsql =>
+                    npgsql.MigrationsAssembly(typeof(OficinaDbContext).Assembly.FullName));
             else if (dbProvider.Equals("InMemory", StringComparison.OrdinalIgnoreCase))
-                options.UseInMemoryDatabase(connectionString);
+                optionsBuilder.UseInMemoryDatabase(connectionString);
             else
-                options.UseSqlite(connectionString);
+                throw new InvalidOperationException($"Provedor de banco não suportado: '{dbProvider}'.");
+
+            return dbProvider.Equals("PostgreSQL", StringComparison.OrdinalIgnoreCase)
+                ? new PostgresOficinaDbContext(optionsBuilder.Options)
+                : new OficinaDbContext(optionsBuilder.Options);
         });
 
         // Unit of Work

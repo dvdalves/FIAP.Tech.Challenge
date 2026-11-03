@@ -13,6 +13,7 @@
     <ItemGroup>
         <ProjectReference Include="..\FIAP.Tech.Challenge.Application\FIAP.Tech.Challenge.Application.csproj"/>
         <ProjectReference Include="..\FIAP.Tech.Challenge.Infrastructure\FIAP.Tech.Challenge.Infrastructure.csproj"/>
+        <ProjectReference Include="..\FIAP.Tech.Challenge.ServiceDefaults\FIAP.Tech.Challenge.ServiceDefaults.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -23,8 +24,8 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.9"/>
         <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3"/>
-        <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.3"/>
     </ItemGroup>
 
     <ItemGroup>
