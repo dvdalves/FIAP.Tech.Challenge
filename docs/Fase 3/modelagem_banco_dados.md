@@ -8,7 +8,7 @@ Documento formal de arquitetura referente ao banco de dados relacional gerenciad
 
 1. [Justificativa Formal da Escolha do Banco de Dados](#1-justificativa-formal-da-escolha-do-banco-de-dados)
    - [Por que um Banco Relacional?](#por-que-um-banco-relacional)
-   - [Por que PostgreSQL 16 no AWS RDS?](#por-que-postgresql-16-no-aws-rds)
+   - [Por que PostgreSQL 16 no Azure Database for PostgreSQL?](#por-que-postgresql-16-no-aws-rds)
 2. [Evolução e Ajustes no Modelo Relacional (Fase 3)](#2-evolução-e-ajustes-no-modelo-relacional-fase-3)
 3. [Diagrama Entidade-Relacionamento (ERD)](#3-diagrama-entidade-relacionamento-erd)
 4. [Dicionário de Dados e Especificação de Tabelas](#4-dicionário-de-dados-e-especificação-de-tabelas)
@@ -37,7 +37,7 @@ O modelo de negócio de uma oficina mecânica exige **consistência imediata e f
 3. **Imutabilidade e Rastreabilidade Financeira**:
    O cálculo do valor total da ordem de serviço deve manter o registro histórico do valor unitário praticado na data da execução, independentemente de futuros reajustes na tabela de serviços ou no preço de custo das peças.
 
-### Por que PostgreSQL 16 no AWS RDS?
+### Por que PostgreSQL 16 no Azure Database for PostgreSQL?
 
 Dentre os sistemas gerenciadores de banco de dados relacionais (RDBMS), o **PostgreSQL 16** foi selecionado por:
 
@@ -45,8 +45,8 @@ Dentre os sistemas gerenciadores de banco de dados relacionais (RDBMS), o **Post
 * **Tipos de Dados Modernos e Suporte Nativo a UUID**: O suporte a identificadores universais de 128 bits (`UUID v4`) como chaves primárias elimina riscos de ataques de enumeração sequencial (*IDOR*) e permite a geração descentralizada de chaves na camada de aplicação sem dependência de locks de auto-incremento.
 * **Índices Parciais e B-Tree Otimizados**: Índices únicos em colunas de alta frequência de busca (ex: `Cpf` para autenticação na Function Serverless e `Placa` do veículo na recepção) garantem tempo de resposta $O(1)$.
 * **Excelente Integração com ORM**: Compatibilidade total de primeira classe com o Entity Framework Core 10 (`Npgsql.EntityFrameworkCore.PostgreSQL`), incluindo suporte a conversores de Value Objects e Value Comparers.
-* **Operação Gerenciada Corporativa (AWS RDS)**:
-  * **Alta Disponibilidade Multi-AZ**: Replicação síncrona com failover automático em menos de 60 segundos sem perda de transações (RPO = 0);
+* **Operação Gerenciada Corporativa (Azure Database for PostgreSQL)**:
+  * **Alta Disponibilidade zone-redundant**: Replicação síncrona com failover automático em menos de 60 segundos sem perda de transações (RPO = 0);
   * **Armazenamento Elástico (Storage Auto-scaling)**: Expansão dinâmica de 20 GiB até 50 GiB sem parada de sistema;
   * **Backups Automatizados Contínuos**: Point-in-Time Recovery (PITR) com retenção de até 35 dias;
   * **Performance Insights**: Monitoramento ativo de consultas lentas (*slow queries*) e estatísticas de I/O em tempo real.
@@ -242,7 +242,7 @@ Itens e insumos individuais que compõem o escopo de uma OS.
 
 ## 6. Estratégia de Indexação e Otimização de Performance
 
-Para garantir tempo de resposta previsível e baixa latência de I/O no RDS, foram criados índices estratégicos:
+Para garantir tempo de resposta previsível e baixa latência de I/O no PostgreSQL Flexível, foram criados índices estratégicos:
 
 ```sql
 -- Busca instantânea na Lambda de Autenticação (Fase 3)
@@ -272,7 +272,7 @@ sequenceDiagram
     autonumber
     actor Cliente as 📱 Cliente
     participant API as 🚢 API SIAES (.NET)
-    participant DB as 🗄️ PostgreSQL (RDS)
+    participant DB as 🗄️ PostgreSQL (PostgreSQL Flexível)
 
     Cliente->>API: PATCH /api/public/ordens-servico/{id}/aprovar
     Note over API: Inicia Transação Serializable / Read Committed
@@ -292,4 +292,4 @@ sequenceDiagram
 1. **Atomicidade**: Todas as peças têm seu estoque baixado e o status da OS é atualizado em conjunto. Se faltar saldo de qualquer item, o *rollback* reverte todas as alterações.
 2. **Consistência**: A restrição `CHECK (QuantidadeEstoque >= 0)` impede vendas além da disponibilidade física.
 3. **Isolamento**: O bloqueio pessimista ou controle otimista com MVCC impede condições de corrida (*race conditions*) se dois atendentes tentarem manipular a mesma peça ao mesmo tempo.
-4. **Durabilidade**: Uma vez realizado o `COMMIT`, o log transacional (*Write-Ahead Logging - WAL*) garante persistência mesmo em caso de falha de energia ou reinicialização do nó RDS.
+4. **Durabilidade**: Uma vez realizado o `COMMIT`, o log transacional (*Write-Ahead Logging - WAL*) garante persistência mesmo em caso de falha de energia ou reinicialização do nó PostgreSQL Flexível.

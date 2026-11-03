@@ -9,7 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDependencyInjection(builder.Configuration);
 
 // 2. Configurar autenticação JWT Bearer
-builder.Services.AddJwtAuthentication();
+builder.Services.AddJwtAuthentication(builder.Configuration);
 
 // 3. Configurar Health Checks para Kubernetes liveness e readiness probes
 builder.Services.AddHealthChecks();

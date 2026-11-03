@@ -9,5 +9,6 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     {
         builder.UseSetting("DbProvider", "InMemory");
         builder.UseSetting("ConnectionStrings:DefaultConnection", $"InMemoryDbForTesting_{Guid.NewGuid()}");
+        builder.UseSetting("Jwt:Key", "test-only-key-that-is-not-a-production-secret-123456");
     }
 }

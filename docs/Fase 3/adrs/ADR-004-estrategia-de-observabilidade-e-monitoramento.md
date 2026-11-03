@@ -11,7 +11,7 @@
 
 ## 1. Contexto
 
-A migração para uma arquitetura distribuída (AWS API Gateway + Lambda Serverless + Cluster EKS + RDS PostgreSQL) introduz complexidades operacionais:
+A migração para uma arquitetura distribuída (Azure API Management + Lambda Serverless + Cluster AKS + PostgreSQL Flexível PostgreSQL) introduz complexidades operacionais:
 - Requisições transitam por múltiplos componentes antes de concluir uma operação;
 - Falhas transitórias no banco ou na rede privada podem causar atrasos em diagnósticos e aberturas de OS;
 - A operação da oficina necessita de visibilidade em tempo real sobre gargalos, SLAs de atendimento e saúde do cluster.
@@ -28,12 +28,12 @@ A **Fase 3** exige a implementação de integração com ferramentas como **Data
 
 ## 2. Decisão
 
-Adotamos uma abordagem híbrida de observabilidade unificada centralizada no **Datadog** com suporte complementar do **AWS CloudWatch**:
+Adotamos uma abordagem híbrida de observabilidade unificada centralizada no **Datadog** com suporte complementar do **Azure Monitor**:
 
 ### 1. Plataforma Central de Observabilidade: Datadog
 - Provisionado via Helm Chart oficial no namespace `monitoring` do cluster Kubernetes ([`FIAP.Tech.Challenge.Infra.Kubernetes/observability.tf`](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge.Infra.Kubernetes/observability.tf)).
 - Módulos Ativados:
-  - **Datadog APM & Distributed Tracing**: Instrumentação das requisições HTTP entre o API Gateway e a API .NET 10, injetando e propagando os cabeçalhos W3C `traceparent` e `tracestate` para correlação completa de spans.
+  - **Datadog APM & Distributed Tracing**: Instrumentação das requisições HTTP entre o API Management e a API .NET 10, injetando e propagando os cabeçalhos W3C `traceparent` e `tracestate` para correlação completa de spans.
   - **Datadog Log Ingestion**: Coleta automática de logs stdout/stderr dos contêineres formatados em JSON.
   - **Cluster Agent & Process Agent**: Coleta de métricas granulares de pods, nós, saturação de rede e I/O de disco.
 
@@ -52,7 +52,7 @@ Adotamos uma abordagem híbrida de observabilidade unificada centralizada no **D
     "ValorTotal": 489.50
   }
   ```
-- O `TraceId` e `SpanId` correlacionam os logs da API com a invocação da Function Serverless e a requisição no API Gateway.
+- O `TraceId` e `SpanId` correlacionam os logs da API com a invocação da Function Serverless e a requisição no API Management.
 
 ### 3. Dashboards Operacionais (Métricas de Negócio e Infraestrutura)
 São definidos três painéis de visualização contínua:
@@ -73,7 +73,7 @@ São definidos três painéis de visualização contínua:
    - Status de liveness e readiness probes dos pods.
 
 ### 4. Alarmes Automatizados
-- **Alarme de Latência Excessiva**: Disparo automático no CloudWatch / Datadog se a latência p95 ultrapassar 2.000 ms por 2 períodos consecutivos de 1 minuto.
+- **Alarme de Latência Excessiva**: Disparo automático no Azure Monitor / Datadog se a latência p95 ultrapassar 2.000 ms por 2 períodos consecutivos de 1 minuto.
 - **Alarme de Erros 5XX**: Disparo caso ocorram mais de 5 erros de servidor em 1 minuto.
 - **Alarme de Gargalo de OS**: Notificação caso ordens de serviço fiquem retidas em *Diagnóstico* por mais de 48 horas úteis.
 
@@ -87,4 +87,4 @@ São definidos três painéis de visualização contínua:
 - Conformidade integral com as exigências de observabilidade da Fase 3.
 
 ### Consequências Negativas / Mitigações
-- **Custo de Ingestão de Telemetria**: Para conter o volume de dados faturados, aplicou-se amostragem adaptativa (*adaptive sampling*) no APM e retenção de logs de 14 dias no CloudWatch e Datadog.
+- **Custo de Ingestão de Telemetria**: Para conter o volume de dados faturados, aplicou-se amostragem adaptativa (*adaptive sampling*) no APM e retenção de logs de 14 dias no Azure Monitor e Datadog.

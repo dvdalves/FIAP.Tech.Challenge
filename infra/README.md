@@ -8,16 +8,16 @@ Este diretório contém os scripts **Terraform** responsáveis pelo provisioname
 
 Os arquivos do Terraform provisionam uma infraestrutura robusta, segura e escalável:
 
-1. **Rede (Networking / VPC)**:
-   - **VPC Dedicada**: Bloco CIDR `10.0.0.0/16`.
+1. **Rede (Networking / VNet)**:
+   - **VNet Dedicada**: Bloco CIDR `10.0.0.0/16`.
    - **Subnets Públicas (x2)**: Distribuídas em zonas de disponibilidade distintas com tags para integração com Load Balancers externos.
    - **Subnets Privadas (x2)**: Distribuídas nas zonas de disponibilidade com tags para Load Balancers internos.
    - **Internet Gateway & Route Tables**: Roteamento público e isolamento da rede privada.
 
-2. **Segurança e Controle de Acesso (Security Groups & IAM Roles)**:
-   - **Security Group do Cluster**: Regras de controle de tráfego do control plane do Kubernetes.
-   - **Security Group do Banco de Dados**: Acesso restrito na porta `5432` exclusivo a partir da rede do cluster Kubernetes.
-   - **Políticas e Roles de Serviço**: Permissões granulares para os nós do cluster e integração de rede.
+2. **Segurança e Controle de Acesso (NSG, Managed Identity & RBAC)**:
+   - **Network Security Group**: Regras de controle de tráfego do cluster e do banco.
+   - **Managed Identity**: Identidade gerenciada para o AKS acessar recursos Azure.
+   - **Azure RBAC**: Permissões granulares para operações de infraestrutura.
 
 3. **Banco de Dados Relacional (PostgreSQL)**:
    - Instância **PostgreSQL** gerenciada.
@@ -25,7 +25,7 @@ Os arquivos do Terraform provisionam uma infraestrutura robusta, segura e escal�
    - Grupo de subnets isolado na camada privada (sem exposição pública à Internet).
 
 4. **Cluster Kubernetes**:
-   - **Control Plane Kubernetes** versão `1.30`.
+   - **Control Plane AKS** versão `1.30`.
    - **Node Pool Gerenciado**: Instâncias distribuídas em subnets privadas com auto-recuperação e autoescalabilidade (mínimo de 1 nó, desejado 2 nós, máximo de 5 nós).
 
 ---
