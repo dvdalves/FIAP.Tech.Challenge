@@ -4,7 +4,7 @@
 
 Este repositório contém a **aplicação principal executando em Kubernetes** para o **SIAES (Sistema Integrado de Atendimento e Execução de Serviços)**, desenvolvido para a gestão de uma oficina mecânica de nível corporativo.
 
-Na **Fase 3**, o ecossistema foi elevado a um nível de operação corporativa com práticas avançadas de **Cloud Computing**, **Autenticação Serverless via CPF**, **API Gateway**, segregação em **quatro repositórios independentes**, **Banco de Dados Gerenciado (AWS RDS PostgreSQL)**, **Cluster Kubernetes Elástico (AWS EKS)** com **Horizontal Pod Autoscaler (HPA)** e **Observabilidade & Monitoramento Unificado (Datadog & CloudWatch)**.
+Na **Fase 3**, o ecossistema foi elevado a um nível de operação corporativa com práticas avançadas de **Cloud Computing**, **Autenticação Serverless via CPF**, **API Management**, segregação em **quatro repositórios independentes**, **Banco de Dados Gerenciado (Azure Database for PostgreSQL)**, **Cluster Kubernetes Elástico (Azure AKS)** com **Horizontal Pod Autoscaler (HPA)** e **Observabilidade & Monitoramento Unificado (Datadog & Azure Monitor)**.
 
 ## 🏛️ Estrutura de Repositórios da Fase 3
 
@@ -12,9 +12,9 @@ Atendendo aos requisitos obrigatórios da Fase 3, o projeto está estruturado em
 
 | Repositório                                                                                                    | Descrição                                                                                                    | Tecnologias                                                               | CI/CD          |
 | :------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------ | :------------- |
-| [**`FIAP.Tech.Challenge.Lambda`**](https://github.com/dvdalves/FIAP.Tech.Challenge.Lambda)                     | Function Serverless para validação de CPF (Módulo 11), consulta ao banco e emissão de tokens JWT.            | .NET 10, C# 13, AWS Lambda, API Gateway v2, Npgsql, Docker, Terraform     | GitHub Actions |
-| [**`FIAP.Tech.Challenge.Infra.Kubernetes`**](https://github.com/dvdalves/FIAP.Tech.Challenge.Infra.Kubernetes) | IaC para provisionamento de VPC Multi-AZ, Cluster AWS EKS v1.30, Node Groups, API Gateway central e Datadog. | Terraform >= 1.5.0, AWS EKS, AWS VPC, Helm, Datadog Agent, Metrics Server | GitHub Actions |
-| [**`FIAP.Tech.Challenge.Infra.Database`**](https://github.com/dvdalves/FIAP.Tech.Challenge.Infra.Database)     | IaC para provisionamento do AWS RDS PostgreSQL 16, Secrets Manager e scripts SQL versionados de DDL e Seed.  | Terraform >= 1.5.0, AWS RDS PostgreSQL 16, AWS Secrets Manager, SQL       | GitHub Actions |
+| [**`FIAP.Tech.Challenge.Lambda`**](https://github.com/dvdalves/FIAP.Tech.Challenge.Lambda)                     | Function Serverless para validação de CPF (Módulo 11), consulta ao banco e emissão de tokens JWT.            | .NET 10, C# 13, Azure Container Apps, API Management v2, Npgsql, Docker, Terraform     | GitHub Actions |
+| [**`FIAP.Tech.Challenge.Infra.Kubernetes`**](https://github.com/dvdalves/FIAP.Tech.Challenge.Infra.Kubernetes) | IaC para provisionamento de VNet zone-redundant, Cluster Azure AKS v1.30, Node Groups, API Management central e Datadog. | Terraform >= 1.5.0, Azure AKS, Azure VNet, Helm, Datadog Agent, Metrics Server | GitHub Actions |
+| [**`FIAP.Tech.Challenge.Infra.Database`**](https://github.com/dvdalves/FIAP.Tech.Challenge.Infra.Database)     | IaC para provisionamento do Azure Database for PostgreSQL 16, Key Vault e scripts SQL versionados de DDL e Seed.  | Terraform >= 1.5.0, Azure Database for PostgreSQL 16, Azure Key Vault, SQL       | GitHub Actions |
 | [**`FIAP.Tech.Challenge`**](https://github.com/dvdalves/FIAP.Tech.Challenge) _(este repositório)_              | Aplicação principal em contêineres executando no Kubernetes (Clean Architecture & DDD).                      | .NET 10, C# 13, EF Core, Kubernetes, Kustomize, HPA, SonarQube            | GitHub Actions |
 
 ---
@@ -31,7 +31,7 @@ Atendendo aos requisitos obrigatórios da Fase 3, o projeto está estruturado em
   - [3.2. Deploy em Cluster Kubernetes (K8s)](#32-deploy-em-cluster-kubernetes-k8s)
   - [3.3. Execução dos Testes Automatizados](#33-execução-dos-testes-automatizados)
 - [4. Orquestração e Escalabilidade (Kubernetes & HPA)](#4-orquestração-e-escalabilidade-kubernetes--hpa)
-- [5. Monitoramento e Observabilidade (Datadog & CloudWatch)](#5-monitoramento-e-observabilidade-datadog--cloudwatch)
+- [5. Monitoramento e Observabilidade (Datadog & Azure Monitor)](#5-monitoramento-e-observabilidade-datadog--azure-monitor)
 - [6. Qualidade, Testes e SonarQube](#6-qualidade-testes-e-sonarqube)
 - [7. Coleções de Teste de API (Postman & Swagger)](#7-coleções-de-teste-de-api-postman--swagger)
 
@@ -39,19 +39,19 @@ Atendendo aos requisitos obrigatórios da Fase 3, o projeto está estruturado em
 
 ## 1. Documentação Arquitetural Completa (Fase 3)
 
-A documentação arquitetural exigida pela Fase 3 está organizada no diretório [`docs/Fase 3/`](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge/docs/Fase%203/):
+A documentação arquitetural exigida pela Fase 3 está organizada no diretório [`docs/Fase 3/`](docs/Fase%203/):
 
-- 📘 [**Documentação Arquitetural Completa (Master)**](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge/docs/Fase%203/documentacao_arquitetural.md): Hub unificado contendo o diagrama de componentes na nuvem, diagramas de sequência de autenticação e abertura de OS, topologia de rede e checklist de conformidade.
-- 🗄️ [**Modelagem do Banco de Dados Relacional & Justificativa Técnica**](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge/docs/Fase%203/modelagem_banco_dados.md): Justificativa formal da escolha do PostgreSQL 16 no AWS RDS, Diagrama Entidade-Relacionamento (ERD) completo, dicionário de dados e análise de transações ACID.
+- 📘 [**Documentação Arquitetural Completa (Master)**](docs/Fase%203/documentacao_arquitetural.md): Hub unificado contendo o diagrama de componentes na nuvem, diagramas de sequência de autenticação e abertura de OS, topologia de rede e checklist de conformidade.
+- 🗄️ [**Modelagem do Banco de Dados Relacional & Justificativa Técnica**](docs/Fase%203/modelagem_banco_dados.md): Justificativa formal da escolha do PostgreSQL 16 no Azure Database for PostgreSQL, Diagrama Entidade-Relacionamento (ERD) completo, dicionário de dados e análise de transações ACID.
 - 📄 **RFCs (Request for Comments) - Decisões Técnicas**:
-  - [RFC 001: Escolha do Provedor de Nuvem Pública (AWS)](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge/docs/Fase%203/rfcs/RFC-001-escolha-do-provedor-de-nuvem-aws.md)
-  - [RFC 002: Escolha do Banco de Dados Gerenciado (PostgreSQL no RDS)](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge/docs/Fase%203/rfcs/RFC-002-escolha-do-banco-de-dados-gerenciado.md)
-  - [RFC 003: Estratégia de Autenticação Serverless por CPF e Emissão de JWT](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge/docs/Fase%203/rfcs/RFC-003-estrategia-de-autenticacao-serverless-jwt.md)
+  - [RFC 001: Escolha do Provedor de Nuvem Pública (Azure)](docs/Fase%203/rfcs/RFC-001-escolha-do-provedor-de-nuvem-azure.md)
+  - [RFC 002: Escolha do Banco de Dados Gerenciado (PostgreSQL no PostgreSQL Flexível)](docs/Fase%203/rfcs/RFC-002-escolha-do-banco-de-dados-gerenciado-postgresql-azure.md)
+  - [RFC 003: Estratégia de Autenticação Serverless por CPF e Emissão de JWT](docs/Fase%203/rfcs/RFC-003-estrategia-de-autenticacao-serverless-jwt.md)
 - 📐 **ADRs (Architecture Decision Records) - Decisões Permanentes**:
-  - [ADR 001: Segregação em 4 Repositórios Independentes com CI/CD Desacoplado](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge/docs/Fase%203/adrs/ADR-001-segregacao-em-quatro-repositorios-e-cicd.md)
-  - [ADR 002: Padrão de Comunicação e Roteamento via AWS API Gateway](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge/docs/Fase%203/adrs/ADR-002-padrao-de-comunicacao-e-roteamento-api-gateway.md)
-  - [ADR 003: Escalabilidade Dinâmica com HPA e Metrics Server](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge/docs/Fase%203/adrs/ADR-003-escalabilidade-dinamica-com-hpa-e-metrics-server.md)
-  - [ADR 004: Estratégia de Observabilidade, Tracing Distribuído e Logs Estruturados](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge/docs/Fase%203/adrs/ADR-004-estrategia-de-observabilidade-e-monitoramento.md)
+  - [ADR 001: Segregação em 4 Repositórios Independentes com CI/CD Desacoplado](docs/Fase%203/adrs/ADR-001-segregacao-em-quatro-repositorios-e-cicd.md)
+  - [ADR 002: Padrão de Comunicação e Roteamento via Azure API Management](docs/Fase%203/adrs/ADR-002-padrao-de-comunicacao-e-roteamento-api-management.md)
+  - [ADR 003: Escalabilidade Dinâmica com HPA e Metrics Server](docs/Fase%203/adrs/ADR-003-escalabilidade-dinamica-com-hpa-e-metrics-server.md)
+  - [ADR 004: Estratégia de Observabilidade, Tracing Distribuído e Logs Estruturados](docs/Fase%203/adrs/ADR-004-estrategia-de-observabilidade-e-monitoramento.md)
 
 ---
 
@@ -61,32 +61,32 @@ A documentação arquitetural exigida pela Fase 3 está organizada no diretório
 
 ```mermaid
 flowchart TD
-    Customer["📱 Cliente Externo"] --> APIGW["🚪 AWS API Gateway (HTTP API v2)"]
+    Customer["📱 Cliente Externo"] --> APIGW["🚪 Azure API Management (HTTP API v2)"]
     Mechanic["👨‍🔧 Operador / Mecânico"] --> APIGW
 
-    subgraph Serverless ["⚡ Serverless (Lambda)"]
-        LambdaAuth["λ Auth Function (.NET 10)<br/>Validação Matemática CPF<br/>Geração de JWT"]
+    subgraph Serverless ["⚡ Azure Container Apps (escala para zero)"]
+        LambdaAuth["λ Auth Service (.NET 10)<br/>Validação Matemática CPF<br/>Geração de JWT"]
     end
 
-    subgraph VPC ["AWS VPC (10.0.0.0/16)"]
-        subgraph EKS ["☸️ AWS EKS Cluster v1.30"]
-            ALB["⚖️ Ingress / Load Balancer"]
+    subgraph VNet ["Azure VNet (10.0.0.0/16)"]
+        subgraph AKS ["☸️ Azure AKS Cluster v1.30"]
+            ApplicationGateway["⚖️ Ingress / Load Balancer"]
             PodAPI["📦 Pod SIAES API (.NET 10)<br/>Clean Architecture & DDD"]
             HPA["⚡ HPA (Auto-scaling 2-5 réplicas)"]
             MetricsSvr["📊 Metrics Server"]
             DDAgent["🐶 Datadog DaemonSet"]
         end
 
-        subgraph RDS_Subnet ["🗄️ Camada Privada de Dados"]
-            RDS["🐘 AWS RDS PostgreSQL 16<br/>Storage Auto-scaling"]
+        subgraph PostgreSQLSubnet ["🗄️ Camada Privada de Dados"]
+            PostgreSQLFlexivel["🐘 Azure Database for PostgreSQL 16<br/>Storage Auto-scaling"]
         end
     end
 
     APIGW -->|/auth/*| LambdaAuth
-    APIGW -->|"/api/* (VPC Link)"| ALB
-    ALB --> PodAPI
-    LambdaAuth -.->|Consulta CPF| RDS
-    PodAPI -->|EF Core 10 / Npgsql| RDS
+    APIGW -->|"/api/* (VNet Link)"| ApplicationGateway
+    ApplicationGateway --> PodAPI
+    LambdaAuth -.->|Consulta CPF| PostgreSQLFlexivel
+    PodAPI -->|EF Core 10 / Npgsql| PostgreSQLFlexivel
 
     MetricsSvr --> HPA
     HPA --> PodAPI
@@ -100,21 +100,21 @@ flowchart TD
 sequenceDiagram
     autonumber
     actor Cliente as 📱 Cliente
-    participant APIGW as 🚪 AWS API Gateway
-    participant Lambda as ⚡ AWS Lambda (Auth)
-    participant RDS as 🐘 AWS RDS (PostgreSQL)
+    participant APIGW as 🚪 Azure API Management
+    participant Lambda as ⚡ Azure Container Apps (Auth)
+    participant PostgreSQLFlexivel as 🐘 Azure Database for PostgreSQL (PostgreSQL)
     participant API as 📦 Pod API SIAES (K8s)
 
     Cliente->>APIGW: POST /auth/token { "cpf": "52998224725" }
     APIGW->>Lambda: Disparo do Evento (Payload v2.0)
     Note over Lambda: Valida algoritmo Módulo 11 do CPF
-    Lambda->>RDS: Consulta existência e status do Cliente na tabela "Clientes"
+    Lambda->>PostgreSQLFlexivel: Consulta existência e status do Cliente na tabela "Clientes"
     Note over Lambda: Gera Token JWT com Claims (sub=Id, name=Cpf, role=Cliente)
     Lambda-->>APIGW: 200 OK + JWT
     APIGW-->>Cliente: Retorno com Token de Acesso
     Note over Cliente: Chamada a rotas sensíveis
     Cliente->>APIGW: GET /api/public/ordens-servico (Authorization: Bearer <TOKEN>)
-    APIGW->>API: Encaminhamento via VPC Link
+    APIGW->>API: Encaminhamento via VNet Link
     Note over API: Valida JWT, resolve CPF e retorna dados da OS
     API-->>Cliente: 200 OK
 ```
@@ -202,7 +202,7 @@ Os manifestos em [`k8s/`](k8s/) garantem alta disponibilidade e escalabilidade d
 
 ---
 
-## 5. Monitoramento e Observabilidade (Datadog & CloudWatch)
+## 5. Monitoramento e Observabilidade (Datadog & Azure Monitor)
 
 Atendendo aos requisitos da **Fase 3**, o monitoramento contempla:
 
@@ -236,4 +236,4 @@ Atendendo aos requisitos da **Fase 3**, o monitoramento contempla:
 
 - **Swagger Interativo**: Disponível em `http://localhost:8080/swagger` com suporte completo a Bearer JWT.
 - **Postman Collection**: Arquivo [`OficinaMecanica.postman_collection.json`](OficinaMecanica.postman_collection.json) contendo o fluxo completo de testes sequenciais.
-- **API Reference**: Guia detalhado de endpoints em [`docs/api_reference.md`](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge/docs/api_reference.md).
+- **API Reference**: Guia detalhado de endpoints em [`docs/api_reference.md`](docs/api_reference.md).

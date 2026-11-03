@@ -8,11 +8,15 @@ namespace FIAP.Tech.Challenge.API.Configurations;
 [ExcludeFromCodeCoverage]
 public static class JwtSetup
 {
-    private const string SecretKey = "SuperSecretSecurityKeyOficinaMecanica2026!";
-
-    public static IServiceCollection AddJwtAuthentication(this IServiceCollection services)
+    public static IServiceCollection AddJwtAuthentication(
+        this IServiceCollection services,
+        IConfiguration configuration)
     {
-        var key = Encoding.ASCII.GetBytes(SecretKey);
+        var secretKey = configuration["Jwt:Key"]
+            ?? configuration["JWT_SECRET_KEY"]
+            ?? throw new InvalidOperationException(
+                "Jwt:Key deve ser configurada por um mecanismo seguro.");
+        var key = Encoding.ASCII.GetBytes(secretKey);
 
         services.AddAuthentication(options =>
             {

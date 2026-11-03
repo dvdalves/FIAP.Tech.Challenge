@@ -40,10 +40,10 @@ Adotamos uma estratégia de escalabilidade elástica em duas camadas complementa
 - Provisionado via Terraform com Helm no repositório [`FIAP.Tech.Challenge.Infra.Kubernetes`](file:///Users/david/Projects/FIAP/FIAP.Tech.Challenge.Infra.Kubernetes/observability.tf).
 - Coleta métricas de uso de CPU e memória diretamente do Kubelet em cada nó do cluster a cada 15 segundos e expõe na API `metrics.k8s.io`.
 
-### Camada 3: EKS Managed Node Group Autoscaling
+### Camada 3: AKS Managed Node Group Autoscaling
 - Provisionado via Terraform (`eks_node_group.tf`).
-- Limites de nós: Mínimo 1 nó, Desejado 2 nós, Máximo 5 nós EC2 `t3.medium`.
-- Quando os pods em expansão pelo HPA não encontram capacidade de agendamento em nós existentes, novos nós são provisionados dinamicamente pelo grupo gerenciado da AWS.
+- Limites de nós: Mínimo 1 nó, Desejado 2 nós, Máximo 5 nós AKS `Standard_D2s_v5`.
+- Quando os pods em expansão pelo HPA não encontram capacidade de agendamento em nós existentes, novos nós são provisionados dinamicamente pelo grupo gerenciado da Azure.
 
 ---
 

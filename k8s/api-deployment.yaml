@@ -15,10 +15,12 @@ spec:
       labels:
         app: oficina-api
     spec:
+      imagePullSecrets:
+        - name: ghcr-pull
       containers:
         - name: oficina-api
-          image: fiap_tech_challenge_api:latest
-          imagePullPolicy: IfNotPresent
+          image: ghcr.io/dvdalves/fiap-tech-challenge-api:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
               name: http

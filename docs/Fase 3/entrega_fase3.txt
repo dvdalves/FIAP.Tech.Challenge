@@ -1,0 +1,186 @@
+AVALIAÇÃO DA ENTREGA - FASE 3
+Data: 2026-11-02
+
+CONCLUSÃO
+==========
+
+A entrega atende a maior parte da estrutura técnica, mas ainda há pendências
+funcionais e evidências de entrega. O projeto está classificado como
+PARCIALMENTE ATENDIDO.
+
+Legenda: ATENDE = implementado; PARCIAL = implementado com ressalva;
+PENDENTE = não implementado ou não comprovado.
+
+
+1. AUTENTICAÇÃO E API GATEWAY
+==============================
+
+ATENDE - API Management: Azure API Management HTTP API v2, rotas de autenticação,
+CORS, logs Azure Monitor e VNet Link estão declarados em Terraform.
+
+ATENDE - CPF: a Lambda valida formato e dígitos do CPF pelo Módulo 11.
+
+PARCIAL - Status do cliente: a Lambda consulta a existência por CPF, mas não
+consulta status real; o código sempre retorna `Status = "Ativo"`.
+
+PARCIAL - JWT: o token HMAC-SHA256 e as claims estão implementados, mas o
+Terraform usa runtime `dotnet8` enquanto o projeto declara .NET 10.
+
+PENDENTE - Integração do artefato Lambda: o Terraform referencia
+`dummy_payload.zip`, enquanto a pipeline gera `lambda_payload.zip`.
+
+
+2. QUATRO REPOSITÓRIOS E CI/CD
+===============================
+
+ATENDE - Existem os quatro repositórios exigidos:
+
+- Lambda: https://github.com/dvdalves/FIAP.Tech.Challenge.Lambda
+- Kubernetes: https://github.com/dvdalves/FIAP.Tech.Challenge.Infra.Kubernetes
+- Database: https://github.com/dvdalves/FIAP.Tech.Challenge.Infra.Database
+- Aplicação: https://github.com/dvdalves/FIAP.Tech.Challenge
+
+ATENDE - Os quatro repositórios possuem README e workflow GitHub Actions.
+
+ATENDE - Proteção das branches: informada pelo responsável como configurada.
+
+PARCIAL - CI/CD da Lambda: há build, testes, Terraform, Docker e apply, mas
+o problema do runtime/ZIP impede considerar o deploy confiável.
+
+ATENDE - CI/CD Kubernetes: há validação, plan em PR e apply na branch principal.
+
+ATENDE - CI/CD Database: há validação, plan em PR e apply na branch principal.
+
+PENDENTE - Deploy da aplicação: o job principal não executa `kubectl apply`;
+apenas gera manifestos e imprime mensagens de sucesso.
+
+PENDENTE - Homologação: não há pipeline/ambiente específico de homologação;
+os workflows tratam apenas `main`/`master`.
+
+
+3. INFRAESTRUTURA OBRIGATÓRIA
+==============================
+
+ATENDE - API Management, Lambda, Terraform, AKS 1.30 e PostgreSQL Flexível PostgreSQL 16 estão
+declarados nos repositórios de infraestrutura.
+
+PARCIAL - Banco gerenciado: o PostgreSQL Flexível é privado e possui backups, Key Vault
+e Performance Insights, mas o exemplo usa `multi_az = false`.
+
+PARCIAL - Kubernetes: AKS, node group, probes, requests/limits e HPA existem.
+Há divergência no HPA: `k8s/hpa.yaml` usa máximo 10, enquanto a documentação
+informa máximo 5.
+
+PENDENTE - Deploy comprovado: não há evidência no material analisado de
+recursos Azure/AKS realmente ativos.
+
+
+4. MONITORAMENTO E OBSERVABILIDADE
+===================================
+
+ATENDE - CPU/memória: Metrics Server, HPA e requests/limits estão configurados.
+
+ATENDE - Healthchecks: `/health`, liveness e readiness probes existem.
+
+PARCIAL - Datadog: Terraform instala o Agent, mas `enable_datadog = false`
+no exemplo; não há dashboard ativo comprovado.
+
+ATENDE - Latência/erros básicos: API Management possui access logs JSON e alarmes
+Azure Monitor para latência e erros 5XX.
+
+PARCIAL - Logs correlacionados: a infraestrutura aceita logs/traces, mas não
+foi encontrada configuração explícita no código para JSON, TraceId/SpanId ou
+middleware de correlação.
+
+PENDENTE - Alertas de negócio: não há regra específica para falhas no
+processamento de Ordens de Serviço.
+
+PENDENTE - Dashboards: não foram encontrados dashboards, queries, URLs ou
+screenshots para volume diário, tempo por status e falhas de integração.
+
+
+5. DOCUMENTAÇÃO ARQUITETURAL
+=============================
+
+ATENDE - Diagrama de componentes: documenta clientes, API Management, Lambda,
+AKS, PostgreSQL Flexível e observabilidade.
+
+ATENDE - Sequência de autenticação: documenta CPF, Lambda, PostgreSQL Flexível e JWT.
+
+ATENDE - Sequência de OS: documenta API, transação, estoque e observabilidade.
+
+ATENDE - RFCs: existem RFCs para Azure, PostgreSQL/PostgreSQL Flexível e autenticação serverless.
+
+ATENDE - ADRs: existem ADRs para repositórios/CI-CD, API Management, HPA e
+observabilidade.
+
+ATENDE - Banco: há justificativa formal, ERD, dicionário, relacionamentos,
+índices, DDL e seed.
+
+PARCIAL - Consistência documental: a documentação descreve zone-redundant, Datadog
+ativo e HPA 2-5, mas os exemplos/configurações não refletem esses valores.
+
+
+6. README, DOCKER E LINKS
+==========================
+
+ATENDE - Os quatro READMEs descrevem propósito, tecnologias e execução.
+
+ATENDE - Há Dockerfiles na Lambda e na aplicação principal.
+
+PARCIAL - Diagramas: existem diagramas, mas alguns representam recursos
+desabilitados ou não comprovadamente implantados.
+
+PARCIAL - Swagger/Postman: há Swagger local, coleções Postman e API reference,
+mas não há endpoint publicado comprovado.
+
+PENDENTE - Deploys ativos: não foram encontrados links de ambientes Azure/AKS ou
+Lambda ativos.
+
+PENDENTE - Links GitHub: o README usa links `file:///Users/...`, que não são
+navegáveis para avaliadores externos.
+
+
+7. VÍDEO E PORTAL DO ALUNO
+===========================
+
+PENDENTE - Vídeo: não foi localizado link YouTube/Vimeo de até 15 minutos.
+
+PENDENTE - Demonstração: não há evidência em vídeo de autenticação, pipeline,
+deploy, dashboard, logs ou traces.
+
+PENDENTE - PDF único: não foi localizado documento de entrega com os links
+exigidos para repositórios, vídeo e documentação.
+
+ATENDE PARCIALMENTE - Links dos repositórios e documentação estão no README,
+mas não foi comprovado que foram enviados no PDF do Portal.
+
+ATENDE PARCIALMENTE - O README informa acesso ao usuário `soat-architecture`;
+a configuração não é comprovável pelos arquivos do repositório.
+
+
+8. O QUE FALTA PARA CONCLUIR
+=============================
+
+1. Corrigir runtime e artefato da Lambda: .NET 10 compatível e ZIP produzido
+   pela pipeline.
+2. Implementar consulta do status real do cliente.
+3. Fazer o workflow principal executar deploy real no Kubernetes.
+4. Criar pipeline/ambiente de homologação.
+5. Decidir e alinhar HPA: máximo 5 ou máximo 10.
+6. Ativar Datadog e publicar dashboards/monitores verificáveis.
+7. Ativar zone-redundant no PostgreSQL Flexível, se essa alta disponibilidade for obrigatória.
+8. Implementar correlação de logs no código da API.
+9. Criar alertas específicos para falhas de processamento de OS.
+10. Substituir links `file:///...` por links relativos ou GitHub.
+11. Adicionar vídeo e preparar o PDF único do Portal do Aluno.
+
+RESULTADO FINAL
+===============
+
+REQUISITOS ATENDIDOS: organização, IaC, autenticação básica, API Management,
+PostgreSQL Flexível, AKS/HPA, healthchecks, RFCs, ADRs, ERD e documentação estrutural.
+
+PENDÊNCIAS PRINCIPAIS: deploy real da aplicação, correções da Lambda,
+observabilidade ativa com dashboards, homologação, evidências de ambiente,
+vídeo e PDF formal de entrega.

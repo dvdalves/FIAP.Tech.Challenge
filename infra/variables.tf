@@ -1,7 +1,13 @@
-variable "aws_region" {
-  description = "Região da AWS para provisionamento da infraestrutura."
+variable "azure_region" {
+  description = "Região do Azure para provisionamento da infraestrutura."
   type        = string
-  default     = "us-east-1"
+  default     = "East US"
+}
+
+variable "resource_group_name" {
+  description = "Resource Group da aplicação"
+  type        = string
+  default     = "fiap-tech-challenge-rg"
 }
 
 variable "environment" {
@@ -11,13 +17,13 @@ variable "environment" {
 }
 
 variable "cluster_name" {
-  description = "Nome do Cluster Kubernetes (EKS)."
+  description = "Nome do Cluster Kubernetes (AKS)."
   type        = string
-  default     = "oficina-eks-cluster"
+  default     = "oficina-aks-cluster"
 }
 
-variable "vpc_cidr" {
-  description = "Bloco CIDR da VPC."
+variable "vnet_address_space" {
+  description = "Bloco CIDR da VNet."
   type        = string
   default     = "10.0.0.0/16"
 }
@@ -42,13 +48,13 @@ variable "db_name" {
 }
 
 variable "db_instance_class" {
-  description = "Tipo da instância RDS para o PostgreSQL."
+  description = "SKU do Azure Database for PostgreSQL."
   type        = string
-  default     = "db.t3.micro"
+  default     = "B_Standard_B1ms"
 }
 
 variable "k8s_node_instance_type" {
-  description = "Tipo de instância EC2 para os nós gerenciados do Kubernetes."
+  description = "SKU de VM para os nós gerenciados do Kubernetes."
   type        = string
-  default     = "t3.medium"
+  default     = "Standard_D2s_v5"
 }

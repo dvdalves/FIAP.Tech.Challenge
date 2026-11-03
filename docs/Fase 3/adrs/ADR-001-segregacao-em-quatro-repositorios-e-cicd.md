@@ -30,9 +30,9 @@ Decidimos segregar a arquitetura em 4 repositórios Git distintos e auto-contido
 
 | Repositório | Propósito | Tecnologias Principais |
 | :--- | :--- | :--- |
-| **`FIAP.Tech.Challenge.Lambda`** | Function Serverless para validação de CPF e emissão de tokens JWT. | .NET 10, AWS Lambda, API Gateway HTTP v2, Npgsql, Docker, Terraform. |
-| **`FIAP.Tech.Challenge.Infra.Kubernetes`** | Provisionamento da VPC, Subnets Multi-AZ, Cluster EKS, Node Groups, API Gateway central e stack de observabilidade. | Terraform, AWS EKS, AWS VPC, Helm, Datadog Agent, Metrics Server. |
-| **`FIAP.Tech.Challenge.Infra.Database`** | Provisionamento do RDS PostgreSQL, DB Subnet Group, Security Groups, Secrets Manager e versionamento de DDL/Seeds SQL. | Terraform, AWS RDS PostgreSQL 16, AWS Secrets Manager, ANSI SQL. |
+| **`FIAP.Tech.Challenge.Lambda`** | Function Serverless para validação de CPF e emissão de tokens JWT. | .NET 10, Azure Container Apps, API Management HTTP v2, Npgsql, Docker, Terraform. |
+| **`FIAP.Tech.Challenge.Infra.Kubernetes`** | Provisionamento da VNet, Subnets zone-redundant, Cluster AKS, Node Groups, API Management central e stack de observabilidade. | Terraform, Azure AKS, Azure VNet, Helm, Datadog Agent, Metrics Server. |
+| **`FIAP.Tech.Challenge.Infra.Database`** | Provisionamento do PostgreSQL Flexible Server, VNet, NSG, Key Vault e versionamento de DDL/Seeds SQL. | Terraform, Azure Database for PostgreSQL 16, Azure Key Vault, ANSI SQL. |
 | **`FIAP.Tech.Challenge`** | Núcleo de regras de negócio, Clean Architecture, APIs REST, testes e manifestos de orquestração K8s/HPA. | .NET 10, C# 13, EF Core, Kubernetes, Kustomize, Docker Compose, SonarQube. |
 
 ### Regras de Governança Aplicadas a Todos os Repositórios:
@@ -47,8 +47,8 @@ Decidimos segregar a arquitetura em 4 repositórios Git distintos e auto-contido
 
 ### Consequências Positivas
 - **Redução do Raio de Impacto (*Blast Radius*)**: Erros em scripts de Terraform não afetam a compilação ou deploy da aplicação principal.
-- **Esteiras Mais Rápidas e Especializadas**: A pipeline da Lambda roda apenas testes da Lambda; a pipeline do banco valida apenas scripts SQL e manifests do RDS.
+- **Esteiras Mais Rápidas e Especializadas**: A pipeline da Lambda roda apenas testes da Lambda; a pipeline do banco valida apenas scripts SQL e manifests do PostgreSQL Flexível.
 - **Separação de Privilégios (Least Privilege)**: As credenciais de CI/CD para deploy de banco de dados podem ser isoladas das credenciais de deploy de contêineres na aplicação.
 
 ### Consequências Negativas / Desafios Mitigados
-- **Coordenação de Dependências**: O repositório de Banco e o repositório de Kubernetes devem ser provisionados antes do deploy da aplicação no cluster. Essa ordem está documentada no guia de deploy e é garantida via referências no SSM Parameter Store e variáveis de ambiente.
+- **Coordenação de Dependências**: O repositório de Banco e o repositório de Kubernetes devem ser provisionados antes do deploy da aplicação no cluster. Essa ordem está documentada no guia de deploy e é garantida via referências no Key Vault e variáveis de ambiente.

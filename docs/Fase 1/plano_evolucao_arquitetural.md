@@ -10,7 +10,7 @@ A evolução propõe a estruturação da aplicação sob uma arquitetura modular
 
 ```mermaid
 graph TD
-    Blazor[Blazor WebApp] -->|HTTPS / OAuth2| APIGateway[API Gateway / Yarp]
+    Blazor[Blazor WebApp] -->|HTTPS / OAuth2| APIGateway[API Management / Yarp]
     APIGateway -->|Valida Token| Keycloak[(Keycloak IDP)]
 
     subgraph Core System
