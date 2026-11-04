@@ -185,6 +185,10 @@ jobs:
             terraform import azurerm_resource_group.main \
               "/subscriptions/$(az account show --query id -o tsv)/resourceGroups/fiap-tech-challenge-rg"
           fi
+          AKS_ID="/subscriptions/$(az account show --query id -o tsv)/resourceGroups/fiap-tech-challenge-rg/providers/Microsoft.ContainerService/managedClusters/oficina-aks-cluster"
+          if ! terraform state show azurerm_kubernetes_cluster.main >/dev/null 2>&1 && az resource show --ids "$AKS_ID" >/dev/null 2>&1; then
+            terraform import azurerm_kubernetes_cluster.main "$AKS_ID"
+          fi
           terraform apply -auto-approve
 
       - name: 📤 Exportar Outputs do Terraform
