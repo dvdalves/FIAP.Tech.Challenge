@@ -181,6 +181,10 @@ jobs:
             -backend-config="storage_account_name=${{ steps.tfstate.outputs.storage_account }}" \
             -backend-config="container_name=${{ steps.tfstate.outputs.container_name }}" \
             -backend-config="key=production.terraform.tfstate"
+          if ! terraform state show azurerm_resource_group.main >/dev/null 2>&1; then
+            terraform import azurerm_resource_group.main \
+              "/subscriptions/$(az account show --query id -o tsv)/resourceGroups/fiap-tech-challenge-rg"
+          fi
           terraform apply -auto-approve
 
       - name: 📤 Exportar Outputs do Terraform

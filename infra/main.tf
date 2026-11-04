@@ -49,10 +49,10 @@ resource "azurerm_kubernetes_cluster" "main" {
     name                 = "system"
     vm_size              = var.k8s_node_instance_type
     vnet_subnet_id       = azurerm_subnet.aks.id
-    node_count           = 2
+    node_count           = 1
     auto_scaling_enabled = true
     min_count            = 1
-    max_count            = 5
+    max_count            = 1
   }
 
   identity {
